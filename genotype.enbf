@@ -1,0 +1,70 @@
+@@whitespace :: /[\t ]+/
+
+start = changes:change_list;
+
+change_list = {@+:change}*;
+
+change = insertion | replacement | deletion | plasmid | phene;
+
+insertion = "+" new:insertable [marker:marker];
+
+replacement =
+     old:feature ">" new:insertable [marker:marker] |
+     old:feature ">>" new:insertable [marker:marker];
+
+deletion
+    = "-" old:insertable [marker:marker];
+
+insertable
+    = plasmid
+    | @:feature_set
+    | fusion
+    | feature;
+
+plasmid
+    = name:identifier contents:feature_set [marker:marker]
+    | name:identifier "{}" [marker:marker];
+
+marker = "::" @:phene;
+
+phene
+    = [organism:feature_organism] name:identifier accession:accession variant:binary_variant
+    | accession:accession variant:binary_variant
+    | [organism:feature_organism] name:identifier variant:variant;
+
+
+feature
+    = [organism:feature_organism] name:identifier [variant:variant] [accession:accession] [range:range]
+    | accession:accession [range:range];
+
+feature_organism = @:organism "/";
+
+feature_set
+    = "{" @+:(fusion | feature) {[list_separator] @+:(fusion | feature)}* "}"
+    | "{" @+:(fusion | feature) "}";
+
+fusion
+    = @+:feature {":" @+:feature}+;
+
+variant = "(" @:identifier ")" | @:binary_variant;
+
+binary_variant = "+" | "-";
+
+range = "[" [type:range_sequence_type] start:integer "_" end:integer "]"
+      | "[" [type:range_sequence_type] pos:integer "]";
+
+range_sequence_type = ("c" | "p") ".";
+
+accession
+    = "#" db:database ":" id:(integer | identifier)
+    | "#" id:(integer | identifier);
+
+database = /[A-Za-z0-9-][A-Za-z0-9]+/;
+
+integer = digits:/[0-9]+/;
+
+identifier = /[A-Za-z0-9]+([A-Za-z0-9_-]+[A-Za-z0-9])?/;
+
+organism = /[a-zA-Z0-9]+("."[a-zA-Z0-9]+)?/;
+
+list_separator = ",";
