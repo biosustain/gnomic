@@ -17,7 +17,7 @@ from grako.parsing import graken, Parser
 from grako.util import re, RE_FLAGS
 
 
-__version__ = (2015, 12, 14, 15, 32, 41, 0)
+__version__ = (2015, 12, 14, 15, 35, 42, 0)
 
 __all__ = [
     'GnomicParser',
@@ -265,6 +265,8 @@ class GnomicParser(Parser):
         with self._choice():
             with self._option():
                 self._token('{')
+                with self._optional():
+                    self._sep_()
                 with self._group():
                     with self._choice():
                         with self._option():
@@ -293,9 +295,13 @@ class GnomicParser(Parser):
                             self._error('no available options')
                     self.ast.setlist('@', self.last_node)
                 self._closure(block2)
+                with self._optional():
+                    self._sep_()
                 self._token('}')
             with self._option():
                 self._token('{')
+                with self._optional():
+                    self._sep_()
                 with self._group():
                     with self._choice():
                         with self._option():
@@ -304,6 +310,8 @@ class GnomicParser(Parser):
                             self._FEATURE_()
                         self._error('no available options')
                 self.ast.setlist('@', self.last_node)
+                with self._optional():
+                    self._sep_()
                 self._token('}')
             self._error('no available options')
 
