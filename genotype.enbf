@@ -34,7 +34,7 @@ phene
 
 
 feature
-    = [organism:feature_organism] name:identifier [variant:variant] [accession:accession] [range:range]
+    = [organism:feature_organism] [type:identifier "."] name:identifier [variant:variant] [accession:accession] [range:range]
     | accession:accession [range:range];
 
 feature_organism = @:organism "/";

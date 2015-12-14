@@ -17,7 +17,7 @@ from grako.parsing import graken, Parser
 from grako.util import re, RE_FLAGS
 
 
-__version__ = (2015, 12, 11, 14, 5, 49, 4)
+__version__ = (2015, 12, 14, 12, 4, 53, 0)
 
 __all__ = [
     'GnomicParser',
@@ -219,6 +219,10 @@ class GnomicParser(Parser):
                 with self._optional():
                     self._feature_organism_()
                     self.ast['organism'] = self.last_node
+                with self._optional():
+                    self._identifier_()
+                    self.ast['type'] = self.last_node
+                    self._token('.')
                 self._identifier_()
                 self.ast['name'] = self.last_node
                 with self._optional():
@@ -239,7 +243,7 @@ class GnomicParser(Parser):
             self._error('no available options')
 
         self.ast._define(
-            ['organism', 'name', 'variant', 'accession', 'range'],
+            ['organism', 'type', 'name', 'variant', 'accession', 'range'],
             []
         )
 
