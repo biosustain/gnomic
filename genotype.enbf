@@ -7,8 +7,8 @@ change = insertion | replacement | deletion | PLASMID | PHENE;
 insertion = "+" new:INSERTABLE [marker:MARKER];
 
 replacement =
-     old:FEATURE ">" new:INSERTABLE [marker:MARKER] |
-     old:FEATURE ">>" new:INSERTABLE [marker:MARKER];
+     old:FEATURE op:">" new:INSERTABLE [marker:MARKER] |
+     old:FEATURE op:">>" new:INSERTABLE [marker:MARKER];
 
 deletion
     = "-" old:INSERTABLE [marker:MARKER];
