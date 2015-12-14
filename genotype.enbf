@@ -1,70 +1,74 @@
 @@whitespace :: /[\t ]+/
 
-start = changes:change_list;
+start = [@+:change {(sep | list_separator [sep]) @+:change}*] [sep] $;
 
-change_list = {@+:change}*;
+change = insertion | replacement | deletion | PLASMID | PHENE;
 
-change = insertion | replacement | deletion | plasmid | phene;
-
-insertion = "+" new:insertable [marker:marker];
+insertion = "+" new:INSERTABLE [marker:MARKER];
 
 replacement =
-     old:feature ">" new:insertable [marker:marker] |
-     old:feature ">>" new:insertable [marker:marker];
+     old:FEATURE ">" new:INSERTABLE [marker:MARKER] |
+     old:FEATURE ">>" new:INSERTABLE [marker:MARKER];
 
 deletion
-    = "-" old:insertable [marker:marker];
+    = "-" old:INSERTABLE [marker:MARKER];
 
-insertable
-    = plasmid
-    | @:feature_set
-    | fusion
-    | feature;
+INSERTABLE
+    = PLASMID
+    | @:FEATURE_SET
+    | FUSION
+    | FEATURE;
 
-plasmid
-    = name:identifier contents:feature_set [marker:marker]
-    | name:identifier "{}" [marker:marker];
+PLASMID
+    = name:IDENTIFIER contents:FEATURE_SET [marker:MARKER]
+    | name:IDENTIFIER "{}" [marker:MARKER];
 
-marker = "::" @:phene;
+MARKER = "::" @:PHENE;
 
-phene
-    = [organism:feature_organism] name:identifier accession:accession variant:binary_variant
-    | accession:accession variant:binary_variant
-    | [organism:feature_organism] name:identifier variant:variant;
+PHENE
+    = [organism:FEATURE_ORGANISM] name:IDENTIFIER accession:ACCESSION variant:BINARY_VARIANT
+    | accession:ACCESSION variant:BINARY_VARIANT
+    | [organism:FEATURE_ORGANISM] name:IDENTIFIER variant:VARIANT;
 
 
-feature
-    = [organism:feature_organism] [type:identifier "."] name:identifier [variant:variant] [accession:accession] [range:range]
-    | accession:accession [range:range];
+FEATURE
+    = [organism:FEATURE_ORGANISM] [type:IDENTIFIER "."] name:IDENTIFIER [variant:VARIANT] [accession:ACCESSION] [range:RANGE]
+    | accession:ACCESSION [range:RANGE];
 
-feature_organism = @:organism "/";
+FEATURE_ORGANISM = @:ORGANISM "/";
 
-feature_set
-    = "{" @+:(fusion | feature) {[list_separator] @+:(fusion | feature)}* "}"
-    | "{" @+:(fusion | feature) "}";
+FEATURE_SET
+    = "{" @+:(FUSION | FEATURE) {(sep | list_separator [sep]) @+:(FUSION | FEATURE)}* "}"
+    | "{" @+:(FUSION | FEATURE) "}";
 
-fusion
-    = @+:feature {":" @+:feature}+;
+FUSION
+    = @+:FEATURE {":" @+:FEATURE}+;
 
-variant = "(" @:identifier ")" | @:binary_variant;
+VARIANT = "(" @:VARIANT_DEFINITION ")" | @:BINARY_VARIANT;
 
-binary_variant = "+" | "-";
+VARIANT_DEFINITION = @:IDENTIFIER {("," | ";") @:IDENTIFIER}*;
 
-range = "[" [type:range_sequence_type] start:integer "_" end:integer "]"
-      | "[" [type:range_sequence_type] pos:integer "]";
+BINARY_VARIANT = "+" | "-";
 
-range_sequence_type = ("c" | "p") ".";
+RANGE = "[" [type:RANGE_SEQUENCE_TYPE] start:INTEGER "_" end:INTEGER "]"
+      | "[" [type:RANGE_SEQUENCE_TYPE] pos:INTEGER "]";
 
-accession
-    = "#" db:database ":" id:(integer | identifier)
-    | "#" id:(integer | identifier);
+RANGE_SEQUENCE_TYPE = ("c" | "p") ".";
 
-database = /[A-Za-z0-9-][A-Za-z0-9]+/;
+(* NOTE ACCESSION with its optional ":" can be ambiguous when it is used within a fusion and the IDENTIFIER is not numeric.
+   In these cases, a DATABASE should be specified. *)
+ACCESSION
+    = "#" db:DATABASE ":" id:(INTEGER | IDENTIFIER)
+    | "#" id:(INTEGER | IDENTIFIER);
 
-integer = digits:/[0-9]+/;
+DATABASE = /[A-Za-z0-9-][A-Za-z0-9]+/;
 
-identifier = /[A-Za-z0-9]+([A-Za-z0-9_-]+[A-Za-z0-9])?/;
+INTEGER = @:/[0-9]+/;
 
-organism = /[a-zA-Z0-9]+("."[a-zA-Z0-9]+)?/;
+IDENTIFIER = /[A-Za-z0-9]+([A-Za-z0-9_-]+[A-Za-z0-9])?/;
+
+ORGANISM = /[a-zA-Z0-9]+("."[a-zA-Z0-9]+)?/;
 
 list_separator = ",";
+
+sep = /[\t ]+/;
