@@ -17,7 +17,7 @@ from grako.parsing import graken, Parser
 from grako.util import re, RE_FLAGS
 
 
-__version__ = (2015, 12, 14, 15, 35, 42, 0)
+__version__ = (2015, 12, 22, 13, 40, 6, 1)
 
 __all__ = [
     'GnomicParser',
@@ -453,7 +453,7 @@ class GnomicParser(Parser):
 
     @graken()
     def _ORGANISM_(self):
-        self._pattern(r'[a-zA-Z0-9]+("."[a-zA-Z0-9]+)?')
+        self._pattern(r'[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)?')
 
     @graken()
     def _list_separator_(self):

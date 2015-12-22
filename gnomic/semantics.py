@@ -1,4 +1,4 @@
-from gnomic import Organism, Type, Fusion, Mutation, Accession, Plasmid, Feature
+from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type
 from gnomic.grammar import GnomicSemantics
 
 
@@ -51,7 +51,7 @@ class DefaultSemantics(GnomicSemantics):
         if ast.type or default_type:
             name = ast.type or default_type
             try:
-                return self._types[name]
+                type = self._types[name]
             except KeyError:
                 self._types[name] = type = Type(name)
         else:
