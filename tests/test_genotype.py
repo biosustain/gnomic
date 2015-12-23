@@ -13,6 +13,11 @@ class GenotypeTestCase(TestCase):
 
         return genotype
 
+    def test_chain_propagate_insertions(self):
+        genotype = self.chain('+geneA', '+geneB')
+
+        self.assertEqual([], genotype.changes())
+
     def test_keep_fusions_where_possible(self):
         genotype = self.chain('+P.promoterA:geneB:T.terminatorC +geneD',
                               '-geneB')
@@ -27,6 +32,7 @@ class GenotypeTestCase(TestCase):
         genotype = self.chain('+geneA:geneB',
                               '+geneB',
                               '-geneA:geneB')
+
         # should have neither geneA, nor geneB
 
     def omit_changes_already_in_fusion(self):
@@ -54,3 +60,6 @@ class GenotypeTestCase(TestCase):
                               '-geneA:geneB')
 
         # should have neither geneA, nor geneB
+
+    def test_variants(self):
+        pass

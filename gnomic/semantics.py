@@ -1,4 +1,4 @@
-from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type
+from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type, FeatureTree
 from gnomic.grammar import GnomicSemantics
 
 
