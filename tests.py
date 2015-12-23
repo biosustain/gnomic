@@ -14,6 +14,7 @@ ast = Genotype.parse('site>plasmidA{abc} -{a:b} -{first second} -plasmidB{} +{P.
                            # 'X(v)'
                      )         # phenotype)
 
+print(Genotype.is_valid('sdassfs df=fwer34'))
 print()
 pprint(ast)
 

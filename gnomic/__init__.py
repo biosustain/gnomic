@@ -1,3 +1,5 @@
+from grako.exceptions import GrakoException
+
 from gnomic.models import *
 from gnomic.grammar import GnomicParser
 from gnomic.semantics import DefaultSemantics
@@ -127,17 +129,29 @@ class Genotype(object):
         self.removed_fusion_features = tuple(removed_fusion_features)
 
     @classmethod
-    def parse(self, value,
+    def _parse_string(cls, string, *args, **kwargs):
+        parser = GnomicParser()
+        semantics = DefaultSemantics(*args, **kwargs)
+        return parser.parse(string,
+                            whitespace='',
+                            semantics=semantics,
+                            rule_name='start')
+
+    @classmethod
+    def is_valid(cls, string):
+        try:
+            cls._parse_string(string)
+            return True
+        except GrakoException:
+            return False
+
+    @classmethod
+    def parse(cls,
+              string,
               parent=None,
               organisms=DEFAULT_ORGANISMS,
               types=DEFAULT_TYPES):
-        parser = GnomicParser()
-        semantics = DefaultSemantics(organisms, types)
-        changes = parser.parse(value,
-                               whitespace='',
-                               semantics=semantics,
-                               rule_name='start')
-
+        changes = cls._parse_string(string, organisms, types)
         return Genotype(changes, parent=parent)
 
     def changes(self, inclusive=True, fusions=True):
