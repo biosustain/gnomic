@@ -1,6 +1,3 @@
-from collections import namedtuple
-
-from gnomic.utils import namedtuple_with_defaults
 
 
 class Mutation(object):
@@ -31,8 +28,33 @@ class Mutation(object):
         self.marker = marker
         self.multiple = multiple
 
+    def __eq__(self, other):
+        return isinstance(other, Mutation) and \
+            self.old == other.old and \
+            self.new == other.new and \
+            self.marker == other.marker and \
+            self.multiple == other.multiple
+
+    def __hash__(self):
+        return hash(self.old) + \
+               hash(self.new) + \
+               hash(self.marker) + \
+               hash(self.multiple)
+
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, repr(self.__dict__))
+
+
+def Ins(insert, **kwargs):
+    return Mutation(None, insert, **kwargs)
+
+
+def Sub(before, after, **kwargs):
+    return Mutation(before, after, **kwargs)
+
+
+def Del(delete, **kwargs):
+    return Mutation(delete, None, **kwargs)
 
 
 class MatchableMixin(object):
@@ -59,6 +81,12 @@ class FeatureTree(object):
 
     def __iter__(self):
         return iter(self.contents)
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.contents == other.contents
+
+    def __hash__(self):
+        return hash(self.contents)
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, repr(self.contents))
@@ -121,6 +149,18 @@ class Feature(MatchableMixin):
         self.organism = organism
         self.variant = variant
         self.range = range
+
+    @classmethod
+    def parse(cls, string, *args, **kwargs):
+        from gnomic.grammar import GnomicParser
+        from gnomic.semantics import DefaultSemantics
+
+        parser = GnomicParser()
+        semantics = DefaultSemantics(*args, **kwargs)
+        return parser.parse(string,
+                            whitespace='',
+                            semantics=semantics,
+                            rule_name='FEATURE')
 
     def match(self, other):
         if not isinstance(other, Feature):
