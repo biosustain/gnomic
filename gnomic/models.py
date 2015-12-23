@@ -185,7 +185,7 @@ class Feature(MatchableMixin):
                 return True
             if self.variant == other.variant:
                 return True
-            return True
+            return False
         else:
             # not enough information for any match
             return False
