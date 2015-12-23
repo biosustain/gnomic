@@ -38,19 +38,26 @@ class Genotype(object):
 
     """
 
-    def __init__(self, changes, parent=None):
+    FUSION_MATCH_WHOLE_ONLY = 'match-whole-only'
+    FUSION_UPDATE_ON_CHANGE = 'update-on-change'
+    FUSION_BREAK_ON_CHANGE = 'break-on-change'
+    FUSION_EXPLODE_ON_CHANGE = 'explode-on-change'
+
+    def __init__(self, changes, parent=None, fusion_strategy=FUSION_MATCH_WHOLE_ONLY):
         self.parent = parent
         self._changes = changes
 
-        sites = set()
-        markers = set()
-        phenotypes = set()
-        added_plasmids = set()
-        removed_plasmids = set()
-        added_features = set()
-        removed_features = set()
-        added_fusion_features = set()
-        removed_fusion_features = set()
+        # TODO renoval_strategy do not add to removed_features list if there was a match in added_features list
+
+        sites = set(parent.sites if parent else ())
+        markers = set(parent.markers if parent else ())
+        phenotypes = set(parent.phenotypes if parent else ())
+        added_plasmids = set(parent.added_plasmids if parent else ())
+        removed_plasmids = set(parent.removed_plasmids if parent else ())
+        added_features = set(parent.added_features if parent else ())
+        removed_features = set(parent.removed_features if parent else ())
+        added_fusion_features = set(parent.added_fusion_features if parent else ())
+        removed_fusion_features = set(parent.removed_fusion_features if parent else ())
 
         def remove(features, exclude):
             return {feature for feature in features if not exclude.match(feature)}
@@ -89,10 +96,12 @@ class Genotype(object):
 
                     # TODO fusion-sensitive implementation
                     # fusion replace/delete strategies:
-                    # MATCH_WHOLE_ONLY       | A:B:C D:E  B>X -D:E    A:B:C -B +X
-                    # UPDATE                 | A:B:C B>X              A:X:C     (uses SPLIT on delete)
-                    # SPLIT                  | A:B:C:D C>X            A:B X D
-                    # DECOMPOSE              | A:B:C:D C>X            A B X D
+                    # FUSION_MATCH_WHOLE_ONLY       | A:B:C D:E  B>X -D:E    A:B:C -B +X
+                    # FUSION_UPDATE_ON_CHANGE       | A:B:C B>X              A:X:C     (uses SPLIT on delete)
+                    # FUSION_SPLIT_ON_CHANGE        | A:B:C:D C>X            A:B X D
+                    # FUSION_EXPLODE_ON_CHANGE      | A:B:C:D C>X            A B X D
+                    if fusion_strategy != Genotype.FUSION_MATCH_WHOLE_ONLY:
+                        raise NotImplementedError('Unsupported fusion strategy: {}'.format(fusion_strategy))
 
                 if isinstance(change.new, Plasmid):
                     # insertion of a plasmid
@@ -150,22 +159,37 @@ class Genotype(object):
               string,
               parent=None,
               organisms=DEFAULT_ORGANISMS,
-              types=DEFAULT_TYPES):
+              types=DEFAULT_TYPES,
+              **kwargs):
         changes = cls._parse_string(string, organisms, types)
-        return Genotype(changes, parent=parent)
+        return Genotype(changes, parent=parent, **kwargs)
 
-    def changes(self, inclusive=True, fusions=True):
+    def _iter_changes(self, fusions=True):
+        if fusions:
+            for feature in self.added_fusion_features:
+                yield Ins(feature)
+
+            for feature in self.removed_fusion_features:
+                yield Del(feature)
+        else:
+            for feature in self.added_features:
+                yield Ins(feature)
+
+            for feature in self.removed_features:
+                yield Del(feature)
+
+        for plasmid in self.added_plasmids:
+            yield plasmid
+
+        for plasmid in self.removed_plasmids:
+            yield Del(plasmid)
+
+    def changes(self, fusions=False):
         """
-        :param inclusive: Whether to include changes from all parents.
         :param bool fusions: Keeps fusions together if ``True``, otherwise includes them as individual features.
         :return:
         """
-
-
-        if inclusive and self.parent:
-            for change in self.parent.changes(inclusive=True, fusions=fusions):
-                pass
-
+        return set(self._iter_changes(fusions=fusions))
 
     def format(self, fusions=True):
         """
