@@ -20,7 +20,7 @@ class Mutation(object):
         A :class:`Feature` with a variant, acting as selection marker. The selection marker is generally inserted as part
         of the mutation.
 
-    .. attribute:: mutation
+    .. attribute:: multiple
 
         A :class:`bool`, specifying whether :attr:`old` is a multiple integration site.
 
