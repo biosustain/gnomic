@@ -45,7 +45,7 @@ class Genotype(object):
 
     def __init__(self, changes, parent=None, fusion_strategy=FUSION_MATCH_WHOLE_ONLY):
         self.parent = parent
-        self._changes = changes
+        self._changes = tuple(changes)
 
         # TODO FIXME renoval strategy: do not add to removed_features list if there was a match in added_features list
         # TODO same for plasmids!
@@ -137,6 +137,10 @@ class Genotype(object):
         self.removed_features = tuple(removed_features)
         self.added_fusion_features = tuple(added_fusion_features)
         self.removed_fusion_features = tuple(removed_fusion_features)
+
+    @property
+    def raw(self):
+        return self._changes
 
     @classmethod
     def _parse_string(cls, string, *args, **kwargs):
