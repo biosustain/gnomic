@@ -47,7 +47,8 @@ class Genotype(object):
         self.parent = parent
         self._changes = changes
 
-        # TODO renoval_strategy do not add to removed_features list if there was a match in added_features list
+        # TODO FIXME renoval strategy: do not add to removed_features list if there was a match in added_features list
+        # TODO same for plasmids!
 
         sites = set(parent.sites if parent else ())
         markers = set(parent.markers if parent else ())
@@ -103,11 +104,11 @@ class Genotype(object):
                     if fusion_strategy != Genotype.FUSION_MATCH_WHOLE_ONLY:
                         raise NotImplementedError('Unsupported fusion strategy: {}'.format(fusion_strategy))
 
-                if isinstance(change.new, Plasmid):
-                    # insertion of a plasmid
-                    added_plasmids = upsert(added_plasmids, change.new)
-                    removed_plasmids = remove(removed_plasmids, change.new)
-                elif change.new:
+                if change.new:
+                    # if change.new is a plasmid, the features in the plasmid are integrated
+                    if isinstance(change.new, Plasmid):
+                        pass  # any further record of the integrated plasmid would go here
+
                     # insertion of one (or more) features or fusions
                     for feature in change.new.features():
                         added_features = upsert(added_features, feature)
@@ -183,6 +184,8 @@ class Genotype(object):
 
         for plasmid in self.removed_plasmids:
             yield Del(plasmid)
+
+    # TODO some getter for accessing the original changes (self._changes)
 
     def changes(self, fusions=False):
         """

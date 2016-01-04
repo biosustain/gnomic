@@ -32,6 +32,16 @@ class GenotypeTestCase(BaseTestCase):
             Ins(Feature(name='geneC')),
         }, self.chain('-geneA -geneB', '+geneB', '+geneC').changes())
 
+    def test_integrated_plasmid_vector(self):
+        self.assertEqual({
+            Del(Feature(name='siteA')),
+        }, self.chain('siteA>pA{}').changes())
+
+        self.assertEqual({
+            Del(Feature(name='siteA')),
+            Ins(Feature(name='geneA')),
+            Ins(Feature(name='geneB')),
+        }, self.chain('siteA>pA{geneA geneB}').changes())
 
     def test_variants(self):
         self.assertEqual({
