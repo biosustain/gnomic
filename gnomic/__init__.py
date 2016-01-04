@@ -35,6 +35,15 @@ class Genotype(object):
     """
 
 
+    .. attribute:: raw
+
+        A :class:`tuple` containing the changes introduced in this genotype.
+
+        A change can be one of:
+
+        - A :class:`Mutation`
+        - A :class:`Plasmid` (non-integrated plasmid)
+        - A :class:`Feature` of type 'phene' with a variant (a "phenotype")
 
     """
 
@@ -153,6 +162,12 @@ class Genotype(object):
 
     @classmethod
     def is_valid(cls, string):
+        """
+        Tests whether a gnomic genotype definition can be parsed.
+
+        :param str string: The genotype definition to validate.
+        :return: :class:`bool`
+        """
         try:
             cls._parse_string(string)
             return True
@@ -163,10 +178,23 @@ class Genotype(object):
     def parse(cls,
               string,
               parent=None,
-              organisms=DEFAULT_ORGANISMS,
-              types=DEFAULT_TYPES,
+              organisms=None,
+              types=None,
               **kwargs):
-        changes = cls._parse_string(string, organisms, types)
+        """
+
+        :param str string: The genotype definition to parse
+        :param Genotype parent:
+        :param organisms: A list or tuple of :class:`Organism` objects used to resolve organism designations in
+            features. If empty, uses: :attr:`DEFAULT_ORGANISMS`.
+        :param types: A list or tuple of :class:`Type` objects used to resolve type designations in features.
+            If empty, uses: :attr:`DEFAULT_TYPES`.
+        :param kwargs: Any additional attributes, such as `fusion_strategy`, used with :class:`Genotype`.
+        :return: A :class:`Genotype` instance with the parsed gnomic genotype.
+        """
+        changes = cls._parse_string(string,
+                                    organisms or DEFAULT_ORGANISMS,
+                                    types or DEFAULT_TYPES)
         return Genotype(changes, parent=parent, **kwargs)
 
     def _iter_changes(self, fusions=True):

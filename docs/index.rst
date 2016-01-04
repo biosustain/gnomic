@@ -55,6 +55,7 @@ User's guide
    :maxdepth: 2
 
    grammar
+   models
 
 Indices and tables
 ==================

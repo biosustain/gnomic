@@ -3,14 +3,28 @@
 class Mutation(object):
     """
 
-    .. attribute: old
+    .. attribute:: old
 
-        Used either in a deletion, or replacement. When used in a replacement, this must
+        Used either in a deletion or replacement. When used in a replacement, this must
         be a :class:`Feature`; when used in a deletion this can be any *insertable*.
 
-    .. attribute: new
+        This may be a :class:`Plasmid` to signify a removed non-integrated plasmid. (Plasmid vectors that have been
+        integrated cannot be removed directly --- their contents must be removed instead.)
+
+    .. attribute:: new
 
         Used either in an insertion, or replacement.
+
+    .. attribute:: marker
+
+        A :class:`Feature` with a variant, acting as selection marker. The selection marker is generally inserted as part
+        of the mutation.
+
+    .. attribute:: mutation
+
+        A :class:`bool`, specifying whether :attr:`old` is a multiple integration site.
+
+        This attribute is only used with a replacement.
 
     """
 
@@ -65,6 +79,9 @@ class MatchableMixin(object):
 
 
 class FeatureTree(object):
+    """
+    A grouping or collection of features and fusions.
+    """
     def __init__(self, *contents):
         self.contents = contents
 
@@ -158,9 +175,8 @@ class Feature(MatchableMixin):
 
         ::
 
-            >>> Feature.parse('#SGD:S000001065')
-            AST({'id': 'S000001065', 'db': 'SGD'})
-            Feature(accession=Accession(database='SGD', identifier='S000001065'}))
+            >>> Feature.parse('MYO1#SGD:S000001065')
+            Feature(name='MYO1', accession=Accession(database='SGD', identifier='S000001065'}))
 
         :param string:
         :param args:
