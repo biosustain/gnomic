@@ -18,13 +18,12 @@ A JavaScript (Node) version of the package is available on NPM as `gnomic-gramma
 Example usage
 -------------
 
-In this example, we parse `"geneA ΔsiteA::promoterB:geneB ΔgeneC"` and `"ΔgeneA"` in *gnomic* syntax:
-
+In this example, we parse `"EcGeneA ΔsiteA::promoterB:EcGeneB ΔgeneC"` and `"ΔgeneA"` in *gnomic* syntax:
 
 .. code-block:: python
 
    >>> from gnomic import *
-   >>> g1 = Genotype.parse('+E.coli/geneA siteA>P.promoterB:E.coli/geneB -geneC')
+   >>> g1 = Genotype.parse('+Ec/geneA siteA>P.promoterB:Ec/geneB -geneC')
    >>> g1.added_features
    (Feature(organism=Organism('Escherichia coli'), name='geneB'),
     Feature(organism=Organism('Escherichia coli'), name='geneA'),

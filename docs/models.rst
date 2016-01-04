@@ -41,13 +41,13 @@ Mutations
 Features
 --------
 
+.. autoclass:: Feature
+    :members:
+
 .. autoclass:: FeatureTree
     :members:
 
 .. autoclass:: Plasmid
-    :members:
-
-.. autoclass:: Feature
     :members:
 
 .. autoclass:: Fusion
