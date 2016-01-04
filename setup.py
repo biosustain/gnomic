@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='gnomic',
-    version='0.0.0',
+    version='0.1.0a1',
     packages=find_packages(exclude=['*tests*']),
     license='Apache',
     author='Lars Schöning',
@@ -19,7 +19,7 @@ setup(
         'six>=1.8.0'
     ],
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 3 - Alpha',
         'Environment :: Other Environment',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
