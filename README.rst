@@ -51,7 +51,7 @@ The grammar consists of a list of genotype or phenotype designations, separated 
 spaces and/or commas. The designations are described using the following nomenclature:
 
 ============================================================= ==================================
- Designation                               Grammar expression
+ Designation                                                  Grammar expression
 ============================================================= ==================================
  ``feature`` deleted                                          ``-feature``
  ``feature`` inserted                                         ``+feature``
