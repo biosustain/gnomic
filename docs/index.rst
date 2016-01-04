@@ -9,7 +9,7 @@ Welcome to Gnomic's documentation!
 Gnomic is a human-- and computer--readable representation of microbial genotypes and phenotypes. The ``gnomic``
 Python package contains a parser for the Gnomic grammar able to interpret changes over multiple generations.
 
-The first formal guidelines for microbial genetic nomenclature were drawn up in the 1960s. They are often too
+The first formal guidelines for microbial genetic nomenclature were drawn up in the 1960s. These traditional nomenclatures are too
 ambiguous to be useful for modern computer-assisted genome engineering. The Gnomic grammar is an improvement over existing nomenclatures
 designed to be clear, unambiguous and computer–readable and describe genotypes at various levels of detail.
 
@@ -38,7 +38,6 @@ In this example, we parse `"geneA ΔsiteA::promoterB:geneB ΔgeneC"` and `"Δgen
              new=FeatureTree(Fusion(Feature(type=Type('promoter'), name='promoterB'),
                                     Feature(organism=Organism('Escherichia coli'), name='geneB')))),
     Mutation(old=FeatureTree(Feature(name='geneC'))))
-   >>>
    >>> g2 = Genotype.parse('-geneA', parent=g1)
    >>> g2.added_features
    (Feature(type=Type('promoter'), name='promoterB'),

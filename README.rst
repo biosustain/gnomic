@@ -6,7 +6,7 @@ Gnomic
 Gnomic is a human– and computer–readable representation of microbial genotypes and phenotypes. The ``gnomic``
 Python package contains a parser for the Gnomic grammar able to interpret changes over multiple generations.
 
-The first formal guidelines for microbial genetic nomenclature were drawn up in the 1960s. They are often too
+The first formal guidelines for microbial genetic nomenclature were drawn up in the 1960s. These traditional nomenclatures are too
 ambiguous to be useful for modern computer-assisted genome engineering. The Gnomic grammar is an improvement over existing nomenclatures
 designed to be clear, unambiguous and computer–readable and describe genotypes at various levels of detail.
 
