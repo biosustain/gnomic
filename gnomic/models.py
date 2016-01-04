@@ -42,7 +42,9 @@ class Mutation(object):
                hash(self.multiple)
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, repr(self.__dict__))
+        return '{}({})'.format(self.__class__.__name__,
+                               ', '.join('{}={}'.format(key, repr(value))
+                                         for key, value in self.__dict__.items() if value))
 
 
 def Ins(insert, **kwargs):
@@ -89,7 +91,7 @@ class FeatureTree(object):
         return hash(self.contents)
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, repr(self.contents))
+        return '{}({})'.format(self.__class__.__name__, ', '.join(map(repr, self.contents)))
 
 
 class Fusion(FeatureTree, MatchableMixin):
@@ -152,6 +154,19 @@ class Feature(MatchableMixin):
 
     @classmethod
     def parse(cls, string, *args, **kwargs):
+        """
+
+        ::
+
+            >>> Feature.parse('#SGD:S000001065')
+            AST({'id': 'S000001065', 'db': 'SGD'})
+            Feature(accession=Accession(database='SGD', identifier='S000001065'}))
+
+        :param string:
+        :param args:
+        :param kwargs:
+        :return:
+        """
         from gnomic.grammar import GnomicParser
         from gnomic.semantics import DefaultSemantics
 
@@ -212,7 +227,9 @@ class Feature(MatchableMixin):
                hash(self.range)
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, repr(self.__dict__))
+        return '{}({})'.format(self.__class__.__name__,
+                               ', '.join('{}={}'.format(key, repr(value))
+                                         for key, value in self.__dict__.items() if value))
 
 
 class Organism(object):
@@ -260,8 +277,9 @@ class Accession(object):
         return hash(self.identifier) + hash(self.database)
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, repr(self.__dict__))
-
+        return '{}({})'.format(self.__class__.__name__,
+                               ', '.join('{}={}'.format(key, repr(value))
+                                         for key, value in self.__dict__.items() if value))
 
 class Type(object):
     def __init__(self, name, aliases=None):

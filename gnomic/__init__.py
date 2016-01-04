@@ -20,8 +20,8 @@ __all__ = (
 )
 
 DEFAULT_TYPES = (
-    Type('promoter', 'P'),
-    Type('terminator', 'T'),
+    Type('promoter', ('P',)),
+    Type('terminator', ('T',)),
     Type('gene')
 )
 
