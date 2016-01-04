@@ -28,6 +28,13 @@ In this example, we parse *"geneA ΔsiteA::promoterB:geneB ΔgeneC"* and *"Δgen
    >>> g1.removed_features
    (Feature(name='geneC'),
     Feature(name='siteA'))
+    >>> g1.changes(fusions=False)
+   {Mutation(new=FeatureTree(Feature(organism=Organism('Escherichia coli'), name='geneA'))),
+    Mutation(old=FeatureTree(Feature(name='geneC'))),
+    Mutation(old=FeatureTree(Feature(name='siteA'))),
+    Mutation(new=FeatureTree(Feature(organism=Organism('Escherichia coli'), name='geneB'))),
+    Mutation(new=FeatureTree(Feature(type=Type('promoter'), name='promoterB')))}
+   >>>
    >>> g2 = Genotype.parse('-geneA', parent=g1)
    >>> g2.added_features
    (Feature(type=Type('promoter'), name='promoterB'),
