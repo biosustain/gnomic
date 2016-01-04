@@ -38,7 +38,6 @@ class DefaultSemantics(GnomicSemantics):
         return Mutation(ast.old, None, marker=ast.marker)
 
     def ACCESSION(self, ast):
-        print(ast)
         return Accession(ast['id'], ast['db'])
 
     def PLASMID(self, ast):
