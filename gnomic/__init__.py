@@ -47,12 +47,12 @@ class Genotype(object):
 
     """
 
-    FUSION_MATCH_WHOLE_ONLY = 'match-whole-only'
+    FUSION_MATCH_WHOLE = 'match-whole-only'
     FUSION_UPDATE_ON_CHANGE = 'update-on-change'
-    FUSION_BREAK_ON_CHANGE = 'break-on-change'
+    FUSION_SPLIT_ON_CHANGE = 'split-on-change'
     FUSION_EXPLODE_ON_CHANGE = 'explode-on-change'
 
-    def __init__(self, changes, parent=None, fusion_strategy=FUSION_MATCH_WHOLE_ONLY):
+    def __init__(self, changes, parent=None, fusion_strategy=FUSION_MATCH_WHOLE):
         self.parent = parent
         self._changes = tuple(changes)
 
@@ -69,11 +69,18 @@ class Genotype(object):
         added_fusion_features = set(parent.added_fusion_features if parent else ())
         removed_fusion_features = set(parent.removed_fusion_features if parent else ())
 
-        def remove(features, exclude):
-            return {feature for feature in features if not exclude.match(feature)}
+        def remove(features, remove):
+            return {feature for feature in features if not remove.match(feature)}
 
         def upsert(features, addition):
             return remove(features, addition) | {addition}
+
+        # removes a feature, but only adds it to removed features if it isn't in added features.
+        def remove_or_exclude(added_features, removed_features, exclude):
+            for feature in added_features:
+                if exclude == feature:
+                    return remove(added_features, exclude), removed_features
+            return remove(added_features, exclude), upsert(removed_features, exclude)
 
         for change in changes:
             if isinstance(change, Plasmid):
@@ -110,8 +117,18 @@ class Genotype(object):
                     # FUSION_UPDATE_ON_CHANGE       | A:B:C B>X              A:X:C     (uses SPLIT on delete)
                     # FUSION_SPLIT_ON_CHANGE        | A:B:C:D C>X            A:B X D
                     # FUSION_EXPLODE_ON_CHANGE      | A:B:C:D C>X            A B X D
-                    if fusion_strategy != Genotype.FUSION_MATCH_WHOLE_ONLY:
+                    if fusion_strategy not in (Genotype.FUSION_MATCH_WHOLE,):
                         raise NotImplementedError('Unsupported fusion strategy: {}'.format(fusion_strategy))
+
+                    # TODO: support: fusion split, fusion whole.
+
+                    if fusion_strategy == Genotype.FUSION_MATCH_WHOLE:
+                        for feature_or_fusion in change.old:
+                            added_fusion_features, removed_fusion_features = remove_or_exclude(added_fusion_features,
+                                                                                               removed_fusion_features,
+                                                                                               feature_or_fusion)
+                    elif fusion_strategy == Genotype.FUSION_SPLIT_ON_CHANGE:
+                        pass
 
                 if change.new:
                     # if change.new is a plasmid, the features in the plasmid are integrated
