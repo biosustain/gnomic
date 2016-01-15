@@ -77,7 +77,7 @@ class GenotypeTestCase(BaseTestCase):
         self.assertEqual({
             Ins(Feature(name='geneB')),
             Del(Feature(name='geneA', variant='x')),
-        }, self.chain('+geneA(x) +geneB', '-geneA(x)').changes())
+        }, self.chain('+geneB', '-geneA(x)').changes())
 
         # geneA is marked as deleted because the match was not exact
         self.assertEqual({

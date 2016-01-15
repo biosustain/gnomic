@@ -108,8 +108,9 @@ class Genotype(object):
                 elif change.old:
                     # deletion of one (or more) features or fusions
                     for feature in change.old.features():
-                        removed_features = upsert(removed_features, feature)
-                        added_features = remove(added_features, feature)
+                        added_features, removed_features = remove_or_exclude(added_features,
+                                                                             removed_features,
+                                                                             feature)
 
                     # TODO fusion-sensitive implementation
                     # fusion replace/delete strategies:
@@ -147,12 +148,12 @@ class Genotype(object):
 
                 if change.old and change.new:
                     # in a replacement, the removed part must be a single feature
-                    upsert(sites, change.old.contents[0])
+                    sites = upsert(sites, change.old.contents[0])
 
                 if change.marker:
-                    upsert(markers, change.marker)
-                    upsert(added_features, change.marker)
-                    remove(removed_features, change.marker)
+                    markers = upsert(markers, change.marker)
+                    added_features = upsert(added_features, change.marker)
+                    removed_features = remove(removed_features, change.marker)
 
         self.sites = tuple(sites)
         self.markers = tuple(markers)
