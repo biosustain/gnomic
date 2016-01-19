@@ -68,7 +68,7 @@ spaces and/or commas. The designations are described using the following nomencl
  phenotype: wild-type                                         ``phene+`` or ``phene(wild-type)``
  phenotype: mutant                                            ``phene-`` or ``phene(mutant)``
  selection marker: used (wild-type)                           ``marker+``
- selection marker: available (mutantt)                        ``marker-``
+ selection marker: available (mutant)                        ``marker-``
  a non-integrated plasmid                                     ``plasmid{}`` or ``plasmid{..insertables}``
  plasmid with selection marker                                ``plasmid{..insertables}::marker+``
  integrated plasmid vector with required insertion site       ``site>vector{..insertables}``
