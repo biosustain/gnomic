@@ -17,7 +17,7 @@ from grako.parsing import graken, Parser
 from grako.util import re, RE_FLAGS
 
 
-__version__ = (2015, 12, 22, 13, 40, 6, 1)
+__version__ = (2016, 1, 19, 8, 48, 30, 1)
 
 __all__ = [
     'GnomicParser',
@@ -352,6 +352,8 @@ class GnomicParser(Parser):
                     with self._option():
                         self._token(';')
                     self._error('expecting one of: , ;')
+            with self._optional():
+                self._sep_()
             self._IDENTIFIER_()
             self.ast['@'] = self.last_node
         self._closure(block1)
