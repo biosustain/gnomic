@@ -29,11 +29,11 @@ class Mutation(object):
     """
 
     def __init__(self, old, new, marker=None, multiple=False):
-        if isinstance(old, list):
+        if isinstance(old, (list, tuple)):
             old = FeatureTree(*old)
         elif old and not isinstance(old, Plasmid):
             old = FeatureTree(old)
-        if isinstance(new, list):
+        if isinstance(new, (list, tuple)):
             new = FeatureTree(*new)
         elif new and not isinstance(new, Plasmid):
             new = FeatureTree(new)
@@ -229,6 +229,7 @@ class Feature(MatchableMixin):
             return self.accession == other.accession
         elif self.name:
             return self.name == other.name and \
+                   self.type == other.type and \
                    self.organism == other.organism and \
                    self.variant == other.variant
         # TODO range

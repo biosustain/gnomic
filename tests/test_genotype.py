@@ -86,6 +86,7 @@ class GenotypeTestCase(BaseTestCase):
 
 class GenotypeFusionsTestCase(BaseTestCase):
 
+    @SkipTest
     def test_break_fusions_on_deletion(self):
         genotype = self.chain('+P.promoterA:geneB:T.terminatorC +geneD',
                               '-geneB')
@@ -103,6 +104,7 @@ class GenotypeFusionsTestCase(BaseTestCase):
 
         # should have neither geneA, nor geneB
 
+    @SkipTest
     def test_update_fusions_where_possible(self):
         genotype = self.chain('+P.promoterA:geneB:T.terminatorC +geneD',
                               '-geneB')
@@ -120,6 +122,7 @@ class GenotypeFusionsTestCase(BaseTestCase):
 
         # should have neither geneA, nor geneB
 
+    @SkipTest
     def omit_changes_already_in_fusion(self):
         # XXX should they be omitted or not?
 

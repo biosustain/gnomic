@@ -59,5 +59,5 @@ class DefaultSemantics(GnomicSemantics):
         return Feature(ast.name, type,
                        accession=ast.accession,
                        organism=ast.organism,
-                       variant=','.join(ast.variant) if isinstance(ast.variant, list) else ast.variant,
+                       variant=', '.join(ast.variant) if isinstance(ast.variant, list) else ast.variant,
                        range=ast.range)
