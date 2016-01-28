@@ -36,7 +36,6 @@ class GrammarTestCase(TestCase):
             Ins(Feature(accession=Accession(identifier='123')))
         ], parse('+#123'))
 
-
     def test_parse_variants(self):
         self.assertEqual([
             Feature(type=Type('phene'), name='A', variant='wild-type')

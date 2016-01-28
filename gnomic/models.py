@@ -193,7 +193,7 @@ class Feature(MatchableMixin):
                             semantics=semantics,
                             rule_name='FEATURE')
 
-    def match(self, other):
+    def match(self, other, match_variant=True):
         if not isinstance(other, Feature):
             return False
 
@@ -212,7 +212,7 @@ class Feature(MatchableMixin):
 
             # if this feature has no variant, match any other feature; otherwise, match only features with the same
             # variant
-            if not self.variant:
+            if not self.variant or match_variant is False:
                 return True
             if self.variant == other.variant:
                 return True

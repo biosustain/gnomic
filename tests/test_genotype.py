@@ -1,6 +1,6 @@
 from unittest import TestCase, SkipTest
 
-from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub
+from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type
 
 
 class BaseTestCase(TestCase):
@@ -59,6 +59,40 @@ class GenotypeTestCase(BaseTestCase):
             Del(Feature(name='geneA', variant='x')),
             Ins(Feature(name='geneA', variant='y')),
         }, self.chain('-geneA(x)', '+geneA(y)').changes())
+
+    def test_phenotypes_replace_variants(self):
+
+        # when variants are used (default case):
+        self.assertEqual({
+            Ins(Feature(name='geneA', variant='x')),
+            Ins(Feature(name='geneA', variant='y')),
+            Ins(Feature(name='geneA', variant='z')),
+        }, self.chain('+geneA(x) +geneA(y)', '+geneA(z)').changes())
+
+        # when phenotypes are used:
+        self.assertEqual({
+            Ins(Feature(name='pheneA', type=Type('phene'), variant='mutant')),
+        }, self.chain('pheneA+', 'pheneA-').changes())
+
+        # when variants are mixed:
+        self.assertEqual({
+            Ins(Feature(name='geneA', type=Type('phene'), variant='z')),
+        }, self.chain('+geneA(x) +geneA(y)', 'geneA(z)').changes())
+
+        self.assertEqual({
+            Ins(Feature(name='geneA', variant='x')),
+            Ins(Feature(name='geneA', type=Type('phene'), variant='z')),
+        }, self.chain('+geneA(x) +geneA(y)', 'geneA(z)', '+geneA(x)').changes())
+
+    def test_markers_as_phenotypes(self):
+        self.assertEqual({
+            Ins(Feature(name='geneA')),
+            Ins(Feature(name='pheneA', type=Type('phene'), variant='mutant')),
+        }, self.chain('+geneA::pheneA+', 'pheneA-').changes())
+
+        self.assertEqual({
+            Ins(Feature(name='pheneA', type=Type('phene'), variant='wild-type')),
+        }, self.chain('+geneA::pheneA+', 'pheneA-', '-geneA::pheneA+').changes())
 
     def test_multiple_insertion(self):
         self.assertEqual(Sub(Feature(name='siteA'), Feature(name='geneA'), multiple=True),

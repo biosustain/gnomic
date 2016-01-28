@@ -69,11 +69,11 @@ class Genotype(object):
         added_fusion_features = set(parent.added_fusion_features if parent else ())
         removed_fusion_features = set(parent.removed_fusion_features if parent else ())
 
-        def remove(features, remove):
-            return {feature for feature in features if not remove.match(feature)}
+        def remove(features, remove, match_variant=True):
+            return {feature for feature in features if not remove.match(feature, match_variant)}
 
-        def upsert(features, addition):
-            return remove(features, addition) | {addition}
+        def upsert(features, addition, match_variant=True):
+            return remove(features, addition, match_variant) | {addition}
 
         # removes a feature, but only adds it to removed features if it isn't in added features.
         def remove_or_exclude(added_features, removed_features, exclude):
@@ -91,14 +91,14 @@ class Genotype(object):
                 # define a certain phenotype or variant of a gene:
                 # - rid the genotype of other variants of this feature.
                 # - replace the feature within any fusions that contain it or a variant of it.
-                phenotypes = remove(phenotypes, change)
+                phenotypes = upsert(phenotypes, change, match_variant=False)
 
-                added_features = upsert(added_features, change)
-                removed_features = remove(removed_features, change)
+                added_features = upsert(added_features, change, match_variant=False)
+                removed_features = remove(removed_features, change, match_variant=False)
 
                 # fusion-sensitive implementation:
-                added_fusion_features = upsert(added_fusion_features, change)
-                removed_fusion_features = remove(removed_fusion_features, change)
+                added_fusion_features = upsert(added_fusion_features, change, match_variant=False)
+                removed_fusion_features = remove(removed_fusion_features, change, match_variant=False)
             else:
                 # mutation:
                 if isinstance(change.old, Plasmid):
@@ -151,9 +151,10 @@ class Genotype(object):
                     sites = upsert(sites, change.old.contents[0])
 
                 if change.marker:
-                    markers = upsert(markers, change.marker)
-                    added_features = upsert(added_features, change.marker)
-                    removed_features = remove(removed_features, change.marker)
+                    # FIXME This should work as
+                    markers = upsert(markers, change.marker, match_variant=False)
+                    added_features = upsert(added_features, change.marker, match_variant=False)
+                    removed_features = remove(removed_features, change.marker, match_variant=False)
 
         self.sites = tuple(sites)
         self.markers = tuple(markers)
