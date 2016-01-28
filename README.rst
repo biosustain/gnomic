@@ -3,7 +3,7 @@ Gnomic
 
 .. image:: https://travis-ci.org/biosustain/gnomic-python.svg?branch=master
     :target: https://travis-ci.org/biosustain/gnomic-python
-ocs
+
 *(A Python implementation of gnomic, currently in development.)*
 
 Gnomic is a human– and computer–readable representation of microbial genotypes and phenotypes. The ``gnomic``
