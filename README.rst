@@ -4,16 +4,20 @@ Gnomic
 .. image:: https://travis-ci.org/biosustain/gnomic-python.svg?branch=master
     :target: https://travis-ci.org/biosustain/gnomic-python
 
-*(A Python implementation of gnomic, currently in development.)*
-
 Gnomic is a human– and computer–readable representation of microbial genotypes and phenotypes. The ``gnomic``
 Python package contains a parser for the Gnomic grammar able to interpret changes over multiple generations.
 
 The first formal guidelines for microbial genetic nomenclature were drawn up in the 1960s. These traditional nomenclatures are too
-ambiguous to be useful for modern computer-assisted genome engineering. The *gnomic* grammar is an improvement over existing nomenclatures
-designed to be clear, unambiguous and computer–readable and describe genotypes at various levels of detail.
+ambiguous to be useful for modern computer-assisted genome engineering. The *gnomic* grammar is an improvement over existing nomenclatures, designed to be clear, unambiguous, computer–readable and describe genotypes at various levels of detail.
 
 A JavaScript (Node) version of the package is available on NPM as `gnomic-grammar <https://www.npmjs.com/package/gnomic-grammar>`_.
+
+Installation
+------------
+
+.. code-block:: bash
+
+    pip install gnomic
 
 Example usage
 -------------
@@ -46,6 +50,19 @@ In this example, we parse `"EcGeneA ΔsiteA::promoterB:EcGeneB ΔgeneC"` and `"�
    (Feature(name='siteA'),
     Feature(name='geneC'),
     Feature(name='geneA'))
+    >>> g2.changes()
+    {Mutation(old=FeatureTree(Feature(name='siteA'))), 
+     Mutation(new=FeatureTree(Feature(name='promoterB', type=Type('promoter')))), 
+     Mutation(new=FeatureTree(Feature(organism=Organism('Escherichia coli'), name='geneB'))), 
+     Mutation(old=FeatureTree(Feature(name='geneC'))),
+     Mutation(old=FeatureTree(Feature(name='geneA')))}
+    >>> g2.changes(fusions=True)
+    {Mutation(old=FeatureTree(Feature(name='siteA'))), 
+     Mutation(new=FeatureTree(Fusion(Feature(name='promoterB', type=Type('promoter')), 
+                                     Feature(organism=Organism('Escherichia coli'), name='geneB')))),
+     Mutation(old=FeatureTree(Feature(name='geneC'))),
+     Mutation(old=FeatureTree(Feature(name='geneA')))}
+
 
 Language grammar
 ----------------
