@@ -69,11 +69,11 @@ class Genotype(object):
         added_fusion_features = set(parent.added_fusion_features if parent else ())
         removed_fusion_features = set(parent.removed_fusion_features if parent else ())
 
-        def remove(features, remove, match_variant=True):
-            return {feature for feature in features if not remove.match(feature, match_variant)}
+        def remove(features, remove, **kwargs):
+            return {feature for feature in features if not remove.match(feature, **kwargs)}
 
-        def upsert(features, addition, match_variant=True):
-            return remove(features, addition, match_variant) | {addition}
+        def upsert(features, addition, **kwargs):
+            return remove(features, addition, **kwargs) | {addition}
 
         # removes a feature, but only adds it to removed features if it isn't in added features.
         def remove_or_exclude(added_features, removed_features, exclude):

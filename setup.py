@@ -13,7 +13,7 @@ setup(
     description='A grammar for describing microbial genotypes and phenotypes',
     long_description=codecs.open('README.rst', encoding='utf-8').read(),
     test_suite='nose.collector',
-    tests_require=[],
+    tests_require=['nose'],
     install_requires=[
         'grako>=3.6.6',
         'six>=1.8.0'
