@@ -25,16 +25,21 @@ class GrammarTestCase(TestCase):
         ], parse('+fooF'))
 
         self.assertEqual([
-            Ins(Feature(name='fooF', accession=Accession(identifier='123', database='FOO')))
+            Ins(Feature(name='fooF', accession=Accession(identifier=123, database='FOO')))
         ], parse('+fooF#FOO:123'))
 
         self.assertEqual([
-            Ins(Feature(accession=Accession(identifier='123', database='FOO')))
+            Ins(Feature(accession=Accession(identifier=123, database='FOO')))
         ], parse('+#FOO:123'))
 
         self.assertEqual([
-            Ins(Feature(accession=Accession(identifier='123')))
+            Ins(Feature(accession=Accession(identifier='BAR', database='FOO')))
+        ], parse('+#FOO:BAR'))
+
+        self.assertEqual([
+            Ins(Feature(accession=Accession(identifier=123)))
         ], parse('+#123'))
+
 
     def test_parse_variants(self):
         self.assertEqual([
@@ -69,7 +74,7 @@ class GrammarTestCase(TestCase):
 
         self.assertEqual([
             Feature(type=Type('phene'),
-                    accession=Accession(identifier='123', database='FOO'),
+                    accession=Accession(identifier=123, database='FOO'),
                     variant='wild-type')
         ], parse('#FOO:123+'))
 

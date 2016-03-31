@@ -17,7 +17,7 @@ from grako.parsing import graken, Parser
 from grako.util import re, RE_FLAGS
 
 
-__version__ = (2016, 1, 19, 8, 48, 30, 1)
+__version__ = (2016, 3, 31, 14, 28, 44, 3)
 
 __all__ = [
     'GnomicParser',
@@ -373,8 +373,8 @@ class GnomicParser(Parser):
             with self._option():
                 self._token('[')
                 with self._optional():
-                    self._RANGE_SEQUENCE_TYPE_()
-                    self.ast['type'] = self.last_node
+                    self._RANGE_SEQUENCE_LEVEL_()
+                    self.ast['level'] = self.last_node
                 self._INTEGER_()
                 self.ast['start'] = self.last_node
                 self._token('_')
@@ -384,20 +384,20 @@ class GnomicParser(Parser):
             with self._option():
                 self._token('[')
                 with self._optional():
-                    self._RANGE_SEQUENCE_TYPE_()
-                    self.ast['type'] = self.last_node
+                    self._RANGE_SEQUENCE_LEVEL_()
+                    self.ast['level'] = self.last_node
                 self._INTEGER_()
                 self.ast['pos'] = self.last_node
                 self._token(']')
             self._error('no available options')
 
         self.ast._define(
-            ['type', 'start', 'end', 'pos'],
+            ['level', 'start', 'end', 'pos'],
             []
         )
 
     @graken()
-    def _RANGE_SEQUENCE_TYPE_(self):
+    def _RANGE_SEQUENCE_LEVEL_(self):
         with self._group():
             with self._choice():
                 with self._option():
@@ -405,6 +405,7 @@ class GnomicParser(Parser):
                 with self._option():
                     self._token('p')
                 self._error('expecting one of: c p')
+        self.ast['@'] = self.last_node
         self._token('.')
 
     @graken()
@@ -518,7 +519,7 @@ class GnomicSemantics(object):
     def RANGE(self, ast):
         return ast
 
-    def RANGE_SEQUENCE_TYPE(self, ast):
+    def RANGE_SEQUENCE_LEVEL(self, ast):
         return ast
 
     def ACCESSION(self, ast):

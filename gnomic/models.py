@@ -249,6 +249,29 @@ class Feature(MatchableMixin):
                                          for key, value in self.__dict__.items() if value))
 
 
+class Range(object):
+    """
+    An inclusive range at a coding (DNA), RNA or protein level.
+    """
+    def __init__(self, level, start, end):
+        self.level = level
+        self.start = start
+        self.end = end
+
+    def __hash__(self):
+        return hash(self.level) + \
+               hash(self.start) + \
+               hash(self.end)
+
+    def __len__(self):
+        return self.end - self.start + 1
+
+    def __repr__(self):
+        if self.start == self.end:
+            return '{}({}, {})'.format(self.__class__.__name__, repr(self.level), self.start)
+        return '{}({}, {}, {})'.format(self.__class__.__name__, repr(self.level), self.start, self.end)
+
+
 class Organism(object):
     def __init__(self, name, aliases=None):
         self.name = name

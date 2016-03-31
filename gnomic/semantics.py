@@ -1,4 +1,4 @@
-from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type, FeatureTree
+from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type, FeatureTree, Range
 from gnomic.grammar import GnomicSemantics
 
 
@@ -36,6 +36,20 @@ class DefaultSemantics(GnomicSemantics):
 
     def deletion(self, ast):
         return Mutation(ast.old, None, marker=ast.marker)
+
+    def RANGE(self, ast):
+        level = {
+            'c': 'coding',
+            'r': 'RNA',
+            'p': 'protein'
+        }[ast.level]
+
+        if ast.pos:
+            return Range(level, ast.pos, ast.pos)
+        return Range(level, ast.start, ast.end)
+
+    def INTEGER(self, ast):
+        return int(ast)
 
     def ACCESSION(self, ast):
         return Accession(ast['id'], ast['db'])

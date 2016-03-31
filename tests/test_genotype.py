@@ -1,6 +1,6 @@
 from unittest import TestCase, SkipTest
 
-from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type
+from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range
 
 
 class BaseTestCase(TestCase):
@@ -117,6 +117,40 @@ class GenotypeTestCase(BaseTestCase):
         self.assertEqual({
             Del(Feature(name='geneA')),
         }, self.chain('+geneA(x)', '-geneA').changes())
+
+
+class GenotypeRangeTestCase(BaseTestCase):
+
+    def test_delete_range_basic(self):
+        self.assertEqual({
+            Del(Feature(name='geneA', range=Range('coding', 5, 10))),
+        }, self.chain('-geneA[c.5_10]').changes())
+
+        self.assertEqual({
+            Del(Feature(name='geneA', range=Range('protein', 5, 5))),
+        }, self.chain('-geneA[p.5]').changes())
+
+    def test_delete_insert(self):
+        self.assertEqual({
+            Ins(Feature(name='geneA')),
+        }, self.chain('-geneA[c.5_10]', '+geneA').changes())
+
+    @SkipTest
+    def test_delete_multiple_ranges(self):
+        # TODO in the current implementation, only the most recently deleted range is accounted for.
+        # TODO this implementation may change
+
+        self.assertEqual({
+        #    Del(Feature(name='geneA', range=Range('coding', 5, 10))),
+            Del(Feature(name='geneA', range=Range('coding', 11, 12))),
+        }, self.chain('-geneA[c.5_10]', '-geneA[c.11_12]').changes())
+
+        self.assertEqual({
+            Del(Feature(name='geneA'))
+        }, self.chain('-geneA[c.5_10]', '-geneA').changes())
+
+
+    # TODO detailed tracking of different bits & pieces of features.
 
 class GenotypeFusionsTestCase(BaseTestCase):
 
