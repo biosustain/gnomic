@@ -88,7 +88,9 @@ class FeatureTree(object):
     def features(self):
         for item in self.contents:
             if isinstance(item, FeatureTree):
-                yield from item.features()
+                # yield from item.features()
+                for feature in item.features():
+                    yield feature
             else:
                 yield item
 
