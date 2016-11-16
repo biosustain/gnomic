@@ -75,7 +75,6 @@ Designation                                                   Grammar expression
 ============================================================= ==================================
 ``feature`` deleted                                           ``-feature``
 ``feature`` inserted                                          ``+feature``
-``feature`` inserted at ``site``                              ``+site::feature``
 ``site`` replaced with ``feature``                            ``site>feature``
 ``site`` (multiple integration) replaced with ``feature``     ``site>>feature``
 ``feature`` of ``organism``                                   ``organism/feature``
