@@ -15,8 +15,8 @@ deletion
 
 INSERTABLE
     = PLASMID
-    | @:FEATURE_SET
     | FUSION
+    | @:FEATURE_SET
     | FEATURE;
 
 PLASMID
@@ -38,11 +38,15 @@ FEATURE
 FEATURE_ORGANISM = @:ORGANISM "/";
 
 FEATURE_SET
-    = "{" [sep] @+:(FUSION | FEATURE) {(sep | list_separator [sep]) @+:(FUSION | FEATURE)}* [sep] "}"
-    | "{" [sep] @+:(FUSION | FEATURE) [sep] "}";
+    = "{" [sep] @+:(FEATURE_FUSION | FEATURE) {(sep | list_separator [sep]) @+:(FEATURE_FUSION | FEATURE)}* [sep] "}"
+    | "{" [sep] @+:(FEATURE_FUSION | FEATURE) [sep] "}";
 
 FUSION
+    = @+:(FEATURE_SET | FEATURE) {":" @+:(FEATURE_SET | FEATURE)}+;
+
+FEATURE_FUSION
     = @+:FEATURE {":" @+:FEATURE}+;
+
 
 VARIANT = "(" @:VARIANT_DEFINITION ")" | @:BINARY_VARIANT;
 

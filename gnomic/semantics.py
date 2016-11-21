@@ -1,4 +1,4 @@
-from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type, FeatureTree, Range
+from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type, FeatureTree, Range, FeatureSet
 from gnomic.grammar import GnomicSemantics
 
 
@@ -11,6 +11,12 @@ class DefaultSemantics(GnomicSemantics):
 
     def FUSION(self, ast):
         return Fusion(*ast)
+
+    def FEATURE_FUSION(self, ast):
+        return Fusion(*ast)
+
+    def FEATURE_SET(self, ast):
+        return FeatureSet(*ast)
 
     def ORGANISM(self, name):
         try:

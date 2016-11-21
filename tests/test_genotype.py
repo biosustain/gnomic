@@ -1,6 +1,6 @@
 from unittest import TestCase, SkipTest
 
-from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range
+from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range, FeatureSet
 
 
 class BaseTestCase(TestCase):
@@ -198,6 +198,40 @@ class GenotypeFusionsTestCase(BaseTestCase):
 
         # should only return the fusion?
         # maybe there should be a flag.
+
+    def test_replace_fusion_feature_set(self):
+        self.assertEqual({
+            Ins(Feature(name='promoterA')),
+            Ins(Feature(name='geneA')),
+            Ins(Feature(name='geneB')),
+        }, self.chain('+promoterA:{geneA geneB}').changes())
+
+        self.assertEqual({
+            Ins(Fusion(Feature(name='promoterA'), FeatureSet(Feature(name='geneA'), Feature(name='geneB')))),
+        }, self.chain('+promoterA:{geneA geneB}').changes(True))
+
+        self.assertEqual({
+            Ins(Feature(name='promoterA')),
+            Ins(Feature(name='geneB'))
+        }, self.chain('+promoterA:{geneA geneB}', '-geneA').changes())
+
+        self.assertEqual({
+            Ins(Fusion(Feature(name='promoterA'), FeatureSet(Feature(name='geneA'), Feature(name='geneB')))),
+            Del(Feature(name='geneA'))
+        }, self.chain('+promoterA:{geneA geneB}', '-geneA',
+                      fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
+
+        # TODO fusion strategy FUSION_SPLIT_ON_CHANGE:
+        # self.assertEqual({
+        #     Ins(Fusion(Feature(name='promoterA'), FeatureSet(Feature(name='geneB')))),
+        # }, self.chain('+promoterA:{geneA geneB}', '-geneA',
+        #               fusion_strategy=Genotype.FUSION_SPLIT_ON_CHANGE).changes(fusions=True))
+
+        self.assertEqual({
+            Ins(Fusion(Feature(name='promoterA'), FeatureSet(Feature(name='geneA'), Feature(name='geneB')))),
+            Del(Feature(name='geneA'))
+        }, self.chain('+promoterA:{geneA geneB}', '-geneA',
+                      fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
 
     def test_fusion_delete_match_whole(self):
         self.assertEqual({

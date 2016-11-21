@@ -1,6 +1,6 @@
 from unittest import TestCase
 from gnomic import Feature, Organism, Genotype, Ins, Accession, Type, DEFAULT_ORGANISMS, DEFAULT_TYPES, Del, Plasmid, \
-    Sub, Fusion
+    Sub, Fusion, Mutation, FeatureTree, FeatureSet
 
 
 def parse(string):
@@ -113,19 +113,19 @@ class GrammarTestCase(TestCase):
 
     def test_parse_insert_groups(self):
         self.assertEqual([
-            Ins((Feature(name='fooF')))
+            Ins(FeatureSet(Feature(name='fooF')))
         ], parse('+{fooF}'))
 
         self.assertEqual([
-            Ins((Feature(name='fooF'),
-                 Feature(name='barB'),
-                 Feature(name='bazZ')))
+            Ins(FeatureSet(Feature(name='fooF'),
+                            Feature(name='barB'),
+                            Feature(name='bazZ')))
         ], parse('+{fooF barB bazZ}'))
 
         self.assertEqual([
-            Ins((Feature(name='fooF'),
-                 Fusion(Feature(name='barB'), Feature(name='bazZ')),
-                 Feature('lolO')))
+            Ins(FeatureSet(Feature(name='fooF'),
+                           Fusion(Feature(name='barB'), Feature(name='bazZ')),
+                           Feature('lolO')))
         ], parse('+{fooF barB:bazZ lolO}'))
 
     def test_parse_plasmid_deletions(self):
@@ -138,3 +138,14 @@ class GrammarTestCase(TestCase):
             Feature(name='barB'),
             Feature(name='bazZ'),
         ), result[0].old.contents)
+
+    def test_parse_fusion_featureset(self):
+        self.assertEqual([
+            Mutation(new=Fusion(Feature(name='featB'),  FeatureSet(Feature(name='featC'), Feature(name='featD'))),
+                     old=Feature(name='featA'))
+        ], parse('featA>featB:{featC featD}'))
+
+        self.assertEqual([
+            Mutation(new=Fusion(Feature(name='featB'), FeatureSet(Feature(name='featC')), Feature(name='featD')),
+                     old=Feature(name='featA'))
+        ], parse('featA>featB:{featC}:featD'))

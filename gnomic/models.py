@@ -113,6 +113,19 @@ class FeatureTree(object):
         return '{}({})'.format(self.__class__.__name__, ', '.join(map(repr, self.contents)))
 
 
+class FeatureSet(FeatureTree, MatchableMixin):
+
+    def match(self, other):
+        if not isinstance(other, FeatureSet):
+            return False
+
+        # feature sets must have the same number of features to match
+        if len(self) != len(other):
+            return False
+
+        return all(a.match(b) for a, b in zip(self.contents, other.contents))
+
+
 class Fusion(FeatureTree, MatchableMixin):
     """
     A fusion must contain at least two features.

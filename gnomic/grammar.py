@@ -13,11 +13,10 @@
 
 from __future__ import print_function, division, absolute_import, unicode_literals
 
+from grako.buffering import Buffer
 from grako.parsing import graken, Parser
-from grako.util import re, RE_FLAGS
+from grako.util import re, RE_FLAGS, generic_main  # noqa
 
-
-__version__ = (2016, 3, 31, 14, 28, 44, 3)
 
 __all__ = [
     'GnomicParser',
@@ -25,16 +24,50 @@ __all__ = [
     'main'
 ]
 
+KEYWORDS = {}
+
+
+class GnomicBuffer(Buffer):
+    def __init__(
+        self,
+        text,
+        whitespace=re.compile('[\\t ]+', RE_FLAGS | re.DOTALL),
+        nameguard=None,
+        comments_re=None,
+        eol_comments_re=None,
+        ignorecase=None,
+        namechars='',
+        **kwargs
+    ):
+        super(GnomicBuffer, self).__init__(
+            text,
+            whitespace=whitespace,
+            nameguard=nameguard,
+            comments_re=comments_re,
+            eol_comments_re=eol_comments_re,
+            ignorecase=ignorecase,
+            namechars=namechars,
+            **kwargs
+        )
+
 
 class GnomicParser(Parser):
-    def __init__(self,
-                 whitespace=re.compile('[\\t ]+', RE_FLAGS | re.DOTALL),
-                 nameguard=None,
-                 comments_re=None,
-                 eol_comments_re=None,
-                 ignorecase=None,
-                 left_recursion=True,
-                 **kwargs):
+    def __init__(
+        self,
+        whitespace=re.compile('[\\t ]+', RE_FLAGS | re.DOTALL),
+        nameguard=None,
+        comments_re=None,
+        eol_comments_re=None,
+        ignorecase=None,
+        left_recursion=False,
+        parseinfo=True,
+        keywords=None,
+        namechars='',
+        buffer_class=GnomicBuffer,
+        **kwargs
+    ):
+        if keywords is None:
+            keywords = KEYWORDS
         super(GnomicParser, self).__init__(
             whitespace=whitespace,
             nameguard=nameguard,
@@ -42,6 +75,10 @@ class GnomicParser(Parser):
             eol_comments_re=eol_comments_re,
             ignorecase=ignorecase,
             left_recursion=left_recursion,
+            parseinfo=parseinfo,
+            keywords=keywords,
+            namechars=namechars,
+            buffer_class=buffer_class,
             **kwargs
         )
 
@@ -49,7 +86,7 @@ class GnomicParser(Parser):
     def _start_(self):
         with self._optional():
             self._change_()
-            self.ast.setlist('@', self.last_node)
+            self.add_last_node_to_name('@')
 
             def block1():
                 with self._group():
@@ -62,7 +99,7 @@ class GnomicParser(Parser):
                                 self._sep_()
                         self._error('no available options')
                 self._change_()
-                self.ast.setlist('@', self.last_node)
+                self.add_last_node_to_name('@')
             self._closure(block1)
         with self._optional():
             self._sep_()
@@ -87,13 +124,12 @@ class GnomicParser(Parser):
     def _insertion_(self):
         self._token('+')
         self._INSERTABLE_()
-        self.ast['new'] = self.last_node
+        self.name_last_node('new')
         with self._optional():
             self._MARKER_()
-            self.ast['marker'] = self.last_node
-
+            self.name_last_node('marker')
         self.ast._define(
-            ['new', 'marker'],
+            ['marker', 'new'],
             []
         )
 
@@ -102,28 +138,27 @@ class GnomicParser(Parser):
         with self._choice():
             with self._option():
                 self._FEATURE_()
-                self.ast['old'] = self.last_node
+                self.name_last_node('old')
                 self._token('>')
-                self.ast['op'] = self.last_node
+                self.name_last_node('op')
                 self._INSERTABLE_()
-                self.ast['new'] = self.last_node
+                self.name_last_node('new')
                 with self._optional():
                     self._MARKER_()
-                    self.ast['marker'] = self.last_node
+                    self.name_last_node('marker')
             with self._option():
                 self._FEATURE_()
-                self.ast['old'] = self.last_node
+                self.name_last_node('old')
                 self._token('>>')
-                self.ast['op'] = self.last_node
+                self.name_last_node('op')
                 self._INSERTABLE_()
-                self.ast['new'] = self.last_node
+                self.name_last_node('new')
                 with self._optional():
                     self._MARKER_()
-                    self.ast['marker'] = self.last_node
+                    self.name_last_node('marker')
             self._error('no available options')
-
         self.ast._define(
-            ['old', 'op', 'new', 'marker'],
+            ['marker', 'new', 'old', 'op'],
             []
         )
 
@@ -131,13 +166,12 @@ class GnomicParser(Parser):
     def _deletion_(self):
         self._token('-')
         self._INSERTABLE_()
-        self.ast['old'] = self.last_node
+        self.name_last_node('old')
         with self._optional():
             self._MARKER_()
-            self.ast['marker'] = self.last_node
-
+            self.name_last_node('marker')
         self.ast._define(
-            ['old', 'marker'],
+            ['marker', 'old'],
             []
         )
 
@@ -147,10 +181,10 @@ class GnomicParser(Parser):
             with self._option():
                 self._PLASMID_()
             with self._option():
-                self._FEATURE_SET_()
-                self.ast['@'] = self.last_node
-            with self._option():
                 self._FUSION_()
+            with self._option():
+                self._FEATURE_SET_()
+                self.name_last_node('@')
             with self._option():
                 self._FEATURE_()
             self._error('no available options')
@@ -160,23 +194,22 @@ class GnomicParser(Parser):
         with self._choice():
             with self._option():
                 self._IDENTIFIER_()
-                self.ast['name'] = self.last_node
+                self.name_last_node('name')
                 self._FEATURE_SET_()
-                self.ast['contents'] = self.last_node
+                self.name_last_node('contents')
                 with self._optional():
                     self._MARKER_()
-                    self.ast['marker'] = self.last_node
+                    self.name_last_node('marker')
             with self._option():
                 self._IDENTIFIER_()
-                self.ast['name'] = self.last_node
+                self.name_last_node('name')
                 self._token('{}')
                 with self._optional():
                     self._MARKER_()
-                    self.ast['marker'] = self.last_node
+                    self.name_last_node('marker')
             self._error('no available options')
-
         self.ast._define(
-            ['name', 'contents', 'marker'],
+            ['contents', 'marker', 'name'],
             []
         )
 
@@ -184,7 +217,7 @@ class GnomicParser(Parser):
     def _MARKER_(self):
         self._token('::')
         self._PHENE_()
-        self.ast['@'] = self.last_node
+        self.name_last_node('@')
 
     @graken()
     def _PHENE_(self):
@@ -192,30 +225,29 @@ class GnomicParser(Parser):
             with self._option():
                 with self._optional():
                     self._FEATURE_ORGANISM_()
-                    self.ast['organism'] = self.last_node
+                    self.name_last_node('organism')
                 self._IDENTIFIER_()
-                self.ast['name'] = self.last_node
+                self.name_last_node('name')
                 self._ACCESSION_()
-                self.ast['accession'] = self.last_node
+                self.name_last_node('accession')
                 self._BINARY_VARIANT_()
-                self.ast['variant'] = self.last_node
+                self.name_last_node('variant')
             with self._option():
                 self._ACCESSION_()
-                self.ast['accession'] = self.last_node
+                self.name_last_node('accession')
                 self._BINARY_VARIANT_()
-                self.ast['variant'] = self.last_node
+                self.name_last_node('variant')
             with self._option():
                 with self._optional():
                     self._FEATURE_ORGANISM_()
-                    self.ast['organism'] = self.last_node
+                    self.name_last_node('organism')
                 self._IDENTIFIER_()
-                self.ast['name'] = self.last_node
+                self.name_last_node('name')
                 self._VARIANT_()
-                self.ast['variant'] = self.last_node
+                self.name_last_node('variant')
             self._error('no available options')
-
         self.ast._define(
-            ['organism', 'name', 'accession', 'variant'],
+            ['accession', 'name', 'organism', 'variant'],
             []
         )
 
@@ -225,39 +257,38 @@ class GnomicParser(Parser):
             with self._option():
                 with self._optional():
                     self._FEATURE_ORGANISM_()
-                    self.ast['organism'] = self.last_node
+                    self.name_last_node('organism')
                 with self._optional():
                     self._IDENTIFIER_()
-                    self.ast['type'] = self.last_node
+                    self.name_last_node('type')
                     self._token('.')
                 self._IDENTIFIER_()
-                self.ast['name'] = self.last_node
+                self.name_last_node('name')
                 with self._optional():
                     self._VARIANT_()
-                    self.ast['variant'] = self.last_node
+                    self.name_last_node('variant')
                 with self._optional():
                     self._ACCESSION_()
-                    self.ast['accession'] = self.last_node
+                    self.name_last_node('accession')
                 with self._optional():
                     self._RANGE_()
-                    self.ast['range'] = self.last_node
+                    self.name_last_node('range')
             with self._option():
                 self._ACCESSION_()
-                self.ast['accession'] = self.last_node
+                self.name_last_node('accession')
                 with self._optional():
                     self._RANGE_()
-                    self.ast['range'] = self.last_node
+                    self.name_last_node('range')
             self._error('no available options')
-
         self.ast._define(
-            ['organism', 'type', 'name', 'variant', 'accession', 'range'],
+            ['accession', 'name', 'organism', 'range', 'type', 'variant'],
             []
         )
 
     @graken()
     def _FEATURE_ORGANISM_(self):
         self._ORGANISM_()
-        self.ast['@'] = self.last_node
+        self.name_last_node('@')
         self._token('/')
 
     @graken()
@@ -270,11 +301,11 @@ class GnomicParser(Parser):
                 with self._group():
                     with self._choice():
                         with self._option():
-                            self._FUSION_()
+                            self._FEATURE_FUSION_()
                         with self._option():
                             self._FEATURE_()
                         self._error('no available options')
-                self.ast.setlist('@', self.last_node)
+                self.add_last_node_to_name('@')
 
                 def block2():
                     with self._group():
@@ -289,11 +320,11 @@ class GnomicParser(Parser):
                     with self._group():
                         with self._choice():
                             with self._option():
-                                self._FUSION_()
+                                self._FEATURE_FUSION_()
                             with self._option():
                                 self._FEATURE_()
                             self._error('no available options')
-                    self.ast.setlist('@', self.last_node)
+                    self.add_last_node_to_name('@')
                 self._closure(block2)
                 with self._optional():
                     self._sep_()
@@ -305,11 +336,11 @@ class GnomicParser(Parser):
                 with self._group():
                     with self._choice():
                         with self._option():
-                            self._FUSION_()
+                            self._FEATURE_FUSION_()
                         with self._option():
                             self._FEATURE_()
                         self._error('no available options')
-                self.ast.setlist('@', self.last_node)
+                self.add_last_node_to_name('@')
                 with self._optional():
                     self._sep_()
                 self._token('}')
@@ -317,13 +348,36 @@ class GnomicParser(Parser):
 
     @graken()
     def _FUSION_(self):
+        with self._group():
+            with self._choice():
+                with self._option():
+                    self._FEATURE_SET_()
+                with self._option():
+                    self._FEATURE_()
+                self._error('no available options')
+        self.add_last_node_to_name('@')
+
+        def block2():
+            self._token(':')
+            with self._group():
+                with self._choice():
+                    with self._option():
+                        self._FEATURE_SET_()
+                    with self._option():
+                        self._FEATURE_()
+                    self._error('no available options')
+            self.add_last_node_to_name('@')
+        self._positive_closure(block2)
+
+    @graken()
+    def _FEATURE_FUSION_(self):
         self._FEATURE_()
-        self.ast.setlist('@', self.last_node)
+        self.add_last_node_to_name('@')
 
         def block1():
             self._token(':')
             self._FEATURE_()
-            self.ast.setlist('@', self.last_node)
+            self.add_last_node_to_name('@')
         self._positive_closure(block1)
 
     @graken()
@@ -332,17 +386,17 @@ class GnomicParser(Parser):
             with self._option():
                 self._token('(')
                 self._VARIANT_DEFINITION_()
-                self.ast['@'] = self.last_node
+                self.name_last_node('@')
                 self._token(')')
             with self._option():
                 self._BINARY_VARIANT_()
-                self.ast['@'] = self.last_node
+                self.name_last_node('@')
             self._error('no available options')
 
     @graken()
     def _VARIANT_DEFINITION_(self):
         self._IDENTIFIER_()
-        self.ast['@'] = self.last_node
+        self.name_last_node('@')
 
         def block1():
             with self._group():
@@ -355,7 +409,7 @@ class GnomicParser(Parser):
             with self._optional():
                 self._sep_()
             self._IDENTIFIER_()
-            self.ast['@'] = self.last_node
+            self.name_last_node('@')
         self._closure(block1)
 
     @graken()
@@ -374,25 +428,24 @@ class GnomicParser(Parser):
                 self._token('[')
                 with self._optional():
                     self._RANGE_SEQUENCE_LEVEL_()
-                    self.ast['level'] = self.last_node
+                    self.name_last_node('level')
                 self._INTEGER_()
-                self.ast['start'] = self.last_node
+                self.name_last_node('start')
                 self._token('_')
                 self._INTEGER_()
-                self.ast['end'] = self.last_node
+                self.name_last_node('end')
                 self._token(']')
             with self._option():
                 self._token('[')
                 with self._optional():
                     self._RANGE_SEQUENCE_LEVEL_()
-                    self.ast['level'] = self.last_node
+                    self.name_last_node('level')
                 self._INTEGER_()
-                self.ast['pos'] = self.last_node
+                self.name_last_node('pos')
                 self._token(']')
             self._error('no available options')
-
         self.ast._define(
-            ['level', 'start', 'end', 'pos'],
+            ['end', 'level', 'pos', 'start'],
             []
         )
 
@@ -405,7 +458,7 @@ class GnomicParser(Parser):
                 with self._option():
                     self._token('p')
                 self._error('expecting one of: c p')
-        self.ast['@'] = self.last_node
+        self.name_last_node('@')
         self._token('.')
 
     @graken()
@@ -414,7 +467,7 @@ class GnomicParser(Parser):
             with self._option():
                 self._token('#')
                 self._DATABASE_()
-                self.ast['db'] = self.last_node
+                self.name_last_node('db')
                 self._token(':')
                 with self._group():
                     with self._choice():
@@ -423,7 +476,7 @@ class GnomicParser(Parser):
                         with self._option():
                             self._IDENTIFIER_()
                         self._error('no available options')
-                self.ast['id'] = self.last_node
+                self.name_last_node('id')
             with self._option():
                 self._token('#')
                 with self._group():
@@ -433,9 +486,8 @@ class GnomicParser(Parser):
                         with self._option():
                             self._IDENTIFIER_()
                         self._error('no available options')
-                self.ast['id'] = self.last_node
+                self.name_last_node('id')
             self._error('no available options')
-
         self.ast._define(
             ['db', 'id'],
             []
@@ -448,7 +500,7 @@ class GnomicParser(Parser):
     @graken()
     def _INTEGER_(self):
         self._pattern(r'[0-9]+')
-        self.ast['@'] = self.last_node
+        self.name_last_node('@')
 
     @graken()
     def _IDENTIFIER_(self):
@@ -507,6 +559,9 @@ class GnomicSemantics(object):
     def FUSION(self, ast):
         return ast
 
+    def FEATURE_FUSION(self, ast):
+        return ast
+
     def VARIANT(self, ast):
         return ast
 
@@ -544,57 +599,18 @@ class GnomicSemantics(object):
         return ast
 
 
-def main(filename, startrule, trace=False, whitespace=None, nameguard=None):
-    import json
+def main(filename, startrule, **kwargs):
     with open(filename) as f:
         text = f.read()
     parser = GnomicParser(parseinfo=False)
-    ast = parser.parse(
-        text,
-        startrule,
-        filename=filename,
-        trace=trace,
-        whitespace=whitespace,
-        nameguard=nameguard)
+    return parser.parse(text, startrule, filename=filename, **kwargs)
+
+if __name__ == '__main__':
+    import json
+    ast = generic_main(main, GnomicParser, name='Gnomic')
     print('AST:')
     print(ast)
     print()
     print('JSON:')
     print(json.dumps(ast, indent=2))
     print()
-
-if __name__ == '__main__':
-    import argparse
-    import string
-    import sys
-
-    class ListRules(argparse.Action):
-        def __call__(self, parser, namespace, values, option_string):
-            print('Rules:')
-            for r in GnomicParser.rule_list():
-                print(r)
-            print()
-            sys.exit(0)
-
-    parser = argparse.ArgumentParser(description="Simple parser for Gnomic.")
-    parser.add_argument('-l', '--list', action=ListRules, nargs=0,
-                        help="list all rules and exit")
-    parser.add_argument('-n', '--no-nameguard', action='store_true',
-                        dest='no_nameguard',
-                        help="disable the 'nameguard' feature")
-    parser.add_argument('-t', '--trace', action='store_true',
-                        help="output trace information")
-    parser.add_argument('-w', '--whitespace', type=str, default=string.whitespace,
-                        help="whitespace specification")
-    parser.add_argument('file', metavar="FILE", help="the input file to parse")
-    parser.add_argument('startrule', metavar="STARTRULE",
-                        help="the start rule for parsing")
-    args = parser.parse_args()
-
-    main(
-        args.file,
-        args.startrule,
-        trace=args.trace,
-        whitespace=args.whitespace,
-        nameguard=not args.no_nameguard
-    )
