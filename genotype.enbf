@@ -7,13 +7,24 @@ change = insertion | replacement | deletion | PLASMID | PHENE;
 insertion = "+" new:INSERTABLE [marker:MARKER];
 
 replacement =
-     old:FEATURE op:">" new:INSERTABLE [marker:MARKER] |
-     old:FEATURE op:">>" new:INSERTABLE [marker:MARKER];
+     old:FEATURE op:">" new:SUBSTITUTE [marker:MARKER] |
+     old:FEATURE op:">>" new:SUBSTITUTE [marker:MARKER];
 
 deletion
-    = "-" old:INSERTABLE [marker:MARKER];
+    = "-" old:DELETABLE [marker:MARKER];
 
 INSERTABLE
+    = FUSION
+    | @:FEATURE_SET
+    | FEATURE;
+
+SUBSTITUTE
+    = PLASMID
+    | FUSION
+    | @:FEATURE_SET
+    | FEATURE;
+
+DELETABLE
     = PLASMID
     | FUSION
     | @:FEATURE_SET
