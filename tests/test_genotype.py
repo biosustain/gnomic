@@ -258,6 +258,26 @@ class GenotypeFusionsTestCase(BaseTestCase):
         }, self.chain('+geneA:geneB +geneC', '-geneA:geneB(x)',
                       fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
 
+    def test_fusion_replace_match_whole(self):
+        self.assertEqual({
+            Ins(Feature(name='geneC')),
+        }, self.chain('+geneA:geneB', 'geneA:geneB>geneC',
+                      fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
+
+        self.assertEqual({
+            Ins(Fusion(Feature(name='geneA'), Feature(name='geneB'))),
+            Del(Fusion(Feature(name='geneA'), Feature(name='geneC'))),
+            Ins(Feature(name='geneD')),
+        }, self.chain('+geneA:geneB', 'geneA:geneC>geneD',
+                      fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
+
+        self.assertEqual({
+            Ins(Fusion(Feature(name='geneA'), Feature(name='geneB'))),
+            Del(Fusion(Feature(name='geneA'), Feature(name='geneB', variant='x'))),
+            Ins(Feature(name='geneC')),
+        }, self.chain('+geneA:geneB', 'geneA:geneB(x)>geneC',
+                      fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
+
     def test_integrated_plasmid_vector_fusion(self):
         self.assertEqual({
             Del(Feature(name='siteA')),

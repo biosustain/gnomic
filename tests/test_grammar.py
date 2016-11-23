@@ -149,3 +149,11 @@ class GrammarTestCase(TestCase):
             Mutation(new=Fusion(Feature(name='featB'), FeatureSet(Feature(name='featC')), Feature(name='featD')),
                      old=Feature(name='featA'))
         ], parse('featA>featB:{featC}:featD'))
+
+    def test_parse_fusion_replacement(self):
+        self.assertEqual([
+            Mutation(old=Fusion(Feature(name='featA'), FeatureSet(Feature(name='featB'))),
+                     new=Feature(name='featC'),
+                     multiple=True,
+                     marker=Feature(variant='wild-type', type=Type('phene'), name='marker'))
+        ], parse('featA:{featB}>>featC::marker+'))
