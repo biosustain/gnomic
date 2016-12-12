@@ -17,7 +17,7 @@ from grako.parsing import graken, Parser
 from grako.util import re, RE_FLAGS
 
 
-__version__ = (2016, 12, 12, 14, 51, 46, 0)
+__version__ = (2016, 12, 12, 14, 52, 46, 0)
 
 __all__ = [
     'GnomicParser',
@@ -101,7 +101,7 @@ class GnomicParser(Parser):
     def _replacement_(self):
         with self._choice():
             with self._option():
-                self._FEATURE_()
+                self._REPLACEABLE_()
                 self.ast['old'] = self.last_node
                 self._token('>')
                 self.ast['op'] = self.last_node
@@ -111,7 +111,7 @@ class GnomicParser(Parser):
                     self._MARKER_()
                     self.ast['marker'] = self.last_node
             with self._option():
-                self._FEATURE_()
+                self._REPLACEABLE_()
                 self.ast['old'] = self.last_node
                 self._token('>>')
                 self.ast['op'] = self.last_node
@@ -143,6 +143,18 @@ class GnomicParser(Parser):
 
     @graken()
     def _INSERTABLE_(self):
+        with self._choice():
+            with self._option():
+                self._FUSION_()
+            with self._option():
+                self._FEATURE_SET_()
+                self.ast['@'] = self.last_node
+            with self._option():
+                self._FEATURE_()
+            self._error('no available options')
+
+    @graken()
+    def _REPLACEABLE_(self):
         with self._choice():
             with self._option():
                 self._FUSION_()
@@ -537,6 +549,9 @@ class GnomicSemantics(object):
         return ast
 
     def INSERTABLE(self, ast):
+        return ast
+
+    def REPLACEABLE(self, ast):
         return ast
 
     def SUBSTITUTE(self, ast):
