@@ -17,7 +17,7 @@ from grako.parsing import graken, Parser
 from grako.util import re, RE_FLAGS
 
 
-__version__ = (2016, 11, 22, 9, 38, 56, 1)
+__version__ = (2016, 12, 12, 14, 51, 46, 0)
 
 __all__ = [
     'GnomicParser',
@@ -390,7 +390,7 @@ class GnomicParser(Parser):
 
     @graken()
     def _VARIANT_DEFINITION_(self):
-        self._IDENTIFIER_()
+        self._VARIANT_IDENTIFIER_()
         self.ast['@'] = self.last_node
 
         def block1():
@@ -403,9 +403,13 @@ class GnomicParser(Parser):
                     self._error('expecting one of: , ;')
             with self._optional():
                 self._sep_()
-            self._IDENTIFIER_()
+            self._VARIANT_IDENTIFIER_()
             self.ast['@'] = self.last_node
         self._closure(block1)
+
+    @graken()
+    def _VARIANT_IDENTIFIER_(self):
+        self._pattern(r'[A-Za-z0-9\*]+([A-Za-z0-9\*_\-]+[A-Za-z0-9\*])?')
 
     @graken()
     def _BINARY_VARIANT_(self):
@@ -569,6 +573,9 @@ class GnomicSemantics(object):
         return ast
 
     def VARIANT_DEFINITION(self, ast):
+        return ast
+
+    def VARIANT_IDENTIFIER(self, ast):
         return ast
 
     def BINARY_VARIANT(self, ast):
