@@ -4,6 +4,9 @@ Gnomic
 .. image:: https://travis-ci.org/biosustain/gnomic-python.svg?branch=master
     :target: https://travis-ci.org/biosustain/gnomic-python
 
+.. image:: https://zenodo.org/badge/47830031.svg
+   :target: https://zenodo.org/badge/latestdoi/47830031
+
 Gnomic is a human– and computer–readable representation of microbial genotypes and phenotypes. The ``gnomic``
 Python package contains a parser for the Gnomic grammar able to interpret changes over multiple generations.
 
