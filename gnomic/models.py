@@ -15,9 +15,9 @@ class Mutation(object):
 
         Used either in an insertion, or replacement.
 
-    .. attribute:: marker
+    .. attribute:: markers
 
-        A :class:`Feature` with a variant, acting as selection marker. The selection marker is generally inserted as part
+        A :class:`MarkerSet`, acting as a set of selection markers. The selection markers are generally inserted as part
         of the mutation.
 
     .. attribute:: multiple
@@ -28,7 +28,7 @@ class Mutation(object):
 
     """
 
-    def __init__(self, old, new, marker=None, multiple=False):
+    def __init__(self, old, new, markers=None, multiple=False):
         if isinstance(old, (list, tuple)):
             old = FeatureTree(*old)
         elif old and not isinstance(old, Plasmid):
@@ -39,20 +39,20 @@ class Mutation(object):
             new = FeatureTree(new)
         self.old = old
         self.new = new
-        self.marker = marker
+        self.markers = markers
         self.multiple = multiple
 
     def __eq__(self, other):
         return isinstance(other, Mutation) and \
             self.old == other.old and \
             self.new == other.new and \
-            self.marker == other.marker and \
+            self.markers == other.markers and \
             self.multiple == other.multiple
 
     def __hash__(self):
         return hash(self.old) + \
                hash(self.new) + \
-               hash(self.marker) + \
+               hash(self.markers) + \
                hash(self.multiple)
 
     def __repr__(self):
@@ -126,6 +126,19 @@ class FeatureSet(FeatureTree, MatchableMixin):
         return all(a.match(b) for a, b in zip(self.contents, other.contents))
 
 
+class MarkerSet(FeatureTree, MatchableMixin):
+
+    def match(self, other, match_variant=True):
+        if not isinstance(other, MarkerSet):
+            return False
+
+        # marker sets must have the same number of markers to match
+        if len(self) != len(other):
+            return False
+
+        return all(a.match(b, match_variant=match_variant) for a, b in zip(self.contents, other.contents))
+
+
 class Fusion(FeatureTree, MatchableMixin):
     """
     A fusion must contain at least two features.
@@ -159,11 +172,11 @@ class Fusion(FeatureTree, MatchableMixin):
 
 
 class Plasmid(FeatureTree, MatchableMixin):
-    def __init__(self, name, contents, site=None, marker=None):
+    def __init__(self, name, contents, site=None, markers=None):
         super(Plasmid, self).__init__(*contents if contents else ())
         self.name = name
         self.site = site
-        self.marker = marker
+        self.markers = markers
 
     def __hash__(self):
         return hash(self.name)

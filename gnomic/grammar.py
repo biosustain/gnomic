@@ -131,7 +131,13 @@ class GnomicParser(Parser):
         self._INSERTABLE_()
         self.name_last_node('new')
         with self._optional():
-            self._MARKER_()
+            with self._group():
+                with self._choice():
+                    with self._option():
+                        self._MARKER_()
+                    with self._option():
+                        self._MARKER_SET_()
+                    self._error('no available options')
             self.name_last_node('marker')
         self.ast._define(
             ['marker', 'new'],
@@ -149,7 +155,13 @@ class GnomicParser(Parser):
                 self._SUBSTITUTE_()
                 self.name_last_node('new')
                 with self._optional():
-                    self._MARKER_()
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._MARKER_()
+                            with self._option():
+                                self._MARKER_SET_()
+                            self._error('no available options')
                     self.name_last_node('marker')
             with self._option():
                 self._REPLACEABLE_()
@@ -159,7 +171,13 @@ class GnomicParser(Parser):
                 self._SUBSTITUTE_()
                 self.name_last_node('new')
                 with self._optional():
-                    self._MARKER_()
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._MARKER_()
+                            with self._option():
+                                self._MARKER_SET_()
+                            self._error('no available options')
                     self.name_last_node('marker')
             self._error('no available options')
         self.ast._define(
@@ -173,7 +191,13 @@ class GnomicParser(Parser):
         self._DELETABLE_()
         self.name_last_node('old')
         with self._optional():
-            self._MARKER_()
+            with self._group():
+                with self._choice():
+                    with self._option():
+                        self._MARKER_()
+                    with self._option():
+                        self._MARKER_SET_()
+                    self._error('no available options')
             self.name_last_node('marker')
         self.ast._define(
             ['marker', 'old'],
@@ -241,14 +265,26 @@ class GnomicParser(Parser):
                 self._FEATURE_SET_()
                 self.name_last_node('contents')
                 with self._optional():
-                    self._MARKER_()
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._MARKER_()
+                            with self._option():
+                                self._MARKER_SET_()
+                            self._error('no available options')
                     self.name_last_node('marker')
             with self._option():
                 self._IDENTIFIER_()
                 self.name_last_node('name')
                 self._token('{}')
                 with self._optional():
-                    self._MARKER_()
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._MARKER_()
+                            with self._option():
+                                self._MARKER_SET_()
+                            self._error('no available options')
                     self.name_last_node('marker')
             self._error('no available options')
         self.ast._define(
@@ -260,7 +296,32 @@ class GnomicParser(Parser):
     def _MARKER_(self):
         self._token('::')
         self._PHENE_()
-        self.name_last_node('@')
+        self.add_last_node_to_name('@')
+
+    @graken()
+    def _MARKER_SET_(self):
+        self._token('::{')
+        with self._optional():
+            self._sep_()
+        self._PHENE_()
+        self.add_last_node_to_name('@')
+
+        def block1():
+            with self._group():
+                with self._choice():
+                    with self._option():
+                        self._sep_()
+                    with self._option():
+                        self._list_separator_()
+                        with self._optional():
+                            self._sep_()
+                    self._error('no available options')
+            self._PHENE_()
+            self.add_last_node_to_name('@')
+        self._closure(block1)
+        with self._optional():
+            self._sep_()
+        self._token('}')
 
     @graken()
     def _PHENE_(self):
@@ -580,6 +641,9 @@ class GnomicSemantics(object):
         return ast
 
     def MARKER(self, ast):
+        return ast
+
+    def MARKER_SET(self, ast):
         return ast
 
     def PHENE(self, ast):

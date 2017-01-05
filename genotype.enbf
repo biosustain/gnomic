@@ -4,14 +4,14 @@ start = (@+:change {(sep | list_separator [sep]) @+:change}* | {}) [sep] $;
 
 change = insertion | replacement | deletion | PLASMID | PHENE;
 
-insertion = "+" new:INSERTABLE [marker:MARKER];
+insertion = "+" new:INSERTABLE [marker:(MARKER | MARKER_SET)];
 
 replacement =
-     old:REPLACEABLE op:">" new:SUBSTITUTE [marker:MARKER] |
-     old:REPLACEABLE op:">>" new:SUBSTITUTE [marker:MARKER];
+     old:REPLACEABLE op:">" new:SUBSTITUTE [marker:(MARKER | MARKER_SET)] |
+     old:REPLACEABLE op:">>" new:SUBSTITUTE [marker:(MARKER | MARKER_SET)];
 
 deletion
-    = "-" old:DELETABLE [marker:MARKER];
+    = "-" old:DELETABLE [marker:(MARKER | MARKER_SET)];
 
 INSERTABLE
     = FUSION
@@ -36,10 +36,13 @@ DELETABLE
     | FEATURE;
 
 PLASMID
-    = name:IDENTIFIER contents:FEATURE_SET [marker:MARKER]
-    | name:IDENTIFIER "{}" [marker:MARKER];
+    = name:IDENTIFIER contents:FEATURE_SET [marker:(MARKER | MARKER_SET)]
+    | name:IDENTIFIER "{}" [marker:(MARKER | MARKER_SET)];
 
-MARKER = "::" @:PHENE;
+MARKER = "::" @+:PHENE;
+
+MARKER_SET
+    = "::{" [sep] @+:PHENE {(sep | list_separator [sep]) @+:PHENE}* [sep] "}";
 
 PHENE
     = [organism:FEATURE_ORGANISM] name:IDENTIFIER accession:ACCESSION variant:BINARY_VARIANT

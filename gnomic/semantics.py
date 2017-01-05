@@ -1,4 +1,5 @@
-from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type, FeatureTree, Range, FeatureSet
+from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type, FeatureTree, Range, \
+    FeatureSet, MarkerSet
 from gnomic.grammar import GnomicSemantics
 
 
@@ -18,6 +19,12 @@ class DefaultSemantics(GnomicSemantics):
     def FEATURE_SET(self, ast):
         return FeatureSet(*ast)
 
+    def MARKER(self, ast):
+        return MarkerSet(*ast)
+
+    def MARKER_SET(self, ast):
+        return MarkerSet(*ast)
+
     def ORGANISM(self, name):
         try:
             return self._organisms[name]
@@ -32,16 +39,16 @@ class DefaultSemantics(GnomicSemantics):
             return 'mutant'
 
     def insertion(self, ast):
-        return Mutation(None, ast.new, marker=ast.marker)
+        return Mutation(None, ast.new, markers=ast.marker)
 
     def replacement(self, ast):
         return Mutation(ast.old,
                         ast.new,
-                        marker=ast.marker,
+                        markers=ast.marker,
                         multiple=ast.op == '>>')
 
     def deletion(self, ast):
-        return Mutation(ast.old, None, marker=ast.marker)
+        return Mutation(ast.old, None, markers=ast.marker)
 
     def RANGE(self, ast):
         level = {
@@ -61,7 +68,7 @@ class DefaultSemantics(GnomicSemantics):
         return Accession(ast['id'], ast['db'])
 
     def PLASMID(self, ast):
-        return Plasmid(ast.name, ast.contents, marker=ast.marker)
+        return Plasmid(ast.name, ast.contents, markers=ast.marker)
 
     def PHENE(self, ast):
         return self.FEATURE(ast, default_type='phene')
