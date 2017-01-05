@@ -336,58 +336,40 @@ class GnomicParser(Parser):
 
     @graken()
     def _FEATURE_SET_(self):
-        with self._choice():
-            with self._option():
-                self._token('{')
-                with self._optional():
-                    self._sep_()
-                with self._group():
-                    with self._choice():
-                        with self._option():
-                            self._FEATURE_FUSION_()
-                        with self._option():
-                            self._FEATURE_()
-                        self._error('no available options')
-                self.add_last_node_to_name('@')
+        self._token('{')
+        with self._optional():
+            self._sep_()
+        with self._group():
+            with self._choice():
+                with self._option():
+                    self._FEATURE_FUSION_()
+                with self._option():
+                    self._FEATURE_()
+                self._error('no available options')
+        self.add_last_node_to_name('@')
 
-                def block2():
-                    with self._group():
-                        with self._choice():
-                            with self._option():
-                                self._sep_()
-                            with self._option():
-                                self._list_separator_()
-                                with self._optional():
-                                    self._sep_()
-                            self._error('no available options')
-                    with self._group():
-                        with self._choice():
-                            with self._option():
-                                self._FEATURE_FUSION_()
-                            with self._option():
-                                self._FEATURE_()
-                            self._error('no available options')
-                    self.add_last_node_to_name('@')
-                self._closure(block2)
-                with self._optional():
-                    self._sep_()
-                self._token('}')
-            with self._option():
-                self._token('{')
-                with self._optional():
-                    self._sep_()
-                with self._group():
-                    with self._choice():
-                        with self._option():
-                            self._FEATURE_FUSION_()
-                        with self._option():
-                            self._FEATURE_()
-                        self._error('no available options')
-                self.add_last_node_to_name('@')
-                with self._optional():
-                    self._sep_()
-                self._token('}')
-            self._error('no available options')
+        def block2():
+            with self._group():
+                with self._choice():
+                    with self._option():
+                        self._sep_()
+                    with self._option():
+                        self._list_separator_()
+                        with self._optional():
+                            self._sep_()
+                    self._error('no available options')
+            with self._group():
+                with self._choice():
+                    with self._option():
+                        self._FEATURE_FUSION_()
+                    with self._option():
+                        self._FEATURE_()
+                    self._error('no available options')
+            self.add_last_node_to_name('@')
+        self._closure(block2)
+        with self._optional():
+            self._sep_()
+        self._token('}')
 
     @graken()
     def _FUSION_(self):

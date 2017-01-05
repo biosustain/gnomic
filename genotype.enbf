@@ -54,8 +54,7 @@ FEATURE
 FEATURE_ORGANISM = @:ORGANISM "/";
 
 FEATURE_SET
-    = "{" [sep] @+:(FEATURE_FUSION | FEATURE) {(sep | list_separator [sep]) @+:(FEATURE_FUSION | FEATURE)}* [sep] "}"
-    | "{" [sep] @+:(FEATURE_FUSION | FEATURE) [sep] "}";
+    = "{" [sep] @+:(FEATURE_FUSION | FEATURE) {(sep | list_separator [sep]) @+:(FEATURE_FUSION | FEATURE)}* [sep] "}";
 
 FUSION
     = @+:(FEATURE_SET | FEATURE) {":" @+:(FEATURE_SET | FEATURE)}+;
