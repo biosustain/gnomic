@@ -10,6 +10,9 @@ def parse(string):
 
 
 class GrammarTestCase(TestCase):
+    def test_empty_genotype(self):
+        self.assertEqual([], parse(''))
+
     def test_parse_feature(self):
         self.assertEqual(Feature(name='geneA'), Feature.parse('geneA'))
         self.assertEqual(Feature(name='A', type=Type('gene')), Feature.parse('gene.A'))

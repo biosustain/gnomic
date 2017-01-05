@@ -1,6 +1,6 @@
 @@whitespace :: /[\t ]+/
 
-start = [@+:change {(sep | list_separator [sep]) @+:change}*] [sep] $;
+start = (@+:change {(sep | list_separator [sep]) @+:change}* | {}) [sep] $;
 
 change = insertion | replacement | deletion | PLASMID | PHENE;
 
