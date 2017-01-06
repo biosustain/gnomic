@@ -138,9 +138,9 @@ class GnomicParser(Parser):
                     with self._option():
                         self._MARKER_SET_()
                     self._error('no available options')
-            self.name_last_node('marker')
+            self.name_last_node('markers')
         self.ast._define(
-            ['marker', 'new'],
+            ['markers', 'new'],
             []
         )
 
@@ -162,7 +162,7 @@ class GnomicParser(Parser):
                             with self._option():
                                 self._MARKER_SET_()
                             self._error('no available options')
-                    self.name_last_node('marker')
+                    self.name_last_node('markers')
             with self._option():
                 self._REPLACEABLE_()
                 self.name_last_node('old')
@@ -178,10 +178,10 @@ class GnomicParser(Parser):
                             with self._option():
                                 self._MARKER_SET_()
                             self._error('no available options')
-                    self.name_last_node('marker')
+                    self.name_last_node('markers')
             self._error('no available options')
         self.ast._define(
-            ['marker', 'new', 'old', 'op'],
+            ['markers', 'new', 'old', 'op'],
             []
         )
 
@@ -198,9 +198,9 @@ class GnomicParser(Parser):
                     with self._option():
                         self._MARKER_SET_()
                     self._error('no available options')
-            self.name_last_node('marker')
+            self.name_last_node('markers')
         self.ast._define(
-            ['marker', 'old'],
+            ['markers', 'old'],
             []
         )
 
@@ -272,7 +272,7 @@ class GnomicParser(Parser):
                             with self._option():
                                 self._MARKER_SET_()
                             self._error('no available options')
-                    self.name_last_node('marker')
+                    self.name_last_node('markers')
             with self._option():
                 self._IDENTIFIER_()
                 self.name_last_node('name')
@@ -285,10 +285,10 @@ class GnomicParser(Parser):
                             with self._option():
                                 self._MARKER_SET_()
                             self._error('no available options')
-                    self.name_last_node('marker')
+                    self.name_last_node('markers')
             self._error('no available options')
         self.ast._define(
-            ['contents', 'marker', 'name'],
+            ['contents', 'markers', 'name'],
             []
         )
 

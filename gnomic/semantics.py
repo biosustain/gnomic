@@ -38,16 +38,16 @@ class DefaultSemantics(GnomicSemantics):
             return 'mutant'
 
     def insertion(self, ast):
-        return Mutation(None, ast.new, markers=ast.marker)
+        return Mutation(None, ast.new, markers=ast.markers)
 
     def replacement(self, ast):
         return Mutation(ast.old,
                         ast.new,
-                        markers=ast.marker,
+                        markers=ast.markers,
                         multiple=ast.op == '>>')
 
     def deletion(self, ast):
-        return Mutation(ast.old, None, markers=ast.marker)
+        return Mutation(ast.old, None, markers=ast.markers)
 
     def RANGE(self, ast):
         level = {
@@ -67,7 +67,7 @@ class DefaultSemantics(GnomicSemantics):
         return Accession(ast['id'], ast['db'])
 
     def PLASMID(self, ast):
-        return Plasmid(ast.name, ast.contents, markers=ast.marker)
+        return Plasmid(ast.name, ast.contents, markers=ast.markers)
 
     def PHENE(self, ast):
         return self.FEATURE(ast, default_type='phene')
