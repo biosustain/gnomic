@@ -17,7 +17,7 @@ class Mutation(object):
 
     .. attribute:: markers
 
-        A :class:`MarkerSet`, acting as a set of selection markers. The selection markers are generally inserted as part
+        A :class:`FeatureSet`, acting as a set of selection markers. The selection markers are generally inserted as part
         of the mutation.
 
     .. attribute:: multiple
@@ -124,19 +124,6 @@ class FeatureSet(FeatureTree, MatchableMixin):
             return False
 
         return all(a.match(b) for a, b in zip(self.contents, other.contents))
-
-
-class MarkerSet(FeatureTree, MatchableMixin):
-
-    def match(self, other, match_variant=True):
-        if not isinstance(other, MarkerSet):
-            return False
-
-        # marker sets must have the same number of markers to match
-        if len(self) != len(other):
-            return False
-
-        return all(a.match(b, match_variant=match_variant) for a, b in zip(self.contents, other.contents))
 
 
 class Fusion(FeatureTree, MatchableMixin):

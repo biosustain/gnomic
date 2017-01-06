@@ -1,6 +1,6 @@
 from unittest import TestCase
 from gnomic import Feature, Organism, Genotype, Ins, Accession, Type, DEFAULT_ORGANISMS, DEFAULT_TYPES, Del, Plasmid, \
-    Sub, Fusion, Mutation, FeatureTree, FeatureSet, MarkerSet
+    Sub, Fusion, Mutation, FeatureTree, FeatureSet
 
 
 def parse(string):
@@ -110,7 +110,7 @@ class GrammarTestCase(TestCase):
 
         self.assertEqual([
             Sub(Feature(name='fooF'), Feature(name='barB'),
-                markers=MarkerSet(Feature(name='marker', variant='wild-type', type=Type('phene'))),
+                markers=FeatureSet(Feature(name='marker', variant='wild-type', type=Type('phene'))),
                 multiple=True)
         ], parse('fooF>>barB::marker+'))
 
@@ -158,17 +158,17 @@ class GrammarTestCase(TestCase):
             Mutation(old=Fusion(Feature(name='featA'), FeatureSet(Feature(name='featB'))),
                      new=Feature(name='featC'),
                      multiple=True,
-                     markers=MarkerSet(Feature(variant='wild-type', type=Type('phene'), name='marker')))
+                     markers=FeatureSet(Feature(variant='wild-type', type=Type('phene'), name='marker')))
         ], parse('featA:{featB}>>featC::marker+'))
 
     def test_parse_markers(self):
         self.assertEqual([
             Ins(Feature(name='geneA'),
-                markers=MarkerSet(Feature(variant='wild-type', type=Type('phene'), name='markerA')))
+                markers=FeatureSet(Feature(variant='wild-type', type=Type('phene'), name='markerA')))
         ], parse('+geneA::markerA+'))
 
         self.assertEqual([
             Del(Feature(name='geneA'),
-                markers=MarkerSet(Feature(variant='wild-type', type=Type('phene'), name='markerA'),
+                markers=FeatureSet(Feature(variant='wild-type', type=Type('phene'), name='markerA'),
                 Feature(variant='mutant', type=Type('phene'), name='markerB')))
         ], parse('-geneA::{markerA+ markerB-}'))

@@ -1,5 +1,4 @@
-from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type, FeatureTree, Range, \
-    FeatureSet, MarkerSet
+from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type, FeatureTree, Range, FeatureSet
 from gnomic.grammar import GnomicSemantics
 
 
@@ -20,10 +19,10 @@ class DefaultSemantics(GnomicSemantics):
         return FeatureSet(*ast)
 
     def MARKER(self, ast):
-        return MarkerSet(*ast)
+        return FeatureSet(*ast)
 
     def MARKER_SET(self, ast):
-        return MarkerSet(*ast)
+        return FeatureSet(*ast)
 
     def ORGANISM(self, name):
         try:
