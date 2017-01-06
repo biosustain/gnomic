@@ -320,10 +320,11 @@ class GnomicParser(Parser):
             with self._choice():
                 with self._option():
                     self._PHENE_()
+                    self.add_last_node_to_name('@')
                 with self._option():
                     self._PHENE_SET_()
+                    self.name_last_node('@')
                 self._error('no available options')
-        self.name_last_node('@')
 
     @graken()
     def _FEATURE_(self):

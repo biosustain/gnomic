@@ -18,9 +18,6 @@ class DefaultSemantics(GnomicSemantics):
     def FEATURE_SET(self, ast):
         return FeatureSet(*ast)
 
-    def MARKERS(self, ast):
-        return ast if isinstance(ast, list) else [ast]
-
     def ORGANISM(self, name):
         try:
             return self._organisms[name]

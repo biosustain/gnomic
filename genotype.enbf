@@ -47,7 +47,7 @@ PHENE
 PHENE_SET
     = "{" [sep] @+:PHENE {(sep | list_separator [sep]) @+:PHENE}* [sep] "}";
 
-MARKERS = "::" @:(PHENE | PHENE_SET);
+MARKERS = "::" (@+:PHENE | @:PHENE_SET);
 
 FEATURE
     = [organism:FEATURE_ORGANISM] [type:IDENTIFIER "."] name:IDENTIFIER [variant:VARIANT] [accession:ACCESSION] [range:RANGE]
