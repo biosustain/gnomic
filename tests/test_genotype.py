@@ -94,6 +94,11 @@ class GenotypeTestCase(BaseTestCase):
             Ins(Feature(name='pheneA', type=Type('phene'), variant='wild-type')),
         }, self.chain('+geneA::pheneA+', 'pheneA-', '-geneA::pheneA+').changes())
 
+        self.assertEqual({
+            Ins(Feature(name='pheneA', type=Type('phene'), variant='mutant')),
+            Ins(Feature(name='pheneB', type=Type('phene'), variant='mutant')),
+        }, self.chain('+geneA::{pheneA+ pheneB+}', 'pheneA-', '-geneA::pheneB-').changes())
+
     def test_multiple_insertion(self):
         self.assertEqual(Sub(Feature(name='siteA'), Feature(name='geneA'), multiple=True),
                          self.chain('siteA>>geneA').raw[0])

@@ -10,6 +10,9 @@ def parse(string):
 
 
 class GrammarTestCase(TestCase):
+    def test_empty_genotype(self):
+        self.assertEqual([], parse(''))
+
     def test_parse_feature(self):
         self.assertEqual(Feature(name='geneA'), Feature.parse('geneA'))
         self.assertEqual(Feature(name='A', type=Type('gene')), Feature.parse('gene.A'))
@@ -107,7 +110,7 @@ class GrammarTestCase(TestCase):
 
         self.assertEqual([
             Sub(Feature(name='fooF'), Feature(name='barB'),
-                marker=Feature(name='marker', variant='wild-type', type=Type('phene')),
+                markers=[Feature(name='marker', variant='wild-type', type=Type('phene'))],
                 multiple=True)
         ], parse('fooF>>barB::marker+'))
 
@@ -155,5 +158,17 @@ class GrammarTestCase(TestCase):
             Mutation(old=Fusion(Feature(name='featA'), FeatureSet(Feature(name='featB'))),
                      new=Feature(name='featC'),
                      multiple=True,
-                     marker=Feature(variant='wild-type', type=Type('phene'), name='marker'))
+                     markers=[Feature(variant='wild-type', type=Type('phene'), name='marker')])
         ], parse('featA:{featB}>>featC::marker+'))
+
+    def test_parse_markers(self):
+        self.assertEqual([
+            Ins(Feature(name='geneA'),
+                markers=[Feature(variant='wild-type', type=Type('phene'), name='markerA')])
+        ], parse('+geneA::markerA+'))
+
+        self.assertEqual([
+            Del(Feature(name='geneA'),
+                markers=[Feature(variant='wild-type', type=Type('phene'), name='markerA'),
+                Feature(variant='mutant', type=Type('phene'), name='markerB')])
+        ], parse('-geneA::{markerA+ markerB-}'))

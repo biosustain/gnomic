@@ -150,11 +150,12 @@ class Genotype(object):
                     # in a replacement, the removed part must be a single feature
                     sites = upsert(sites, change.old.contents[0])
 
-                if change.marker:
+                if change.markers:
                     # FIXME This should work as
-                    markers = upsert(markers, change.marker, match_variant=False)
-                    added_features = upsert(added_features, change.marker, match_variant=False)
-                    removed_features = remove(removed_features, change.marker, match_variant=False)
+                    for marker in change.markers:
+                        markers = upsert(markers, marker, match_variant=False)
+                        added_features = upsert(added_features, marker, match_variant=False)
+                        removed_features = remove(removed_features, marker, match_variant=False)
 
         self.sites = tuple(sites)
         self.markers = tuple(markers)
