@@ -37,6 +37,8 @@ class Mutation(object):
             new = FeatureTree(*new)
         elif new and not isinstance(new, Plasmid):
             new = FeatureTree(new)
+        if markers is not None:
+            markers = FeatureSet(*markers)
         self.old = old
         self.new = new
         self.markers = markers
@@ -161,6 +163,8 @@ class Fusion(FeatureTree, MatchableMixin):
 class Plasmid(FeatureTree, MatchableMixin):
     def __init__(self, name, contents, site=None, markers=None):
         super(Plasmid, self).__init__(*contents if contents else ())
+        if markers is not None:
+            markers = FeatureSet(*markers)
         self.name = name
         self.site = site
         self.markers = markers
