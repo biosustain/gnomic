@@ -3,6 +3,7 @@ from grako.exceptions import GrakoException
 from gnomic.models import *
 from gnomic.grammar import GnomicParser
 from gnomic.semantics import DefaultSemantics
+from gnomic.utils import genotype_to_text
 
 __all__ = (
     'DEFAULT_TYPES',
@@ -217,6 +218,14 @@ class Genotype(object):
                                     types or DEFAULT_TYPES)
         return Genotype(changes, parent=parent, **kwargs)
 
+
+    @staticmethod
+    def chain_parse(definitions, **kwargs):
+        genotype = Genotype.parse(definitions[0], **kwargs)
+        for definition in definitions[1:]:
+            genotype = Genotype.parse(definition, parent=genotype, **kwargs)
+        return genotype
+
     def _iter_changes(self, fusions=True):
         if fusions:
             for feature in self.added_fusion_features:
@@ -251,7 +260,7 @@ class Genotype(object):
         :param bool fusions: Keeps fusions together if ``True``, otherwise includes them as individual features.
         :return:
         """
-        pass
+        return genotype_to_text(self)
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, repr({'parent': self.parent, 'changes': self._changes}))
