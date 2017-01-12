@@ -102,6 +102,12 @@ class FeatureTree(object):
     def __getitem__(self, item):
         return self.contents[item]
 
+    def __setitem__(self, item, value):
+        lst = list(self.contents)
+        lst[item] = value
+        lst = filter(lambda el: el is not None, lst)
+        self.contents = tuple(lst)
+
     def __iter__(self):
         return iter(self.contents)
 
@@ -155,6 +161,53 @@ class Fusion(FeatureTree, MatchableMixin):
             return False
 
         return all(a.match(b) for a, b in zip(self.contents, other.contents))
+
+    def part_range(self, other):
+        if isinstance(other, Fusion):
+            for i, feature in enumerate(self.contents):
+                if feature == other[0]:
+                    if self.contents[i:i + len(other)] == other.contents:
+                        return [i, i + len(other)]
+            return None
+        else:
+            try:
+                index = self.contents.index(other)
+                return [index, index + 1]
+            except ValueError:
+                return None
+
+    def updated_copy(self, old, new):
+        is_updated = False
+        for element in self:
+            if isinstance(element, FeatureSet):
+                for i, feature in enumerate(element):
+                    if isinstance(feature, Fusion):
+                        updated_fusion, is_updated_inner = feature.updated_copy(old, new)
+                        is_updated |= is_updated_inner
+                        element[i] = updated_fusion
+                        break
+        target_range = self.part_range(old)
+        new_fusion = self
+        if target_range is not None:
+            print "UP: ", new
+            print "Feature: ", isinstance(new, Feature)
+            print "Fusion: ",   isinstance(new, Fusion)
+            print "Tuple: ", isinstance(new, tuple)
+            # new_fusion = Fusion(*self.contents)
+            left, right = target_range
+            if isinstance(new, Feature):
+                new = [new]
+            lst = list(new_fusion.contents)
+            lst[left: right] = new.contents if isinstance(new, Fusion) else new
+            new_fusion.contents = tuple(lst)
+            is_updated = True
+            print "HEre", new_fusion, len(new_fusion.contents)
+            if len(new_fusion.contents) == 0:
+                new_fusion = None
+            elif len(new_fusion.contents) == 1:
+                new_fusion = new_fusion.contents[0]
+            print "THEre", new_fusion
+        return new_fusion, is_updated
 
     def __eq__(self, other):
         return isinstance(other, Fusion) and self.contents == other.contents

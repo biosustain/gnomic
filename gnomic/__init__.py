@@ -82,7 +82,36 @@ class Genotype(object):
                     return remove(added_features, exclude), removed_features
             return remove(added_features, exclude), upsert(removed_features, exclude)
 
+        def update_fusion_features(fusion_features1, fusion_features2, exclude, include, is_insertion=True):
+            new_fusion_features = set()
+            updated = False
+            print "START: ", fusion_features1
+            for feature_or_fusion in fusion_features1:
+                print feature_or_fusion, exclude, include
+                if isinstance(feature_or_fusion, Fusion):
+                    new_feature_or_fusion, is_fusion_updated = feature_or_fusion.updated_copy(exclude, include)
+                    if new_feature_or_fusion is not None:
+                        new_fusion_features.add(new_feature_or_fusion)
+                    updated |= is_fusion_updated
+                    print "NEW!: ", new_feature_or_fusion
+                elif exclude == feature_or_fusion:
+                    print "Equal"
+                    updated = True
+                else:
+                    print "Not equal"
+                    new_fusion_features.add(feature_or_fusion)
+            print updated
+            if not updated or is_insertion:
+                fusion_features2 = upsert(fusion_features2, exclude)
+                if len(include) > 0:
+                    for feature_or_fusion in include:
+                        new_fusion_features = upsert(new_fusion_features, feature_or_fusion)
+                # new_fusion_features = upsert(new_fusion_features, exclude)
+
+            return new_fusion_features, fusion_features2
+
         for change in changes:
+            print change
             if isinstance(change, Plasmid):
                 # add a plasmid (not integrated)
                 added_plasmids |= {change}
@@ -118,7 +147,7 @@ class Genotype(object):
                     # FUSION_UPDATE_ON_CHANGE       | A:B:C B>X              A:X:C     (uses SPLIT on delete)
                     # FUSION_SPLIT_ON_CHANGE        | A:B:C:D C>X            A:B X D
                     # FUSION_EXPLODE_ON_CHANGE      | A:B:C:D C>X            A B X D
-                    if fusion_strategy not in (Genotype.FUSION_MATCH_WHOLE,):
+                    if fusion_strategy not in (Genotype.FUSION_MATCH_WHOLE, Genotype.FUSION_UPDATE_ON_CHANGE):
                         raise NotImplementedError('Unsupported fusion strategy: {}'.format(fusion_strategy))
 
                     # TODO: support: fusion split, fusion whole.
@@ -142,13 +171,32 @@ class Genotype(object):
                         removed_features = remove(removed_features, feature)
 
                     # fusion-sensitive implementation:
-                    for feature_or_fusion in change.new:
-                        added_fusion_features = upsert(added_fusion_features, feature_or_fusion)
-                        removed_fusion_features = remove(removed_fusion_features, feature_or_fusion)
+                    if fusion_strategy == Genotype.FUSION_MATCH_WHOLE:
+                        for feature_or_fusion in change.new:
+                            added_fusion_features = upsert(added_fusion_features, feature_or_fusion)
+                            removed_fusion_features = remove(removed_fusion_features, feature_or_fusion)
 
                 if change.old and change.new:
                     # in a replacement, the removed part must be a single feature
                     sites = upsert(sites, change.old.contents[0])
+
+                if fusion_strategy == Genotype.FUSION_UPDATE_ON_CHANGE:
+                    if change.old and not change.new:  # DEL
+                        for feature_or_fusion in change.old:
+                            added_fusion_features, removed_fusion_features = update_fusion_features(added_fusion_features,
+                                                                                               removed_fusion_features,
+                                                                                               feature_or_fusion, [], False)
+                    elif not change.old and change.new:  # INS
+                        for feature_or_fusion in change.new:
+                            removed_fusion_features, added_fusion_features = update_fusion_features(removed_fusion_features,
+                                                                                               added_fusion_features,
+                                                                                               feature_or_fusion, [])
+                    else:  # DEL>INS
+                        for feature_or_fusion in change.old:
+                            added_fusion_features, removed_fusion_features = update_fusion_features(added_fusion_features,
+                                                                                               removed_fusion_features,
+                                                                                               feature_or_fusion, change.new.contents, False)
+
 
                 if change.markers:
                     # FIXME This should work as
@@ -156,6 +204,11 @@ class Genotype(object):
                         markers = upsert(markers, marker, match_variant=False)
                         added_features = upsert(added_features, marker, match_variant=False)
                         removed_features = remove(removed_features, marker, match_variant=False)
+
+            print added_features
+            print removed_features
+            print added_fusion_features
+            print removed_fusion_features
 
         self.sites = tuple(sites)
         self.markers = tuple(markers)
