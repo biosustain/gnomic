@@ -50,7 +50,7 @@ PHENE_SET
 MARKERS = "::" (@+:PHENE | @:PHENE_SET);
 
 FEATURE
-    = [organism:FEATURE_ORGANISM] [type:IDENTIFIER "."] name:IDENTIFIER [variant:VARIANT] [accession:ACCESSION] [range:RANGE]
+    = [organism:FEATURE_ORGANISM] [type:IDENTIFIER "."] name:IDENTIFIER [variant:VARIANT] [accession:ACCESSION] [range:RANGE] [locus:LOCUS]
     | accession:ACCESSION [range:RANGE];
 
 FEATURE_ORGANISM = @:ORGANISM "/";
@@ -83,6 +83,8 @@ RANGE_SEQUENCE_LEVEL = @:("c" | "p") ".";
 ACCESSION
     = "#" db:DATABASE ":" id:(INTEGER | IDENTIFIER)
     | "#" id:(INTEGER | IDENTIFIER);
+
+LOCUS = "@" @:IDENTIFIER;
 
 DATABASE = /[A-Za-z0-9-][A-Za-z0-9]+/;
 

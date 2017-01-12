@@ -79,7 +79,9 @@ class Genotype(object):
         def remove_or_exclude(added_features, removed_features, exclude):
             for feature in added_features:
                 if exclude == feature:
+                    print "FOUND", exclude, feature
                     return remove(added_features, exclude), removed_features
+            print "Not Found"
             return remove(added_features, exclude), upsert(removed_features, exclude)
 
         for change in changes:
@@ -156,6 +158,8 @@ class Genotype(object):
                         markers = upsert(markers, marker, match_variant=False)
                         added_features = upsert(added_features, marker, match_variant=False)
                         removed_features = remove(removed_features, marker, match_variant=False)
+            print added_features
+            print removed_features
 
         self.sites = tuple(sites)
         self.markers = tuple(markers)

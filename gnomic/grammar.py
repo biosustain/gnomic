@@ -348,6 +348,9 @@ class GnomicParser(Parser):
                 with self._optional():
                     self._RANGE_()
                     self.name_last_node('range')
+                with self._optional():
+                    self._LOCUS_()
+                    self.name_last_node('locus')
             with self._option():
                 self._ACCESSION_()
                 self.name_last_node('accession')
@@ -356,7 +359,7 @@ class GnomicParser(Parser):
                     self.name_last_node('range')
             self._error('no available options')
         self.ast._define(
-            ['accession', 'name', 'organism', 'range', 'type', 'variant'],
+            ['accession', 'locus', 'name', 'organism', 'range', 'type', 'variant'],
             []
         )
 
@@ -555,6 +558,12 @@ class GnomicParser(Parser):
         )
 
     @graken()
+    def _LOCUS_(self):
+        self._token('@')
+        self._IDENTIFIER_()
+        self.name_last_node('@')
+
+    @graken()
     def _DATABASE_(self):
         self._pattern(r'[A-Za-z0-9-][A-Za-z0-9]+')
 
@@ -654,6 +663,9 @@ class GnomicSemantics(object):
         return ast
 
     def ACCESSION(self, ast):
+        return ast
+
+    def LOCUS(self, ast):
         return ast
 
     def DATABASE(self, ast):

@@ -123,6 +123,33 @@ class GenotypeTestCase(BaseTestCase):
             Del(Feature(name='geneA')),
         }, self.chain('+geneA(x)', '-geneA').changes())
 
+    def test_loci(self):
+        self.assertEqual({
+            Ins(Feature(name='geneA', locus='l1'))
+        }, self.chain('+geneA@l1').changes())
+
+        self.assertEqual({
+            Ins(Feature(name='geneB', locus='l2'))
+        }, self.chain('+geneA@l1 +geneB@l2', '-geneA@l1').changes())
+
+        # self.assertEqual({
+        #     Ins(Feature(name='geneB', locus='l2'))
+        # }, self.chain('+geneA@l1 +geneB@l2', '-geneA').changes())
+
+        self.assertEqual({
+            Ins(Feature(name='geneA', locus='l1')),
+            Del(Feature(name='geneA', locus='l2'))
+        }, self.chain('+geneA@l1', '-geneA@l2').changes())
+
+        # self.assertEqual({
+        #     Ins(Feature(name='geneA')),
+        #     Del(Feature(name='geneA', locus='l2'))
+        # }, self.chain('+geneA', '-geneA@l2').changes())
+
+        # self.assertEqual({
+        #     Ins(Feature(name='geneC', locus='l2')),
+        # }, self.chain('+geneB@l2', 'geneB>geneC').changes())
+
 
 class GenotypeRangeTestCase(BaseTestCase):
 

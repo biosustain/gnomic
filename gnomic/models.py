@@ -180,13 +180,14 @@ class Plasmid(FeatureTree, MatchableMixin):
 
 
 class Feature(MatchableMixin):
-    def __init__(self, name=None, type=None, accession=None, organism=None, variant=None, range=None):
+    def __init__(self, name=None, type=None, accession=None, organism=None, variant=None, range=None, locus=None):
         self.name = name
         self.type = type
         self.accession = accession
         self.organism = organism
         self.variant = variant
         self.range = range
+        self.locus = locus
 
     @classmethod
     def parse(cls, string, *args, **kwargs):
@@ -227,6 +228,8 @@ class Feature(MatchableMixin):
             if self.organism and self.organism != other.organism:
                 return False
 
+            if other.locus and self.locus != other.locus:
+                return False
             # TODO range
 
             # if this feature has no variant, match any other feature; otherwise, match only features with the same
@@ -250,7 +253,8 @@ class Feature(MatchableMixin):
             return self.name == other.name and \
                    self.type == other.type and \
                    self.organism == other.organism and \
-                   self.variant == other.variant
+                   self.variant == other.variant and \
+                   self.locus == other.locus
         # TODO range
         return False
 
@@ -260,7 +264,8 @@ class Feature(MatchableMixin):
                hash(self.accession) + \
                hash(self.organism) + \
                hash(self.variant) + \
-               hash(self.range)
+               hash(self.range) + \
+               hash(self.locus)
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__,

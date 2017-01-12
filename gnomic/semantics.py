@@ -80,4 +80,5 @@ class DefaultSemantics(GnomicSemantics):
                        accession=ast.accession,
                        organism=ast.organism,
                        variant=', '.join(ast.variant) if isinstance(ast.variant, list) else ast.variant,
-                       range=ast.range)
+                       range=ast.range,
+                       locus=ast.locus)
