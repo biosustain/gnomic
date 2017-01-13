@@ -84,15 +84,12 @@ class Genotype(object):
 
         def update_fusion_features(fusion_features1, fusion_features2, old, new, is_insertion=True):
             new_fusion_features = set()
-            updated = False
-
             for feature_or_fusion in fusion_features1:
-                new_feature_or_fusion, is_fusion_updated = feature_or_fusion.updated_copy(old, new.contents[0] if new else None)
+                new_feature_or_fusion = feature_or_fusion.updated_copy(old, new.contents[0] if new else None)
                 if new_feature_or_fusion is not None:
                     new_fusion_features.add(new_feature_or_fusion)
-                updated |= is_fusion_updated
 
-            if not updated or is_insertion:
+            if not fusion_features1 != new_fusion_features or is_insertion:
                 fusion_features2 = upsert(fusion_features2, old)
                 if new is not None:
                     for feature_or_fusion in new:

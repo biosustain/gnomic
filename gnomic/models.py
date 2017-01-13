@@ -130,20 +130,17 @@ class FeatureSet(FeatureTree, MatchableMixin):
 
     def updated_copy(self, old, new):
         new_contents = []
-        is_updated = False
-
         for element in self:
-            new_element, is_element_updated = element.updated_copy(old, new)
-            is_updated |= is_element_updated
+            new_element = element.updated_copy(old, new)
             if new_element is not None:
-                new_contents.append(new_element if is_element_updated else element)
+                new_contents.append(new_element)
 
         if len(new_contents) == 0:
-            return None, is_updated
+            return None
         elif len(new_contents) == 1:
-            return new_contents[0], is_updated
+            return new_contents[0]
         else:
-            return FeatureSet(*new_contents), is_updated
+            return FeatureSet(*new_contents)
 
 
 class Fusion(FeatureTree, MatchableMixin):
@@ -190,16 +187,13 @@ class Fusion(FeatureTree, MatchableMixin):
 
     def updated_copy(self, old, new):
         new_contents = []
-        is_updated = False
-
         for element in self:
             if isinstance(element, Feature):
                 new_contents.append(element)
                 continue
-            new_element, is_element_updated = element.updated_copy(old, new)
-            is_updated |= is_element_updated
+            new_element = element.updated_copy(old, new)
             if new_element is not None:
-                new_contents.append(new_element if is_element_updated else element)
+                new_contents.append(new_element)
 
         new_fusion = Fusion(*new_contents)
         target_range = new_fusion.part_range(old)
@@ -207,14 +201,13 @@ class Fusion(FeatureTree, MatchableMixin):
             if new and not isinstance(new, Fusion):
                 new = [new]
             new_fusion[target_range[0]: target_range[1]] = new or []
-            is_updated = True
 
         if len(new_fusion) == 0:
-            return None, is_updated
+            return None
         elif len(new_fusion) == 1:
-            return new_fusion[0], is_updated
+            return new_fusion[0]
         else:
-            return new_fusion, is_updated
+            return new_fusion
 
     def __eq__(self, other):
         return isinstance(other, Fusion) and self.contents == other.contents
@@ -301,9 +294,7 @@ class Feature(MatchableMixin):
             return False
 
     def updated_copy(self, old, new=None):
-        is_updated = self == old
-        return new if is_updated else self, is_updated
-
+        return new if self == old else self
 
     def __eq__(self, other):
         if not isinstance(other, Feature):
