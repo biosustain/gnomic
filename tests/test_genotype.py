@@ -246,22 +246,22 @@ class GenotypeFusionsTestCase(BaseTestCase):
         }, self.chain('+geneA:geneB +geneC', '-geneA',
                       fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
 
-        # self.assertEqual({
-        #     Ins(Fusion(Feature(name='geneA'), Feature(name='geneB')))
-        # }, self.chain('+geneA:geneB +geneC', '-geneC',
-        #               fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
-        #
-        # self.assertEqual({
-        #     Ins(Feature(name='geneC')),
-        # }, self.chain('+geneA:geneB +geneC', '-geneA:geneB',
-        #               fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
-        #
-        # self.assertEqual({
-        #     Ins(Fusion(Feature(name='geneA'), Feature(name='geneB'))),
-        #     Del(Fusion(Feature(name='geneA'), Feature(name='geneB', variant='x'))),
-        #     Ins(Feature(name='geneC')),
-        # }, self.chain('+geneA:geneB +geneC', '-geneA:geneB(x)',
-        #               fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
+        self.assertEqual({
+            Ins(Fusion(Feature(name='geneA'), Feature(name='geneB')))
+        }, self.chain('+geneA:geneB +geneC', '-geneC',
+                      fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
+
+        self.assertEqual({
+            Ins(Feature(name='geneC')),
+        }, self.chain('+geneA:geneB +geneC', '-geneA:geneB',
+                      fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
+
+        self.assertEqual({
+            Ins(Fusion(Feature(name='geneA'), Feature(name='geneB'))),
+            Del(Fusion(Feature(name='geneA'), Feature(name='geneB', variant='x'))),
+            Ins(Feature(name='geneC')),
+        }, self.chain('+geneA:geneB +geneC', '-geneA:geneB(x)',
+                      fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
 
     def test_fusion_replace_match_whole(self):
         self.assertEqual({
@@ -284,11 +284,11 @@ class GenotypeFusionsTestCase(BaseTestCase):
                       fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(fusions=True))
 
     def test_integrated_plasmid_vector_fusion(self):
-        # self.assertEqual({
-        #     Del(Feature(name='siteA')),
-        #     Ins(Feature(name='geneA')),
-        #     Ins(Feature(name='geneB')),
-        # }, self.chain('siteA>pA{geneA:geneB}').changes())
+        self.assertEqual({
+            Del(Feature(name='siteA')),
+            Ins(Feature(name='geneA')),
+            Ins(Feature(name='geneB')),
+        }, self.chain('siteA>pA{geneA:geneB}').changes())
 
         self.assertEqual({
             Del(Feature(name='siteA')),
@@ -367,24 +367,24 @@ class GenotypeFusionsUpdateOnChangeTestCase(BaseTestCase):
                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
 
     def test_fusion_delete_update_on_change(self):
-        # self.assertEqual({
-        #     Ins(Feature(name='geneB')),
-        #     Ins(Feature(name='geneC'))
-        # }, self.chain('+geneA:geneB +geneC', '-geneA',
-        #               fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
-        #
-        # self.assertEqual({
-        #     Ins(Feature(name='geneC')),
-        # }, self.chain('+geneA:geneB +geneC', '-geneA:geneB',
-        #               fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
+        self.assertEqual({
+            Ins(Feature(name='geneB')),
+            Ins(Feature(name='geneC'))
+        }, self.chain('+geneA:geneB +geneC', '-geneA',
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
 
-        # self.assertEqual({
-        #     Ins(Fusion(Feature(name='geneA'), Feature(name='geneB'))),
-        #     Del(Fusion(Feature(name='geneA'), Feature(name='geneB', variant='x'))),
-        #     Ins(Feature(name='geneC')),
-        # }, self.chain('+geneA:geneB +geneC', '-geneA:geneB(x)',
-        #               fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
-        #
+        self.assertEqual({
+            Ins(Feature(name='geneC')),
+        }, self.chain('+geneA:geneB +geneC', '-geneA:geneB',
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
+
+        self.assertEqual({
+            Ins(Fusion(Feature(name='geneA'), Feature(name='geneB'))),
+            Del(Fusion(Feature(name='geneA'), Feature(name='geneB', variant='x'))),
+            Ins(Feature(name='geneC')),
+        }, self.chain('+geneA:geneB +geneC', '-geneA:geneB(x)',
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
+
         self.assertEqual({
             Ins(Fusion(Feature(name='geneA'), Feature(name='geneC'))),
         }, self.chain('+geneA:geneB:geneC', '-geneB',
