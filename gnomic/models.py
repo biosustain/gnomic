@@ -132,15 +132,9 @@ class FeatureSet(FeatureTree, MatchableMixin):
         new_contents = []
         for element in self:
             new_element = element.updated_copy(old, new)
-            if new_element is not None:
-                new_contents.append(new_element)
+            new_contents.extend(new_element)
 
-        if len(new_contents) == 0:
-            return None
-        elif len(new_contents) == 1:
-            return new_contents[0]
-        else:
-            return FeatureSet(*new_contents)
+        return new_contents if len(new_contents) <= 1 else [FeatureSet(*new_contents)]
 
 
 class Fusion(FeatureTree, MatchableMixin):
@@ -188,12 +182,11 @@ class Fusion(FeatureTree, MatchableMixin):
     def updated_copy(self, old, new):
         new_contents = []
         for element in self:
-            if isinstance(element, Feature):
+            if isinstance(element, Feature):  # so that +A:B B>C:D does not parse to Fusion(A, Fusion(C, D))
                 new_contents.append(element)
                 continue
             new_element = element.updated_copy(old, new)
-            if new_element is not None:
-                new_contents.append(new_element)
+            new_contents.extend(new_element)
 
         new_fusion = Fusion(*new_contents)
         target_range = new_fusion.part_range(old)
@@ -202,12 +195,7 @@ class Fusion(FeatureTree, MatchableMixin):
                 new = [new]
             new_fusion[target_range[0]: target_range[1]] = new or []
 
-        if len(new_fusion) == 0:
-            return None
-        elif len(new_fusion) == 1:
-            return new_fusion[0]
-        else:
-            return new_fusion
+        return new_fusion.contents if len(new_fusion.contents) <= 1 else [new_fusion]
 
     def __eq__(self, other):
         return isinstance(other, Fusion) and self.contents == other.contents
@@ -293,8 +281,11 @@ class Feature(MatchableMixin):
             # not enough information for any match
             return False
 
-    def updated_copy(self, old, new=None):
-        return new if self == old else self
+    def updated_copy(self, old, new):
+        if self == old:
+            return [new] if new else []
+        else:
+            return [self]
 
     def __eq__(self, other):
         if not isinstance(other, Feature):
