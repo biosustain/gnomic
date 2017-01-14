@@ -32,16 +32,17 @@ class DefaultSemantics(GnomicSemantics):
             return 'mutant'
 
     def insertion(self, ast):
-        return Mutation(None, ast.new, markers=ast.markers)
+        return Mutation(None, ast.new, locus=ast.locus, markers=ast.markers)
 
     def replacement(self, ast):
         return Mutation(ast.old,
                         ast.new,
+                        locus=ast.locus,
                         markers=ast.markers,
                         multiple=ast.op == '>>')
 
     def deletion(self, ast):
-        return Mutation(ast.old, None, markers=ast.markers)
+        return Mutation(ast.old, None, locus=ast.locus, markers=ast.markers)
 
     def RANGE(self, ast):
         level = {
@@ -80,5 +81,4 @@ class DefaultSemantics(GnomicSemantics):
                        accession=ast.accession,
                        organism=ast.organism,
                        variant=', '.join(ast.variant) if isinstance(ast.variant, list) else ast.variant,
-                       range=ast.range,
-                       locus=ast.locus)
+                       range=ast.range)

@@ -4,14 +4,14 @@ start = (@+:change {(sep | list_separator [sep]) @+:change}* | {}) [sep] $;
 
 change = insertion | replacement | deletion | PLASMID | PHENE;
 
-insertion = "+" new:INSERTABLE [markers:MARKERS];
+insertion = "+" new:INSERTABLE [locus:LOCUS] [markers:MARKERS];
 
 replacement =
-     old:REPLACEABLE op:">" new:SUBSTITUTE [markers:MARKERS] |
-     old:REPLACEABLE op:">>" new:SUBSTITUTE [markers:MARKERS];
+     old:REPLACEABLE [locus:LOCUS] op:">" new:SUBSTITUTE [markers:MARKERS] |
+     old:REPLACEABLE [locus:LOCUS] op:">>" new:SUBSTITUTE [markers:MARKERS];
 
 deletion
-    = "-" old:DELETABLE [markers:MARKERS];
+    = "-" old:DELETABLE [locus:LOCUS] [markers:MARKERS];
 
 INSERTABLE
     = FUSION
@@ -50,7 +50,7 @@ PHENE_SET
 MARKERS = "::" (@+:PHENE | @:PHENE_SET);
 
 FEATURE
-    = [organism:FEATURE_ORGANISM] [type:IDENTIFIER "."] name:IDENTIFIER [variant:VARIANT] [accession:ACCESSION] [range:RANGE] [locus:LOCUS]
+    = [organism:FEATURE_ORGANISM] [type:IDENTIFIER "."] name:IDENTIFIER [variant:VARIANT] [accession:ACCESSION] [range:RANGE]
     | accession:ACCESSION [range:RANGE];
 
 FEATURE_ORGANISM = @:ORGANISM "/";

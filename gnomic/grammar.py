@@ -131,10 +131,13 @@ class GnomicParser(Parser):
         self._INSERTABLE_()
         self.name_last_node('new')
         with self._optional():
+            self._LOCUS_()
+            self.name_last_node('locus')
+        with self._optional():
             self._MARKERS_()
             self.name_last_node('markers')
         self.ast._define(
-            ['markers', 'new'],
+            ['locus', 'markers', 'new'],
             []
         )
 
@@ -144,6 +147,9 @@ class GnomicParser(Parser):
             with self._option():
                 self._REPLACEABLE_()
                 self.name_last_node('old')
+                with self._optional():
+                    self._LOCUS_()
+                    self.name_last_node('locus')
                 self._token('>')
                 self.name_last_node('op')
                 self._SUBSTITUTE_()
@@ -154,6 +160,9 @@ class GnomicParser(Parser):
             with self._option():
                 self._REPLACEABLE_()
                 self.name_last_node('old')
+                with self._optional():
+                    self._LOCUS_()
+                    self.name_last_node('locus')
                 self._token('>>')
                 self.name_last_node('op')
                 self._SUBSTITUTE_()
@@ -163,7 +172,7 @@ class GnomicParser(Parser):
                     self.name_last_node('markers')
             self._error('no available options')
         self.ast._define(
-            ['markers', 'new', 'old', 'op'],
+            ['locus', 'markers', 'new', 'old', 'op'],
             []
         )
 
@@ -173,10 +182,13 @@ class GnomicParser(Parser):
         self._DELETABLE_()
         self.name_last_node('old')
         with self._optional():
+            self._LOCUS_()
+            self.name_last_node('locus')
+        with self._optional():
             self._MARKERS_()
             self.name_last_node('markers')
         self.ast._define(
-            ['markers', 'old'],
+            ['locus', 'markers', 'old'],
             []
         )
 
@@ -348,9 +360,6 @@ class GnomicParser(Parser):
                 with self._optional():
                     self._RANGE_()
                     self.name_last_node('range')
-                with self._optional():
-                    self._LOCUS_()
-                    self.name_last_node('locus')
             with self._option():
                 self._ACCESSION_()
                 self.name_last_node('accession')
@@ -359,7 +368,7 @@ class GnomicParser(Parser):
                     self.name_last_node('range')
             self._error('no available options')
         self.ast._define(
-            ['accession', 'locus', 'name', 'organism', 'range', 'type', 'variant'],
+            ['accession', 'name', 'organism', 'range', 'type', 'variant'],
             []
         )
 

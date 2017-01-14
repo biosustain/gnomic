@@ -28,7 +28,7 @@ class Mutation(object):
 
     """
 
-    def __init__(self, old, new, markers=None, multiple=False):
+    def __init__(self, old, new, locus=None, markers=None, multiple=False):
         if isinstance(old, (list, tuple)):
             old = FeatureTree(*old)
         elif old and not isinstance(old, Plasmid):
@@ -41,6 +41,7 @@ class Mutation(object):
             markers = FeatureSet(*markers)
         self.old = old
         self.new = new
+        self.locus = locus
         self.markers = markers
         self.multiple = multiple
 
@@ -48,6 +49,7 @@ class Mutation(object):
         return isinstance(other, Mutation) and \
             self.old == other.old and \
             self.new == other.new and \
+            self.locus == other.locus and \
             self.markers == other.markers and \
             self.multiple == other.multiple
 
@@ -55,7 +57,8 @@ class Mutation(object):
         return hash(self.old) + \
                hash(self.new) + \
                hash(self.markers) + \
-               hash(self.multiple)
+               hash(self.multiple) + \
+               hash(self.locus)
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__,
@@ -180,14 +183,13 @@ class Plasmid(FeatureTree, MatchableMixin):
 
 
 class Feature(MatchableMixin):
-    def __init__(self, name=None, type=None, accession=None, organism=None, variant=None, range=None, locus=None):
+    def __init__(self, name=None, type=None, accession=None, organism=None, variant=None, range=None):
         self.name = name
         self.type = type
         self.accession = accession
         self.organism = organism
         self.variant = variant
         self.range = range
-        self.locus = locus
 
     @classmethod
     def parse(cls, string, *args, **kwargs):
@@ -228,8 +230,6 @@ class Feature(MatchableMixin):
             if self.organism and self.organism != other.organism:
                 return False
 
-            if other.locus and self.locus != other.locus:
-                return False
             # TODO range
 
             # if this feature has no variant, match any other feature; otherwise, match only features with the same
@@ -253,8 +253,7 @@ class Feature(MatchableMixin):
             return self.name == other.name and \
                    self.type == other.type and \
                    self.organism == other.organism and \
-                   self.variant == other.variant and \
-                   self.locus == other.locus
+                   self.variant == other.variant
         # TODO range
         return False
 
@@ -264,8 +263,7 @@ class Feature(MatchableMixin):
                hash(self.accession) + \
                hash(self.organism) + \
                hash(self.variant) + \
-               hash(self.range) + \
-               hash(self.locus)
+               hash(self.range)
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__,
