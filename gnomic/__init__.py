@@ -82,19 +82,33 @@ class Genotype(object):
                     return remove(added_features, exclude), removed_features
             return remove(added_features, exclude), upsert(removed_features, exclude)
 
-        def update_fusion_features(fusion_features1, fusion_features2, old, new, is_insertion=True):
-            new_fusion_features = set()
-            for feature_or_fusion in fusion_features1:
-                new_feature_or_fusion = feature_or_fusion.updated_copy(old, new.contents[0] if new else [])
-                if new_feature_or_fusion:
-                    new_fusion_features.add(new_feature_or_fusion[0])
+        def update_complex_features(added_features, removed_features, target_feature, substitute, is_insertion):
+            # target feature - inserted feature in case of insertion, deleted feature in case of deletion and replacement
+            # substitute - inserted feature in case of replacement otherwise empty list
+            # is_insertion - True if change is insertion otherwise False
+            updated_set = set()
+            target_set = removed_features if is_insertion else added_features
+            other_set = added_features if is_insertion else removed_features
 
-            if not fusion_features1 != new_fusion_features or is_insertion:
-                fusion_features2 = upsert(fusion_features2, old)
-                for feature_or_fusion in new:
-                    new_fusion_features = upsert(new_fusion_features, feature_or_fusion)
+            for feature in target_set:
+                # go through elements in added/removed fusion features set and update them - delete or replace some parts
+                new_feature = feature.updated_copy(target_feature, substitute.contents[0] if substitute else [])
+                # add the feature to the new set only if it was not fully removed (if it is not an empty list)
+                if new_feature:
+                    updated_set.add(new_feature[0]) #  updated_copy() always returns a 0 or 1 element list
 
-            return new_fusion_features, fusion_features2
+            # target_set == updated_set checks if the set was updated; is_insertion flag indicates if
+            # the mutation was insertion. If insertion - always put the inserted items to added features set.
+            # If deletion or replacement, add deleted items to removed set only if they didn't appear in added items set.
+            if is_insertion or target_set == updated_set:
+                other_set = upsert(other_set, target_feature)
+                for feature in substitute:
+                    updated_set = upsert(updated_set, feature)
+
+            added_features = other_set if is_insertion else updated_set
+            removed_features = updated_set if is_insertion else other_set
+
+            return added_features, removed_features
 
         for change in changes:
             if isinstance(change, Plasmid):
@@ -166,17 +180,15 @@ class Genotype(object):
                     sites = upsert(sites, change.old.contents[0])
 
                 if fusion_strategy == Genotype.FUSION_UPDATE_ON_CHANGE:
-                    if change.old:  # -DEL or DEL>INS
-                        for feature_or_fusion in change.old:
-                            added_fusion_features, removed_fusion_features = update_fusion_features(added_fusion_features,
-                                                                                               removed_fusion_features,
-                                                                                               feature_or_fusion,
-                                                                                               change.new or [], False)
-                    else:  # +INS
-                        for feature_or_fusion in change.new:
-                            removed_fusion_features, added_fusion_features = update_fusion_features(removed_fusion_features,
-                                                                                               added_fusion_features,
-                                                                                               feature_or_fusion, [])
+                    target_change = change.old or change.new
+                    substitute = change.new if change.new and change.old else []
+                    is_insertion = change.new and not change.old
+
+                    for feature in target_change:
+                        added_fusion_features, removed_fusion_features = update_complex_features(added_fusion_features,
+                                                                                                 removed_fusion_features,
+                                                                                                 feature, substitute,
+                                                                                                 is_insertion)
 
                 if change.markers:
                     # FIXME This should work as

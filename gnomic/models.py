@@ -131,10 +131,12 @@ class FeatureSet(FeatureTree, MatchableMixin):
     def updated_copy(self, old, new):
         new_contents = []
         for element in self:
-            new_element = element.updated_copy(old, new)
-            new_contents.extend(new_element)
+            new_element = element.updated_copy(old, new)  # can be a Fusion or a Feature; 'old' part is replaced with 'new'
+            new_contents.extend(new_element)  # if [], the line does not change anything
 
-        return new_contents if len(new_contents) <= 1 else [FeatureSet(*new_contents)]
+        # returning as a one or zero element list allows for simplified code - extending new_contents instead of
+        # checking if an element is not None and if True appending it to new_contents
+        return [FeatureSet(*new_contents)] if new_contents else []
 
 
 class Fusion(FeatureTree, MatchableMixin):
@@ -165,36 +167,44 @@ class Fusion(FeatureTree, MatchableMixin):
 
         return all(a.match(b) for a, b in zip(self.contents, other.contents))
 
+    # checks if a feature, featureset or another fusion is contained in the fusion and returns the slice corresponding
+    # to the location of the match in the fusion or None if there is no match. This function can also serve as
+    # 'contains' function.
     def part_range(self, other):
         if isinstance(other, Fusion):
             for i, feature in enumerate(self.contents):
                 if feature == other[0]:
                     if self.contents[i:i + len(other)] == other.contents:
-                        return [i, i + len(other)]
+                        return slice(i, i + len(other))
             return None
         else:
             try:
                 index = self.contents.index(other)
-                return [index, index + 1]
+                return slice(index, index + 1)
             except ValueError:
                 return None
 
     def updated_copy(self, old, new):
         new_contents = []
         for element in self:
-            if isinstance(element, Feature):  # so that +A:B B>C:D does not parse to Fusion(A, Fusion(C, D))
-                new_contents.append(element)
-                continue
-            new_element = element.updated_copy(old, new)
-            new_contents.extend(new_element)
+            # element can be a Feature or a FeatureSet
+            # if element is a feature, don't process it now so that e.g. +A:B B>C:D does not parse to
+            # Fusion(A, Fusion(C, D)) - update only FeatureSets
+            element = element.updated_copy(old, new) if isinstance(element, FeatureSet) else [element]
+            new_contents.extend(element)
 
         new_fusion = Fusion(*new_contents)
+        # locate range to be removed or substituted
         target_range = new_fusion.part_range(old)
+        # if located, perform replacement (with empty list if deletion)
         if target_range is not None:
+            # if not fusion, wrap new in a list so that the whole 'new' is inserted into the fusion as one element
+            # instead of iterating through the contents
             if new and not isinstance(new, Fusion):
                 new = [new]
-            new_fusion[target_range[0]: target_range[1]] = new or []
+            new_fusion[target_range] = new or []
 
+        # if there is only 1 element in the fusion convert it to that element
         return new_fusion.contents if len(new_fusion.contents) <= 1 else [new_fusion]
 
     def __eq__(self, other):
