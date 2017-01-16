@@ -33,4 +33,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
+    extras_require={
+        'docs': ['Sphinx', 'sphinx-rtd-theme'],
+    }
 )
