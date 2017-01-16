@@ -1,5 +1,6 @@
 import collections
-from gnomic.models import Mutation, Plasmid, Fusion, FeatureTree
+from gnomic.models import Mutation, Plasmid, Fusion, FeatureTree, FeatureSet
+
 
 def namedtuple_with_defaults(typename, field_names, default_values=()):
     T = collections.namedtuple(typename, field_names)
@@ -104,3 +105,67 @@ def feature_to_text(feature, integrated=True, is_maker=False):
                 text += "^%s" % variant
 
         return text
+
+
+def genotype_to_string(genotype):
+    parts = []
+
+    for change in genotype.changes():
+        s = None
+
+        if isinstance(change, Mutation):
+            if change.old and change.new:
+                if change.multiple:
+                    s = '{}>>{}'.format(feature_to_string(change.old), feature_to_string(change.old))
+                else:
+                    s = '{}>{}'.format(feature_to_string(change.old), feature_to_string(change.old))
+            elif change.old is None:
+                s = '+{}'.format(feature_to_string(change.new))
+            elif change.new is None:
+                s = '-{}'.format(feature_to_string(change.old))
+        elif isinstance(change, Plasmid):
+            s = feature_to_string(change)
+
+        if change.markers:
+            s += '::{}'.format(feature_to_string(change.markers))
+
+        parts.append(s)
+    return ' '.join(parts)
+
+
+def feature_to_string(feature):
+    if isinstance(feature, Plasmid):
+        name = feature.name
+        if feature.contents:
+            contents = ' '.join(feature_to_string(f) for f in feature.contents)
+            return r'{name}{{{contents}}}'.format(name=name, contents=contents)
+        else:
+            return '{name}{{}}'.format(name=name)
+    elif isinstance(feature, Fusion):
+        return ':'.join(feature_to_string(f) for f in feature.contents)
+    elif isinstance(feature, FeatureTree):
+        contents = ' '.join(feature_to_string(f) for f in feature.contents)
+        if isinstance(feature, FeatureSet):
+            return '{{{contents}}}'.format(contents=contents)
+        elif len(feature) != 1:
+            raise NotImplementedError
+        return contents
+    else:
+        s = ''
+        if feature.type and feature.type.name != 'phene':
+            s += '{}.'.format(feature.type.name)
+
+        if feature.organism:
+            s += '{}/'.format(feature.organism.name)
+
+        s += feature.name
+
+        variant = feature.variant
+        variant_map = {'wild-type': '+', 'mutant': '-'}
+
+        if variant:
+            try:
+                s += variant_map[variant]
+            except KeyError:
+                s += '({})'.format(variant)
+        return s

@@ -3,7 +3,7 @@ from grako.exceptions import GrakoException
 from gnomic.models import *
 from gnomic.grammar import GnomicParser
 from gnomic.semantics import DefaultSemantics
-from gnomic.utils import genotype_to_text
+from gnomic.utils import genotype_to_text, genotype_to_string
 
 __all__ = (
     'DEFAULT_TYPES',
@@ -218,7 +218,6 @@ class Genotype(object):
                                     types or DEFAULT_TYPES)
         return Genotype(changes, parent=parent, **kwargs)
 
-
     @staticmethod
     def chain_parse(definitions, **kwargs):
         genotype = Genotype.parse(definitions[0], **kwargs)
@@ -255,12 +254,18 @@ class Genotype(object):
         """
         return set(self._iter_changes(fusions=fusions))
 
-    def format(self, fusions=True):
+    def format(self, fusions=True, output='text'):
         """
         :param bool fusions: Keeps fusions together if ``True``, otherwise includes them as individual features.
+        :param str output: Output format; one of ``'text'`` and ``'string'``
         :return:
         """
-        return genotype_to_text(self)
+        if output == 'text':
+            return genotype_to_text(self)
+        elif output == 'string':
+            return genotype_to_string(self)
+        else:
+            raise NotImplementedError('Unknown output format: {}'.format(output))
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, repr({'parent': self.parent, 'changes': self._changes}))

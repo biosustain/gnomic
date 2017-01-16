@@ -1,7 +1,7 @@
 from unittest import TestCase, SkipTest
 
 from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range, Plasmid, FeatureTree, Organism
-from gnomic.utils import genotype_to_text, feature_to_text
+from gnomic.utils import genotype_to_text, feature_to_text, genotype_to_string
 
 
 class BaseTestCase(TestCase):
@@ -305,3 +305,21 @@ class FeatureToTextTestCase(BaseTestCase):
     def test_feature_is_maker(self):
         feature = Feature(name="foo")
         self.assertEqual(feature_to_text(feature, is_maker=True), "::foo")
+
+
+class GenotypeToStringTestCase(BaseTestCase):
+    def test_genotype_to_string(self):
+
+        gnomic = genotype_to_string(self.chain('-e.coli/geneA',
+                                              '+geneB(a)',
+                                              'vectorC{geneC}',
+                                              '-vectorD{}',
+                                              '+geneE::markerF+',
+                                              '+gene.G::{markerH+, markerI+}'
+                                              ))
+        self.assertEqual(
+            set(gnomic.split()),
+            set('+geneE +markerH+ vectorC{geneC} -e.coli/geneA +markerF+ +geneB(a) +markerI+ +gene.G -vectorD{}'.split())
+        )
+
+        self.assertIsInstance(Genotype.parse(gnomic), Genotype)
