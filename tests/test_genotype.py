@@ -309,17 +309,23 @@ class FeatureToTextTestCase(BaseTestCase):
 
 class GenotypeToStringTestCase(BaseTestCase):
     def test_genotype_to_string(self):
-
         gnomic = genotype_to_string(self.chain('-e.coli/geneA',
-                                              '+geneB(a)',
-                                              'vectorC{geneC}',
-                                              '-vectorD{}',
-                                              '+geneE::markerF+',
-                                              '+gene.G::{markerH+, markerI+}'
-                                              ))
+                                               '+geneB(a)',
+                                               'vectorC{geneC}',
+                                               '-vectorD{}',
+                                               '+geneE::markerF+',
+                                               '+gene.G::{markerH+, markerI+}'))
         self.assertEqual(
             set(gnomic.split()),
-            set('+geneE +markerH+ vectorC{geneC} -e.coli/geneA +markerF+ +geneB(a) +markerI+ +gene.G -vectorD{}'.split())
+            set('+geneE '
+                '+markerH+ '
+                'vectorC{geneC} '
+                '-e.coli/geneA '
+                '+markerF+ '
+                '+geneB(a) '
+                '+markerI+ '
+                '+gene.G '
+                '-vectorD{}'.split())
         )
 
         self.assertIsInstance(Genotype.parse(gnomic), Genotype)
