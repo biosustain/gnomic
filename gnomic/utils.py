@@ -1,5 +1,5 @@
 import collections
-from gnomic.models import Mutation, Plasmid, Fusion, FeatureTree, FeatureSet
+from gnomic.models import Mutation, Plasmid, Fusion, FeatureTree, FeatureSet, Feature
 
 
 def namedtuple_with_defaults(typename, field_names, default_values=()):
@@ -13,16 +13,17 @@ def namedtuple_with_defaults(typename, field_names, default_values=()):
     return T
 
 
-def genotype_to_text(genotype, delta_char=u"\u0394"):
+def genotype_to_text(genotype, fusions=False, delta_char=u"\u0394"):
     """
     A method to create a more biologist friendly representation
     of the genotype string
     :param genotype: An instance of the Genotype class
+    :param bool fusions: Whether to keep fusions together.
     :param delta_char: This symbol is used to display a deletion
     :return: str
     """
     result = []
-    for change in genotype.changes():
+    for change in genotype.changes(fusions=fusions):
         change_type = type(change)
         if change_type is Mutation:
             if change.old and change.new:
@@ -107,10 +108,10 @@ def feature_to_text(feature, integrated=True, is_maker=False):
         return text
 
 
-def genotype_to_string(genotype):
+def genotype_to_string(genotype, fusions=True):
     parts = []
 
-    for change in genotype.changes():
+    for change in genotype.changes(fusions=fusions):
         s = None
 
         if isinstance(change, Mutation):
@@ -120,6 +121,7 @@ def genotype_to_string(genotype):
                 else:
                     s = '{}>{}'.format(feature_to_string(change.old), feature_to_string(change.old))
             elif change.old is None:
+                # FIXME phenotypes should not have a + or - prefix; only a postfix.
                 s = '+{}'.format(feature_to_string(change.new))
             elif change.new is None:
                 s = '-{}'.format(feature_to_string(change.old))

@@ -152,11 +152,12 @@ class Genotype(object):
                     sites = upsert(sites, change.old.contents[0])
 
                 if change.markers:
-                    # FIXME This should work as
                     for marker in change.markers:
                         markers = upsert(markers, marker, match_variant=False)
                         added_features = upsert(added_features, marker, match_variant=False)
                         removed_features = remove(removed_features, marker, match_variant=False)
+                        added_fusion_features = upsert(added_fusion_features, marker, match_variant=False)
+                        removed_fusion_features = remove(removed_fusion_features, marker, match_variant=False)
 
         self.sites = tuple(sites)
         self.markers = tuple(markers)
@@ -261,9 +262,9 @@ class Genotype(object):
         :return:
         """
         if output == 'text':
-            return genotype_to_text(self)
+            return genotype_to_text(self, fusions=fusions)
         elif output == 'string':
-            return genotype_to_string(self)
+            return genotype_to_string(self, fusions=fusions)
         else:
             raise NotImplementedError('Unknown output format: {}'.format(output))
 
