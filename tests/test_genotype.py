@@ -41,6 +41,18 @@ class GenotypeTestCase(BaseTestCase):
             Ins(Feature(name='geneB')),
         }, self.chain('siteA>pA{geneA geneB}').changes())
 
+    def test_deletion_of_plasmid_vector(self):
+        self.assertEqual({
+            Plasmid('pA', [])
+        }, self.chain('pA{}').changes())
+
+        self.assertEqual({
+            Del(Plasmid('pA', []))
+        }, self.chain('-pA{}').changes())
+
+        self.assertEqual(set(), self.chain('pA{}', '-pA{}').changes())
+        self.assertEqual(set(), self.chain('pA{foo}', '-pA{}').changes())
+
     def test_variants(self):
         self.assertEqual({
             Del(Feature(name='geneA')),

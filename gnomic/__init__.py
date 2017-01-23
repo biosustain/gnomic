@@ -104,8 +104,9 @@ class Genotype(object):
                 # mutation:
                 if isinstance(change.old, Plasmid):
                     # deletion of a plasmid
-                    added_plasmids = remove(added_plasmids, change.old)
-                    removed_plasmids = upsert(removed_plasmids, change.old)
+                    added_plasmids, removed_plasmids = remove_or_exclude(added_plasmids,
+                                                                         removed_plasmids,
+                                                                         change.old)
                 elif change.old:
                     # deletion of one (or more) features or fusions
                     for feature in change.old.features():

@@ -60,7 +60,7 @@ class Mutation(object):
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__,
                                ', '.join('{}={}'.format(key, repr(value))
-                                         for key, value in self.__dict__.items() if value))
+                                         for key, value in self.__dict__.items() if value is not None))
 
 
 def Ins(insert, **kwargs):
@@ -177,6 +177,15 @@ class Plasmid(FeatureTree, MatchableMixin):
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, repr(self.__dict__))
+
+    def match(self, other, match_contents=False):
+        if not self == other:
+            return False
+
+        if match_contents and not super(Plasmid, self).match(other):
+            return False
+
+        return True
 
 
 class Feature(MatchableMixin):
