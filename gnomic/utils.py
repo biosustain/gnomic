@@ -102,8 +102,7 @@ def feature_to_text(feature, integrated=True, is_maker=False):
             if variant in variant_map:
                 text += variant_map[variant]
             else:
-                # Added the caret char to show it should be superscript
-                text += "^%s" % variant
+                text += "(%s)" % variant
 
         return text
 

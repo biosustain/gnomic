@@ -257,10 +257,10 @@ class GenotypeToTextTestCase(BaseTestCase):
 
     def test_variants(self):
         self.assertEqual(genotype_to_text(self.chain('-geneA(x)')),
-                         u"\u0394geneA^x")
+                         u"\u0394geneA(x)")
 
         self.assertEqual(genotype_to_text(self.chain('+geneA(x)')),
-                         u"geneA^x")
+                         u"geneA(x)")
 
         self.assertEqual(genotype_to_text(self.chain('+geneA(wild-type)')),
                          u"geneA\u207A")
@@ -303,7 +303,7 @@ class FeatureToTextTestCase(BaseTestCase):
 
         self.assertEqual(feature_to_text(feature_wild), u"foo\u207A")
         self.assertEqual(feature_to_text(feature_mutant), u"foo\u207B")
-        self.assertEqual(feature_to_text(feature_other), "foo^x")
+        self.assertEqual(feature_to_text(feature_other), "foo(x)")
 
     def test_feature_is_maker(self):
         feature = Feature(name="foo")
