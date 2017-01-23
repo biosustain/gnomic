@@ -252,6 +252,9 @@ class GenotypeToTextTestCase(BaseTestCase):
         self.assertEqual(genotype_to_text(self.chain('siteA>pA{}')),
                          u"\u0394siteA")
 
+        self.assertEqual(genotype_to_text(self.chain('-pA{}')),
+                         u"\u0394(pA)")
+
     def test_variants(self):
         self.assertEqual(genotype_to_text(self.chain('-geneA(x)')),
                          u"\u0394geneA^x")
