@@ -38,7 +38,7 @@ class Mutation(object):
         elif new and not isinstance(new, Plasmid):
             new = FeatureTree(new)
         if markers is not None:
-            markers = FeatureSet(*markers)
+            markers = FeatureTree(*markers)
         self.old = old
         self.new = new
         self.markers = markers
