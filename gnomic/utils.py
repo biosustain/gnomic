@@ -112,27 +112,33 @@ def genotype_to_string(genotype, fusions=True):
     parts = []
 
     for change in genotype.changes(fusions=fusions):
-        s = None
-
-        if isinstance(change, Mutation):
-            if change.old and change.new:
-                if change.multiple:
-                    s = '{}>>{}'.format(feature_to_string(change.old), feature_to_string(change.old))
-                else:
-                    s = '{}>{}'.format(feature_to_string(change.old), feature_to_string(change.old))
-            elif change.old is None:
-                # FIXME phenotypes should not have a + or - prefix; only a postfix.
-                s = '+{}'.format(feature_to_string(change.new))
-            elif change.new is None:
-                s = '-{}'.format(feature_to_string(change.old))
-        elif isinstance(change, Plasmid):
-            s = feature_to_string(change)
-
-        if change.markers:
-            s += '::{}'.format(feature_to_string(change.markers))
-
-        parts.append(s)
+        parts.append(change_to_string(change))
     return ' '.join(parts)
+
+
+def change_to_string(change):
+    s = None
+
+    if isinstance(change, Mutation):
+        if change.old and change.new:
+            if change.multiple:
+                s = '{}>>{}'.format(feature_to_string(change.old), feature_to_string(change.new))
+            else:
+                s = '{}>{}'.format(feature_to_string(change.old), feature_to_string(change.new))
+        elif change.old is None:
+            # FIXME phenotypes should not have a + or - prefix; only a postfix.
+            s = '+{}'.format(feature_to_string(change.new))
+        elif change.new is None:
+            s = '-{}'.format(feature_to_string(change.old))
+    elif isinstance(change, Plasmid):
+        s = feature_to_string(change)
+    else:
+        raise TypeError()
+
+    if change.markers:
+        s += '::{}'.format(feature_to_string(change.markers))
+
+    return s
 
 
 def feature_to_string(feature):
@@ -150,8 +156,9 @@ def feature_to_string(feature):
         if isinstance(feature, FeatureSet):
             return '{{{contents}}}'.format(contents=contents)
         elif len(feature) != 1:
-            raise NotImplementedError
-        return contents
+            return '{{{contents}}}'.format(contents=contents)
+        else:
+            return contents
     else:
         s = ''
         if feature.type and feature.type.name != 'phene':

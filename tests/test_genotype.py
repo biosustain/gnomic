@@ -1,7 +1,7 @@
 from unittest import TestCase, SkipTest
 
 from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range, Plasmid, FeatureTree, Organism
-from gnomic.utils import genotype_to_text, feature_to_text, genotype_to_string
+from gnomic.utils import genotype_to_text, feature_to_text, genotype_to_string, change_to_string
 
 
 class BaseTestCase(TestCase):
@@ -308,6 +308,7 @@ class FeatureToTextTestCase(BaseTestCase):
 
 
 class GenotypeToStringTestCase(BaseTestCase):
+
     def test_genotype_to_string(self):
         gnomic = genotype_to_string(self.chain('-e.coli/geneA',
                                                '+geneB(a)',
@@ -329,3 +330,33 @@ class GenotypeToStringTestCase(BaseTestCase):
         )
 
         self.assertIsInstance(Genotype.parse(gnomic), Genotype)
+
+    def test_change_to_string(self):
+        self.assertEqual('-geneX', change_to_string(Del(Feature('geneX'))))
+        self.assertEqual('-geneA:geneB', change_to_string(Del(Fusion(Feature('geneA'), Feature('geneB')))))
+
+        self.assertEqual('-geneX::marker+',
+                         change_to_string(Del(Feature('geneX'),
+                                              markers=[Feature('marker', variant='wild-type')])))
+        self.assertEqual('-geneX::{markerA+ markerB+}',
+                         change_to_string(Del(Feature('geneX'),
+                                              markers=[Feature('markerA', variant='wild-type'),
+                                                       Feature('markerB', variant='wild-type')])))
+
+        self.assertEqual('+geneX',
+                         change_to_string(Ins(Feature('geneX'))))
+
+        self.assertEqual('+{geneA geneB}',
+                         change_to_string(Ins([Feature('geneA'), Feature('geneB')])))
+
+        self.assertEqual('plasmid{}',
+                         change_to_string(Plasmid('plasmid', [])))
+
+        self.assertEqual('-plasmid{}',
+                         change_to_string(Del(Plasmid('plasmid', []))))
+
+        self.assertEqual('siteX>geneY',
+                         change_to_string(Sub(Feature('siteX'), Feature('geneY'))))
+
+        self.assertEqual('siteX>>geneY',
+                         change_to_string(Sub(Feature('siteX'), Feature('geneY'), multiple=True)))
