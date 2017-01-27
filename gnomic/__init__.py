@@ -3,6 +3,7 @@ from grako.exceptions import GrakoException
 from gnomic.models import *
 from gnomic.grammar import GnomicParser
 from gnomic.semantics import DefaultSemantics
+from gnomic.utils import genotype_to_text, genotype_to_string
 
 __all__ = (
     'DEFAULT_TYPES',
@@ -131,8 +132,9 @@ class Genotype(object):
                 # mutation:
                 if isinstance(change.old, Plasmid):
                     # deletion of a plasmid
-                    added_plasmids = remove(added_plasmids, change.old)
-                    removed_plasmids = upsert(removed_plasmids, change.old)
+                    added_plasmids, removed_plasmids = remove_or_exclude(added_plasmids,
+                                                                         removed_plasmids,
+                                                                         change.old)
                 elif change.old:
                     # deletion of one (or more) features or fusions
                     for feature in change.old.features():
@@ -166,8 +168,12 @@ class Genotype(object):
 
                     # insertion of one (or more) features or fusions
                     for feature in change.new.features():
-                        added_features = upsert(added_features, feature)
-                        removed_features = remove(removed_features, feature)
+                        removed_features, added_features = remove_or_exclude(removed_features,
+                                                                             added_features,
+                                                                             feature)
+
+                        # added_features = upsert(added_features, feature)
+                        # removed_features = remove(removed_features, feature)
 
                     # fusion-sensitive implementation:
                     if fusion_strategy == Genotype.FUSION_MATCH_WHOLE:
@@ -191,13 +197,12 @@ class Genotype(object):
                                                                                                  is_insertion)
 
                 if change.markers:
-                    # FIXME This should work as
                     for marker in change.markers:
                         markers = upsert(markers, marker, match_variant=False)
                         added_features = upsert(added_features, marker, match_variant=False)
                         removed_features = remove(removed_features, marker, match_variant=False)
-            print added_fusion_features
-            print removed_fusion_features
+                        added_fusion_features = upsert(added_fusion_features, marker, match_variant=False)
+                        removed_fusion_features = remove(removed_fusion_features, marker, match_variant=False)
 
         self.sites = tuple(sites)
         self.markers = tuple(markers)
@@ -259,6 +264,13 @@ class Genotype(object):
                                     types or DEFAULT_TYPES)
         return Genotype(changes, parent=parent, **kwargs)
 
+    @staticmethod
+    def chain_parse(definitions, **kwargs):
+        genotype = Genotype.parse(definitions[0], **kwargs)
+        for definition in definitions[1:]:
+            genotype = Genotype.parse(definition, parent=genotype, **kwargs)
+        return genotype
+
     def _iter_changes(self, fusions=True):
         if fusions:
             for feature in self.added_fusion_features:
@@ -288,12 +300,18 @@ class Genotype(object):
         """
         return set(self._iter_changes(fusions=fusions))
 
-    def format(self, fusions=True):
+    def format(self, fusions=True, output='text'):
         """
         :param bool fusions: Keeps fusions together if ``True``, otherwise includes them as individual features.
+        :param str output: Output format; one of ``'text'`` and ``'string'``
         :return:
         """
-        pass
+        if output == 'text':
+            return genotype_to_text(self, fusions=fusions)
+        elif output == 'string':
+            return genotype_to_string(self, fusions=fusions)
+        else:
+            raise NotImplementedError('Unknown output format: {}'.format(output))
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, repr({'parent': self.parent, 'changes': self._changes}))

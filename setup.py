@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='gnomic',
-    version='0.2.1',
+    version='0.3.3',
     packages=find_packages(exclude=['*tests*']),
     license='Apache',
     author='Lars Schöning',
@@ -15,7 +15,7 @@ setup(
     test_suite='nose.collector',
     tests_require=['nose'],
     install_requires=[
-        'grako>=3.6.6',
+        'grako>=3.18.1',
         'six>=1.8.0'
     ],
     classifiers=[
@@ -33,4 +33,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
+    extras_require={
+        'docs': ['Sphinx', 'sphinx-rtd-theme'],
+    }
 )

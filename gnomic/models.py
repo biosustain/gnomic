@@ -34,7 +34,7 @@ class Mutation(object):
         if new and not isinstance(new, Plasmid):
             new = FeatureTree(new)
         if markers is not None:
-            markers = FeatureSet(*markers)
+            markers = FeatureTree(*markers)
         self.old = old
         self.new = new
         self.markers = markers
@@ -56,7 +56,7 @@ class Mutation(object):
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__,
                                ', '.join('{}={}'.format(key, repr(value))
-                                         for key, value in self.__dict__.items() if value))
+                                         for key, value in self.__dict__.items() if value is not None))
 
 
 def Ins(insert, **kwargs):
@@ -229,6 +229,15 @@ class Plasmid(FeatureTree, MatchableMixin):
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, repr(self.__dict__))
 
+    def match(self, other, match_contents=False):
+        if not self == other:
+            return False
+
+        if match_contents and not super(Plasmid, self).match(other):
+            return False
+
+        return True
+
 
 class Feature(MatchableMixin):
     def __init__(self, name=None, type=None, accession=None, organism=None, variant=None, range=None):
@@ -278,7 +287,9 @@ class Feature(MatchableMixin):
             if self.organism and self.organism != other.organism:
                 return False
 
-            # TODO range
+            # TODO ranges
+            if self.range and self.range != other.range:
+                return False
 
             # if this feature has no variant, match any other feature; otherwise, match only features with the same
             # variant
@@ -302,12 +313,13 @@ class Feature(MatchableMixin):
             return False
 
         if self.accession and other.accession:
-            return self.accession == other.accession
+            return self.accession == other.accession and self.range == other.range
         elif self.name:
             return self.name == other.name and \
                    self.type == other.type and \
                    self.organism == other.organism and \
-                   self.variant == other.variant
+                   self.variant == other.variant and \
+                   self.range == other.range
         # TODO range
         return False
 
@@ -341,6 +353,12 @@ class Range(object):
 
     def __len__(self):
         return self.end - self.start + 1
+
+    def __eq__(self, other):
+        return isinstance(other, Range) \
+               and self.level == other.level \
+               and self.start == other.start\
+               and self.end == other.end
 
     def __repr__(self):
         if self.start == self.end:
