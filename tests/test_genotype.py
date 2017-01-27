@@ -26,7 +26,6 @@ class GenotypeTestCase(BaseTestCase):
 
         self.assertEqual({
             Del(Feature(name='geneA')),
-            Ins(Feature(name='geneB')),
             Ins(Feature(name='geneC')),
         }, self.chain('-geneA -geneB', '+geneB', '+geneC').changes())
 
@@ -67,6 +66,26 @@ class GenotypeTestCase(BaseTestCase):
             Del(Feature(name='geneA', variant='x')),
             Ins(Feature(name='geneA', variant='y')),
         }, self.chain('-geneA(x)', '+geneA(y)').changes())
+
+    def test_insertion_followed_by_deletion(self):
+        self.assertEqual({
+            Ins(Feature(name='geneX')),
+        }, self.chain('+geneX +geneA', '-geneA').changes())
+
+        self.assertEqual({
+            Ins(Feature(name='geneX')),
+            Ins(Feature(name='geneY')),
+        }, self.chain('+geneX +geneA', '+geneY', '-geneA').changes())
+
+    def test_deletion_followed_by_insertion(self):
+        self.assertEqual({
+            Ins(Feature(name='geneX')),
+        }, self.chain('+geneX -geneA', '+geneA').changes())
+
+        self.assertEqual({
+            Ins(Feature(name='geneX')),
+            Ins(Feature(name='geneY')),
+        }, self.chain('+geneX -geneA', '+geneY', '+geneA').changes())
 
     def test_phenotypes_replace_variants(self):
         # when variants are used (default case):
@@ -143,8 +162,13 @@ class GenotypeRangeTestCase(BaseTestCase):
 
     def test_delete_insert(self):
         self.assertEqual({
-            Ins(Feature(name='geneA')),
+            Ins(Feature(name='geneA')),  # XXX needs rethinking.
         }, self.chain('-geneA[c.5_10]', '+geneA').changes())
+
+        self.assertEqual({
+            Ins(Feature(name='geneA')),
+            Del(Feature(name='geneA', range=Range('coding', 5, 10))),
+        }, self.chain('+geneA', '-geneA[c.5_10]').changes())
 
     @SkipTest
     def test_delete_multiple_ranges(self):

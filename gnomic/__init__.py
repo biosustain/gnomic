@@ -140,8 +140,12 @@ class Genotype(object):
 
                     # insertion of one (or more) features or fusions
                     for feature in change.new.features():
-                        added_features = upsert(added_features, feature)
-                        removed_features = remove(removed_features, feature)
+                        removed_features, added_features = remove_or_exclude(removed_features,
+                                                                             added_features,
+                                                                             feature)
+
+                        # added_features = upsert(added_features, feature)
+                        # removed_features = remove(removed_features, feature)
 
                     # fusion-sensitive implementation:
                     for feature_or_fusion in change.new:
