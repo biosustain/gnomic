@@ -43,6 +43,9 @@ class GrammarTestCase(TestCase):
             Ins(Feature(accession=Accession(identifier=123)))
         ], parse('+#123'))
 
+    def test_parse_plasmid_presence(self):
+        self.assertEqual([Plasmid('pA', None)], parse('(pA)'))
+        self.assertEqual([Plasmid('pA', None)], parse('pA{}'))
 
     def test_parse_variants(self):
         self.assertEqual([
@@ -90,14 +93,27 @@ class GrammarTestCase(TestCase):
             Del(Plasmid('pFoo', None))
         ], parse('-pFoo{}'))
 
-        result = parse('-pFoo{fooF}')
+        self.assertEqual([
+            Del(Plasmid('pBar', None))
+        ], parse('-(pBar)'))
+
+        changes = parse('-pFoo{fooF}')
         self.assertEqual([
             Del(Plasmid('pFoo', None))
-        ], result)
+        ], changes)
 
         self.assertEqual((
             Feature(name='fooF'),
-        ), result[0].old.contents)
+        ), changes[0].old.contents)
+
+        changes = parse('-(pBar barB)')
+        self.assertEqual([
+            Del(Plasmid('pBar', None))
+        ], changes)
+
+        self.assertEqual((
+            Feature(name='barB'),
+        ), changes[0].old.contents)
 
     def test_parse_simple_replacements(self):
         self.assertEqual([

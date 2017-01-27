@@ -37,7 +37,9 @@ DELETABLE
 
 PLASMID
     = name:IDENTIFIER contents:FEATURE_SET [markers:MARKERS]
-    | name:IDENTIFIER "{}" [markers:MARKERS];
+    | name:IDENTIFIER "{}" [markers:MARKERS]
+    | "(" name:IDENTIFIER contents:FEATURE_SET_ITEMS ")" [markers:MARKERS]
+    | "(" name:IDENTIFIER ")" [markers:MARKERS];
 
 PHENE
     = [organism:FEATURE_ORGANISM] name:IDENTIFIER accession:ACCESSION variant:BINARY_VARIANT
@@ -56,7 +58,10 @@ FEATURE
 FEATURE_ORGANISM = @:ORGANISM "/";
 
 FEATURE_SET
-    = "{" [sep] @+:(FEATURE_FUSION | FEATURE) {(sep | list_separator [sep]) @+:(FEATURE_FUSION | FEATURE)}* [sep] "}";
+    = "{" @:FEATURE_SET_ITEMS "}";
+
+FEATURE_SET_ITEMS
+    = [sep] @+:(FEATURE_FUSION | FEATURE) {(sep | list_separator [sep]) @+:(FEATURE_FUSION | FEATURE)}* [sep];
 
 FUSION
     = @+:(FEATURE_SET | FEATURE) {":" @+:(FEATURE_SET | FEATURE)}+;

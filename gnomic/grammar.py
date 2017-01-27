@@ -250,6 +250,24 @@ class GnomicParser(Parser):
                 with self._optional():
                     self._MARKERS_()
                     self.name_last_node('markers')
+            with self._option():
+                self._token('(')
+                self._IDENTIFIER_()
+                self.name_last_node('name')
+                self._FEATURE_SET_ITEMS_()
+                self.name_last_node('contents')
+                self._token(')')
+                with self._optional():
+                    self._MARKERS_()
+                    self.name_last_node('markers')
+            with self._option():
+                self._token('(')
+                self._IDENTIFIER_()
+                self.name_last_node('name')
+                self._token(')')
+                with self._optional():
+                    self._MARKERS_()
+                    self.name_last_node('markers')
             self._error('no available options')
         self.ast._define(
             ['contents', 'markers', 'name'],
@@ -369,6 +387,12 @@ class GnomicParser(Parser):
     @graken()
     def _FEATURE_SET_(self):
         self._token('{')
+        self._FEATURE_SET_ITEMS_()
+        self.name_last_node('@')
+        self._token('}')
+
+    @graken()
+    def _FEATURE_SET_ITEMS_(self):
         with self._optional():
             self._sep_()
         with self._group():
@@ -401,7 +425,6 @@ class GnomicParser(Parser):
         self._closure(block2)
         with self._optional():
             self._sep_()
-        self._token('}')
 
     @graken()
     def _FUSION_(self):
@@ -627,6 +650,9 @@ class GnomicSemantics(object):
         return ast
 
     def FEATURE_SET(self, ast):
+        return ast
+
+    def FEATURE_SET_ITEMS(self, ast):
         return ast
 
     def FUSION(self, ast):
