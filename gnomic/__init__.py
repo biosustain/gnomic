@@ -101,7 +101,7 @@ class Genotype(object):
             # target_set == updated_set checks if the set was updated; is_insertion flag indicates if
             # the mutation was insertion. If insertion - always put the inserted items to added features set.
             # If deletion or replacement, add deleted items to removed set only if they didn't appear in added items set.
-            if is_insertion or target_set == updated_set:
+            if target_set == updated_set:
                 other_set = upsert(other_set, target_feature)
                 for feature in substitute:
                     updated_set = upsert(updated_set, feature)

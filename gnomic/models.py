@@ -132,7 +132,7 @@ class FeatureSet(FeatureTree, MatchableMixin):
         new_contents = []
         for element in self:
             new_element = element.updated_copy(old, new)  # can be a Fusion or a Feature; 'old' part is replaced with 'new'
-            new_contents.extend(new_element)  # if [], the line does not change anything
+            new_contents.extend(new_element)  # if new_element is [], the line does not change anything
 
         # returning as a one or zero element list allows for simplified code - extending new_contents instead of
         # checking if an element is not None and if True appending it to new_contents
