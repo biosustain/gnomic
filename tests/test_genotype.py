@@ -520,11 +520,11 @@ class GenotypeFusionsUpdateOnChangeTestCase(BaseTestCase):
         }, self.chain('+geneA:{geneB geneC:geneD}', '-geneB', '-geneC:geneD',
                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
 
-
-        self.assertEqual({
-            Ins(Feature(name='geneD')),
-        }, self.chain('+{geneB geneC geneD}', '-{geneB geneC}',
-                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
+        # TODO: test for provisional logic (not implemented yet)
+        # self.assertEqual({
+        #     Ins(Feature(name='geneD')),
+        # }, self.chain('+{geneB geneC geneD}', '-{geneB geneC}',
+        #               fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
 
     def test_fusion_replace_update_on_change(self):
         self.assertEqual({
@@ -539,8 +539,7 @@ class GenotypeFusionsUpdateOnChangeTestCase(BaseTestCase):
 
         self.assertEqual({
             Ins(Fusion(Feature(name='geneA'), Feature(name='geneB'))),
-            Del(Fusion(Feature(name='geneA'), Feature(name='geneC'))),
-            Ins(Feature(name='geneD')),
+            Sub(Fusion(Feature(name='geneA'), Feature(name='geneC')), Feature(name='geneD'))
         }, self.chain('+geneA:geneB', 'geneA:geneC>geneD',
                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
 
