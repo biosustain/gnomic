@@ -109,3 +109,13 @@ To rebuild the gnomic parser using `grako`, run:
 ::
 
     grako genotype.enbf -o gnomic/grammar.py -m Gnomic
+    
+References
+-----------
+
+- `Wikipedia — Bacterial genetic nomenclature <http://en.wikipedia.org/wiki/Bacterial_genetic_nomenclature>`_
+- `Journal of Bacteriology — Instructions to Authors <http://jb.asm.org/site/misc/journal-ita_nom.xhtml#03>`_
+- `Human Genome Variation Society — Recommendations for the description of sequence variants <http://www.hgvs.org/mutnomen/recs.html>`_
+- `Databases cross-referenced in UniProtKB <http://www.uniprot.org/docs/dbxref>`_
+
+
