@@ -35,7 +35,7 @@ class DefaultSemantics(GnomicSemantics):
     def change(self, ast):
         if isinstance(ast, Mutation) or isinstance(ast, Presence):  # Mutation or deleted Plasmid
             return ast
-        else: # inserted Plasmid or Phene
+        else:  # inserted Plasmid or Phene
             return Presence(ast, True)
 
     def insertion(self, ast):
@@ -71,7 +71,6 @@ class DefaultSemantics(GnomicSemantics):
         return Accession(ast['id'], ast['db'])
 
     def PLASMID(self, ast):
-        print "Contents: ", ast.contents
         return Plasmid(ast.name, ast.contents, markers=ast.markers)
 
     def PHENE(self, ast):

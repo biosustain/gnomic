@@ -54,7 +54,6 @@ class Genotype(object):
     FUSION_EXPLODE_ON_CHANGE = 'explode-on-change'
 
     def __init__(self, changes, parent=None, fusion_strategy=FUSION_MATCH_WHOLE):
-        print "CHANGES: ", changes
         self.parent = parent
         self._changes = tuple(changes)
         self.mutation_list = parent.mutation_list if parent else []
@@ -94,13 +93,14 @@ class Genotype(object):
         def update_component_list(component_list, change_list, replace_function):
             for change in change_list:
                 new_change_list = [replace_function(component, change) for component in component_list]
-                new_change_list = filter(lambda m: m is not None, new_change_list)
+                new_change_list = [new_change for new_change in new_change_list if new_change]
                 if new_change_list == component_list:
                     component_list.append(change)
                 else:
                     component_list = new_change_list
             return component_list
 
+        # extract markers from changes and place them in the right positions
         updated_changes = []
         for change in changes:
             updated_changes.append(change)
@@ -115,7 +115,6 @@ class Genotype(object):
 
         addition_change_list = filter(lambda change: isinstance(change, Presence), changes)
         self.additions = update_component_list(self.additions, addition_change_list, replace_addition)
-
 
     @property
     def raw(self):
