@@ -1,5 +1,5 @@
 import collections
-from gnomic.models import Mutation, Plasmid, Fusion, FeatureTree, FeatureSet, Feature
+from gnomic.models import Mutation, Plasmid, Fusion, FeatureTree, FeatureSet, Feature, Presence
 
 
 def namedtuple_with_defaults(typename, field_names, default_values=()):
@@ -129,8 +129,11 @@ def change_to_string(change):
             s = '+{}'.format(feature_to_string(change.new))
         elif change.new is None:
             s = '-{}'.format(feature_to_string(change.old))
-    elif isinstance(change, Plasmid):
-        s = feature_to_string(change)
+    elif isinstance(change, Presence):
+        prefix = "-" if not change.present else ""
+        s = prefix + feature_to_string(change.element)
+    # elif isinstance(change, Plasmid):
+    #     s = feature_to_string(change)
     else:
         raise TypeError()
 

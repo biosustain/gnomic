@@ -1,4 +1,5 @@
-from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type, FeatureTree, Range, FeatureSet
+from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type, FeatureTree, Range, \
+    FeatureSet, Presence
 from gnomic.grammar import GnomicSemantics
 
 
@@ -31,17 +32,26 @@ class DefaultSemantics(GnomicSemantics):
         else:
             return 'mutant'
 
+    def change(self, ast):
+        if isinstance(ast, Mutation) or isinstance(ast, Presence):  # Mutation or deleted Plasmid
+            return ast
+        else: # inserted Plasmid or Phene
+            return Presence(ast, True)
+
     def insertion(self, ast):
         return Mutation(None, ast.new, markers=ast.markers)
 
     def replacement(self, ast):
         return Mutation(ast.old,
-                        ast.new,
+                        ast.new.contents if isinstance(ast.new, Plasmid) else ast.new,
                         markers=ast.markers,
                         multiple=ast.op == '>>')
 
     def deletion(self, ast):
-        return Mutation(ast.old, None, markers=ast.markers)
+        if isinstance(ast.old, Plasmid):
+            return Presence(ast.old, False, markers=ast.markers)
+        else:
+            return Mutation(ast.old, None, markers=ast.markers)
 
     def RANGE(self, ast):
         level = {
@@ -61,6 +71,7 @@ class DefaultSemantics(GnomicSemantics):
         return Accession(ast['id'], ast['db'])
 
     def PLASMID(self, ast):
+        print "Contents: ", ast.contents
         return Plasmid(ast.name, ast.contents, markers=ast.markers)
 
     def PHENE(self, ast):

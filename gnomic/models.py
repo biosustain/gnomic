@@ -29,10 +29,10 @@ class Mutation(object):
     """
 
     def __init__(self, old, new, markers=None, multiple=False):
-        if old and not isinstance(old, Plasmid):
-            old = FeatureTree(old)
-        if new and not isinstance(new, Plasmid):
-            new = FeatureTree(new)
+        # if old and not isinstance(old, Plasmid):
+        #     old = FeatureTree(old)
+        # if new and not isinstance(new, Plasmid):
+        #     new = FeatureTree(new)
         if markers is not None:
             markers = FeatureTree(*markers)
         self.old = old
@@ -69,6 +69,43 @@ def Sub(before, after, **kwargs):
 
 def Del(delete, **kwargs):
     return Mutation(delete, None, **kwargs)
+
+
+class Presence(object):
+    def __init__(self, element, present, markers=None, multiple=False):
+        if markers is not None:
+            markers = FeatureTree(*markers)
+        self.element = element
+        self.present = present
+        self.markers = markers
+        self.multiple = multiple
+
+    def __eq__(self, other):
+        return isinstance(other, Presence) and \
+            self.element == other.element and \
+            self.present == other.present and \
+            self.markers == other.markers and \
+            self.multiple == other.multiple
+
+    def __hash__(self):
+        return hash(self.element) + \
+               hash(self.present) + \
+               hash(self.markers) + \
+               hash(self.multiple)
+
+    def __repr__(self):
+        return '{}({})'.format(self.__class__.__name__,
+                               ', '.join('{}={}'.format(key, repr(value))
+                                         for key, value in self.__dict__.items() if value is not None))
+
+
+def Present(element, **kwargs):
+    return Presence(element, True, **kwargs)
+
+
+def Absent(element, **kwargs):
+    return Presence(element, False, **kwargs)
+
 
 
 class MatchableMixin(object):
@@ -131,12 +168,10 @@ class FeatureSet(FeatureTree, MatchableMixin):
     def updated_copy(self, old, new):
         new_contents = []
         for element in self:
-            new_element = element.updated_copy(old, new)  # can be a Fusion or a Feature; 'old' part is replaced with 'new'
-            if new_element is not None:
-                new_contents.append(new_element)  # if new_element is [], the line does not change anything
+            new_element = element.updated_copy(old, new)
+            if new_element:
+                new_contents.append(new_element)
 
-        # returning as a one or zero element list allows for simplified code - extending new_contents instead of
-        # checking if an element is not None and if True appending it to new_contents
         return FeatureSet(*new_contents) if new_contents else None
 
 
@@ -192,14 +227,14 @@ class Fusion(FeatureTree, MatchableMixin):
             # if element is a feature, don't process it now so that e.g. +A:B B>C:D does not parse to
             # Fusion(A, Fusion(C, D)) - update only FeatureSets
             new_element = element.updated_copy(old, new) if isinstance(element, FeatureSet) else element
-            if new_element is not None:
+            if new_element:
                 new_contents.append(new_element)
 
         new_fusion = Fusion(*new_contents)
         # locate range to be removed or substituted
         target_range = new_fusion.part_range(old)
         # if located, perform replacement (with empty list if deletion)
-        if target_range is not None:
+        if target_range:
             # if not fusion, wrap new in a list so that the whole 'new' is inserted into the fusion as one element
             # instead of iterating through the contents
             if new and not isinstance(new, Fusion):
@@ -217,9 +252,10 @@ class Fusion(FeatureTree, MatchableMixin):
         return isinstance(other, Fusion) and self.contents == other.contents
 
 
-class Plasmid(FeatureTree, MatchableMixin):
+class Plasmid(MatchableMixin):
     def __init__(self, name, contents, site=None, markers=None):
-        super(Plasmid, self).__init__(*contents if contents else ())
+        # super(Plasmid, self).__init__(*contents if contents else ())
+        self.contents = contents
         if markers is not None:
             markers = FeatureSet(*markers)
         self.name = name
@@ -234,6 +270,9 @@ class Plasmid(FeatureTree, MatchableMixin):
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, repr(self.__dict__))
+
+    def features(self):
+        return self.contents.features()
 
     def match(self, other, match_contents=False):
         if not self == other:
@@ -310,6 +349,9 @@ class Feature(MatchableMixin):
 
     def updated_copy(self, old, new):
         return new if self == old else self
+
+    def features(self):
+        yield self
 
     def __eq__(self, other):
         if not isinstance(other, Feature):

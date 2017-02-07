@@ -54,169 +54,68 @@ class Genotype(object):
     FUSION_EXPLODE_ON_CHANGE = 'explode-on-change'
 
     def __init__(self, changes, parent=None, fusion_strategy=FUSION_MATCH_WHOLE):
+        print "CHANGES: ", changes
         self.parent = parent
         self._changes = tuple(changes)
         self.mutation_list = parent.mutation_list if parent else []
+        self.additions = parent.additions if parent else []
 
-        # TODO FIXME renoval strategy: do not add to removed_features list if there was a match in added_features list
-        # TODO same for plasmids!
-
-        # sites = set(parent.sites if parent else ())
-        # markers = set(parent.markers if parent else ())
-        # phenotypes = set(parent.phenotypes if parent else ())
-        # added_plasmids = set(parent.added_plasmids if parent else ())
-        # removed_plasmids = set(parent.removed_plasmids if parent else ())
-        # added_features = set(parent.added_features if parent else ())
-        # removed_features = set(parent.removed_features if parent else ())
-        # added_fusion_features = set(parent.added_fusion_features if parent else ())
-        # removed_fusion_features = set(parent.removed_fusion_features if parent else ())
-
-        def update_mutation(old_mutation, new_mutation):
+        def replace_mutation(old_mutation, new_mutation):
             # TODO: Add 'if' when locus is implemented
             # if old_mutation.locus == new_mutation.locus:
             #     return old_mutation
-            # target feature - inserted feature in case of insertion, deleted feature in case of deletion and replacement
-            # substitute - inserted feature in case of replacement otherwise empty list
-            # is_insertion - True if change is insertion otherwise False
+
             is_insertion = new_mutation.new and not new_mutation.old
             target_feature = new_mutation.new if is_insertion else new_mutation.old
             substitute = new_mutation.new if new_mutation.new and new_mutation.old else None
-
-
             target_tree = old_mutation.old if is_insertion else old_mutation.new
             other_tree = old_mutation.new if is_insertion else old_mutation.old
 
-            if other_tree is not None:
-                other_tree = other_tree.contents[0]
-            if target_tree is not None:
-                target_tree = target_tree.contents[0]
-
-            if target_tree is None:
+            if not target_tree:
                 return old_mutation
 
-            new_feature = target_tree.updated_copy(target_feature.contents[0],
-                                                   substitute.contents[0] if substitute else None)
-
+            if fusion_strategy == Genotype.FUSION_MATCH_WHOLE:
+                new_feature = substitute if target_tree == target_feature else target_tree
+            elif fusion_strategy == Genotype.FUSION_UPDATE_ON_CHANGE:
+                new_feature = target_tree.updated_copy(target_feature, substitute)
 
             after = other_tree if is_insertion else new_feature
             before = new_feature if is_insertion else other_tree
 
             return Mutation(before, after) if before or after else None
 
-        # -B +B
-        new_mutations_to_apply = filter(lambda change: isinstance(change, Mutation), changes)
-        for new_mutation in new_mutations_to_apply:
-            new_mutation_list = [update_mutation(mutation, new_mutation) for mutation in self.mutation_list]
-            new_mutation_list = filter(lambda m: m is not None, new_mutation_list)
-            print "NEW LIST", new_mutation_list
-            if new_mutation_list == self.mutation_list:
-                print ("APPENDING: ", new_mutation)
-                self.mutation_list.append(new_mutation)
-            else:
-                self.mutation_list = new_mutation_list
+        def replace_addition(old_addition, new_addition):
+                kwargs = {"match_variant": False} if isinstance(new_addition.element, Feature) else {}
+                if new_addition.element.match(old_addition.element, **kwargs):
+                    return new_addition if new_addition.present == old_addition.present else None
+                else:
+                    return old_addition
 
-        # for change in changes:
-        #     if isinstance(change, Plasmid):
-        #         # add a plasmid (not integrated)
-        #         added_plasmids |= {change}
-        #         removed_plasmids -= {change}
-        #     elif isinstance(change, Feature):
-        #         # define a certain phenotype or variant of a gene:
-        #         # - rid the genotype of other variants of this feature.
-        #         # - replace the feature within any fusions that contain it or a variant of it.
-        #         phenotypes = upsert(phenotypes, change, match_variant=False)
-        #
-        #         added_features = upsert(added_features, change, match_variant=False)
-        #         removed_features = remove(removed_features, change, match_variant=False)
-        #
-        #         # fusion-sensitive implementation:
-        #         added_fusion_features = upsert(added_fusion_features, change, match_variant=False)
-        #         removed_fusion_features = remove(removed_fusion_features, change, match_variant=False)
-        #     else:
-        #         # mutation:
-        #         if isinstance(change.old, Plasmid):
-        #             # deletion of a plasmid
-        #             added_plasmids, removed_plasmids = remove_or_exclude(added_plasmids,
-        #                                                                  removed_plasmids,
-        #                                                                  change.old)
-        #         elif change.old:
-        #             # deletion of one (or more) features or fusions
-        #             for feature in change.old.features():
-        #                 added_features, removed_features = remove_or_exclude(added_features,
-        #                                                                      removed_features,
-        #                                                                      feature)
-        #
-        #             # TODO fusion-sensitive implementation
-        #             # fusion replace/delete strategies:
-        #             # FUSION_MATCH_WHOLE_ONLY       | A:B:C D:E  B>X -D:E    A:B:C -B +X
-        #             # FUSION_UPDATE_ON_CHANGE       | A:B:C B>X              A:X:C     (uses SPLIT on delete)
-        #             # FUSION_SPLIT_ON_CHANGE        | A:B:C:D C>X            A:B X D
-        #             # FUSION_EXPLODE_ON_CHANGE      | A:B:C:D C>X            A B X D
-        #             if fusion_strategy not in (Genotype.FUSION_MATCH_WHOLE, Genotype.FUSION_UPDATE_ON_CHANGE):
-        #                 raise NotImplementedError('Unsupported fusion strategy: {}'.format(fusion_strategy))
-        #
-        #             # TODO: support: fusion split, fusion whole.
-        #
-        #             if fusion_strategy == Genotype.FUSION_MATCH_WHOLE:
-        #                 for feature_or_fusion in change.old:
-        #                     added_fusion_features, removed_fusion_features = remove_or_exclude(added_fusion_features,
-        #                                                                                            removed_fusion_features,
-        #                                                                                            feature_or_fusion)
-        #             elif fusion_strategy == Genotype.FUSION_SPLIT_ON_CHANGE:
-        #                 pass
-        #
-        #         if change.new:
-        #             # if change.new is a plasmid, the features in the plasmid are integrated
-        #             if isinstance(change.new, Plasmid):
-        #                 pass  # any further record of the integrated plasmid would go here
-        #
-        #             # insertion of one (or more) features or fusions
-        #             for feature in change.new.features():
-        #                 removed_features, added_features = remove_or_exclude(removed_features,
-        #                                                                      added_features,
-        #                                                                      feature)
-        #
-        #                 # added_features = upsert(added_features, feature)
-        #                 # removed_features = remove(removed_features, feature)
-        #
-        #             # fusion-sensitive implementation:
-        #             if fusion_strategy == Genotype.FUSION_MATCH_WHOLE:
-        #                 for feature_or_fusion in change.new:
-        #                     added_fusion_features = upsert(added_fusion_features, feature_or_fusion)
-        #                     removed_fusion_features = remove(removed_fusion_features, feature_or_fusion)
-        #
-        #         if change.old and change.new:
-        #             # in a replacement, the removed part must be a single feature
-        #             sites = upsert(sites, change.old.contents[0])
-        #
-        #         if fusion_strategy == Genotype.FUSION_UPDATE_ON_CHANGE:
-        #             target_change = change.old or change.new
-        #             substitute = change.new if change.new and change.old else []
-        #             is_insertion = change.new and not change.old
-        #
-        #             for feature in target_change:
-        #                 added_fusion_features, removed_fusion_features = update_complex_features(added_fusion_features,
-        #                                                                                          removed_fusion_features,
-        #                                                                                          feature, substitute,
-        #                                                                                          is_insertion)
-        #
-        #         if change.markers:
-        #             for marker in change.markers:
-        #                 markers = upsert(markers, marker, match_variant=False)
-        #                 added_features = upsert(added_features, marker, match_variant=False)
-        #                 removed_features = remove(removed_features, marker, match_variant=False)
-        #                 added_fusion_features = upsert(added_fusion_features, marker, match_variant=False)
-        #                 removed_fusion_features = remove(removed_fusion_features, marker, match_variant=False)
+        def update_component_list(component_list, change_list, replace_function):
+            for change in change_list:
+                new_change_list = [replace_function(component, change) for component in component_list]
+                new_change_list = filter(lambda m: m is not None, new_change_list)
+                if new_change_list == component_list:
+                    component_list.append(change)
+                else:
+                    component_list = new_change_list
+            return component_list
 
-        # self.sites = tuple(sites)
-        # self.markers = tuple(markers)
-        # self.phenotypes = tuple(phenotypes)
-        # self.added_plasmids = tuple(added_plasmids)
-        # self.removed_plasmids = tuple(removed_plasmids)
-        # self.added_features = tuple(added_features)
-        # self.removed_features = tuple(removed_features)
-        # self.added_fusion_features = tuple(added_fusion_features)
-        # self.removed_fusion_features = tuple(removed_fusion_features)
+        updated_changes = []
+        for change in changes:
+            updated_changes.append(change)
+            if change.markers:
+                for marker in change.markers:
+                    updated_changes.append(Present(marker))
+                change.markers = None
+        changes = updated_changes
+
+        mutation_change_list = filter(lambda change: isinstance(change, Mutation), changes)
+        self.mutation_list = update_component_list(self.mutation_list, mutation_change_list, replace_mutation)
+
+        addition_change_list = filter(lambda change: isinstance(change, Presence), changes)
+        self.additions = update_component_list(self.additions, addition_change_list, replace_addition)
+
 
     @property
     def raw(self):
@@ -287,24 +186,9 @@ class Genotype(object):
                 if mutation.new is not None:
                     for feature in mutation.new.features():
                         yield Ins(feature)
-        # if fusions:
-        #     for feature in self.added_fusion_features:
-        #         yield Ins(feature)
-        #
-        #     for feature in self.removed_fusion_features:
-        #         yield Del(feature)
-        # else:
-        #     for feature in self.added_features:
-        #         yield Ins(feature)
-        #
-        #     for feature in self.removed_features:
-        #         yield Del(feature)
-        #
-        # for plasmid in self.added_plasmids:
-        #     yield plasmid
-        #
-        # for plasmid in self.removed_plasmids:
-        #     yield Del(plasmid)
+
+        for addition in self.additions:
+            yield addition
 
     # TODO some getter for accessing the original changes (self._changes)
 

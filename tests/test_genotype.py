@@ -1,6 +1,7 @@
 from unittest import TestCase, SkipTest
 
-from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range, Plasmid, FeatureTree, Organism, FeatureSet
+from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range, Plasmid, FeatureTree, Organism, FeatureSet, \
+    Present, Absent
 from gnomic.utils import genotype_to_text, feature_to_text, genotype_to_string, change_to_string
 
 
@@ -35,6 +36,10 @@ class GenotypeTestCase(BaseTestCase):
         }, self.chain('siteA>pA{}').changes())
 
         self.assertEqual({
+            Sub(Feature(name='siteA'), FeatureSet(Feature(name='geneA'), Feature(name='geneB'))),
+        }, self.chain('siteA>pA{geneA geneB}').changes(True))
+
+        self.assertEqual({
             Del(Feature(name='siteA')),
             Ins(Feature(name='geneA')),
             Ins(Feature(name='geneB')),
@@ -42,17 +47,18 @@ class GenotypeTestCase(BaseTestCase):
 
     def test_deletion_of_plasmid_vector(self):
         self.assertEqual({
-            Plasmid('pA', [])
+            Present(Plasmid('pA', []))
         }, self.chain('pA{}').changes())
 
         self.assertEqual({
-            Del(Plasmid('pA', []))
+            Absent(Plasmid('pA', []))
         }, self.chain('-pA{}').changes())
 
         self.assertEqual(set(), self.chain('pA{}', '-pA{}').changes())
         self.assertEqual(set(), self.chain('pA{foo}', '-pA{}').changes())
 
     def test_variants(self):
+        # TODO: shouldn't it be empty set? Also this is the same assertion as in test_no_delete_if_present
         self.assertEqual({
             Del(Feature(name='geneA')),
         }, self.chain('+geneA(x)', '-geneA').changes())
@@ -97,10 +103,11 @@ class GenotypeTestCase(BaseTestCase):
 
         # when phenotypes are used:
         self.assertEqual({
-            Ins(Feature(name='pheneA', type=Type('phene'), variant='mutant')),
+            Present(Feature(name='pheneA', type=Type('phene'), variant='mutant')),
         }, self.chain('pheneA+', 'pheneA-').changes())
 
         # when variants are mixed:
+        # TODO: how does it work?
         self.assertEqual({
             Ins(Feature(name='geneA', type=Type('phene'), variant='z')),
         }, self.chain('+geneA(x) +geneA(y)', 'geneA(z)').changes())
@@ -113,16 +120,21 @@ class GenotypeTestCase(BaseTestCase):
     def test_markers_as_phenotypes(self):
         self.assertEqual({
             Ins(Feature(name='geneA')),
-            Ins(Feature(name='pheneA', type=Type('phene'), variant='mutant')),
+            Present(Feature(name='pheneA', type=Type('phene'), variant='wild-type')),
+        }, self.chain('+geneA::pheneA+').changes())
+
+        self.assertEqual({
+            Ins(Feature(name='geneA')),
+            Present(Feature(name='pheneA', type=Type('phene'), variant='mutant')),
         }, self.chain('+geneA::pheneA+', 'pheneA-').changes())
 
         self.assertEqual({
-            Ins(Feature(name='pheneA', type=Type('phene'), variant='wild-type')),
+            Present(Feature(name='pheneA', type=Type('phene'), variant='wild-type')),
         }, self.chain('+geneA::pheneA+', 'pheneA-', '-geneA::pheneA+').changes())
 
         self.assertEqual({
-            Ins(Feature(name='pheneA', type=Type('phene'), variant='mutant')),
-            Ins(Feature(name='pheneB', type=Type('phene'), variant='mutant')),
+            Present(Feature(name='pheneA', type=Type('phene'), variant='mutant')),
+            Present(Feature(name='pheneB', type=Type('phene'), variant='mutant')),
         }, self.chain('+geneA::{pheneA+ pheneB+}', 'pheneA-', '-geneA::pheneB-').changes())
 
     def test_multiple_insertion(self):
@@ -144,6 +156,7 @@ class GenotypeTestCase(BaseTestCase):
             Del(Feature(name='geneA', variant='x')),
         }, self.chain('+geneB', '-geneA(x)').changes())
 
+        # TODO: Ambiguous?
         # geneA is marked as deleted because the match was not exact
         self.assertEqual({
             Del(Feature(name='geneA')),
@@ -265,8 +278,7 @@ class GenotypeFusionsTestCase(BaseTestCase):
         }, self.chain('siteA>pA{geneA:geneB}').changes())
 
         self.assertEqual({
-            Del(Feature(name='siteA')),
-            Ins(Fusion(Feature(name='geneA'), Feature(name='geneB'))),
+            Sub(Feature(name='siteA'), FeatureSet(Fusion(Feature(name='geneA'), Feature(name='geneB')))),
         }, self.chain('siteA>pA{geneA:geneB}').changes(fusions=True))
 
 
@@ -355,6 +367,7 @@ class GenotypeToStringTestCase(BaseTestCase):
                                                '-vectorD{}',
                                                '+geneE::markerF+',
                                                '+gene.G::{markerH+, markerI+}'))
+        # TODO: should markers have '+' prefix?
         self.assertEqual(
             set(gnomic.split()),
             set('+geneE '
@@ -389,7 +402,7 @@ class GenotypeToStringTestCase(BaseTestCase):
                          change_to_string(Ins(FeatureSet(Feature('geneA'), Feature('geneB')))))
 
         self.assertEqual('plasmid{}',
-                         change_to_string(Plasmid('plasmid', [])))
+                         change_to_string(Present(Plasmid('plasmid', []))))
 
         self.assertEqual('-plasmid{}',
                          change_to_string(Del(Plasmid('plasmid', []))))
