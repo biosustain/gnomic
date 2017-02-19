@@ -43,6 +43,7 @@ class Mutation(object):
         return isinstance(other, Mutation) and \
             self.before == other.before and \
             self.after == other.after and \
+            self.locus == other.locus and \
             self.markers == other.markers and \
             self.multiple == other.multiple
 
