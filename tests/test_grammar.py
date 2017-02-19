@@ -172,3 +172,16 @@ class GrammarTestCase(TestCase):
                 markers=[Feature(variant='wild-type', type=Type('phene'), name='markerA'),
                 Feature(variant='mutant', type=Type('phene'), name='markerB')])
         ], parse('-geneA::{markerA+ markerB-}'))
+
+    def test_parse_mutations_with_loci(self):
+        self.assertEqual([
+            Ins(Feature(name='geneA'), locus='l1')
+        ], parse('+geneA@l1'))
+
+        self.assertEqual([
+            Del(Feature(name='geneA'), locus='l1')
+        ], parse('-geneA@l1'))
+
+        self.assertEqual([
+            Sub(Feature(name='geneA'), Feature(name='geneB'), locus='l1')
+        ], parse('geneA@l1>geneB'))

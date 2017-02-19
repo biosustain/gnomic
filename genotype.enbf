@@ -4,14 +4,14 @@ start = (@+:change {(sep | list_separator [sep]) @+:change}* | {}) [sep] $;
 
 change = insertion | replacement | deletion | PLASMID | PHENE;
 
-insertion = "+" after:INSERTABLE [markers:MARKERS];
+insertion = "+" new:INSERTABLE [locus:LOCUS] [markers:MARKERS];
 
 replacement =
-     before:REPLACEABLE op:">" after:SUBSTITUTE [markers:MARKERS] |
-     before:REPLACEABLE op:">>" after:SUBSTITUTE [markers:MARKERS];
+     old:REPLACEABLE [locus:LOCUS] op:">" new:SUBSTITUTE [markers:MARKERS] |
+     old:REPLACEABLE [locus:LOCUS] op:">>" new:SUBSTITUTE [markers:MARKERS];
 
 deletion
-    = "-" before:DELETABLE [markers:MARKERS];
+    = "-" old:DELETABLE [locus:LOCUS] [markers:MARKERS];
 
 INSERTABLE
     = FUSION
@@ -83,6 +83,8 @@ RANGE_SEQUENCE_LEVEL = @:("c" | "p") ".";
 ACCESSION
     = "#" db:DATABASE ":" id:(INTEGER | IDENTIFIER)
     | "#" id:(INTEGER | IDENTIFIER);
+
+LOCUS = "@" @:IDENTIFIER;
 
 DATABASE = /[A-Za-z0-9-][A-Za-z0-9]+/;
 

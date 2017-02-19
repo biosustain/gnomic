@@ -50,7 +50,8 @@ class Mutation(object):
         return hash(self.before) + \
                hash(self.after) + \
                hash(self.markers) + \
-               hash(self.multiple)
+               hash(self.multiple) + \
+               hash(self.locus)
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__,
@@ -336,7 +337,6 @@ class Feature(MatchableMixin):
                             rule_name='FEATURE')
 
     def match(self, other, match_variant=True):
-        print "MATCH: ", match_variant
         if not isinstance(other, Feature):
             return False
 
