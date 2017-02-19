@@ -39,19 +39,19 @@ class DefaultSemantics(GnomicSemantics):
             return Presence(ast, True)
 
     def insertion(self, ast):
-        return Mutation(None, ast.new, markers=ast.markers)
+        return Mutation(None, ast.after, markers=ast.markers)
 
     def replacement(self, ast):
-        return Mutation(ast.old,
-                        ast.new.contents if isinstance(ast.new, Plasmid) else ast.new,
+        return Mutation(ast.before,
+                        ast.after.contents if isinstance(ast.after, Plasmid) else ast.after,
                         markers=ast.markers,
                         multiple=ast.op == '>>')
 
     def deletion(self, ast):
-        if isinstance(ast.old, Plasmid):
-            return Presence(ast.old, False, markers=ast.markers)
+        if isinstance(ast.before, Plasmid):
+            return Presence(ast.before, False, markers=ast.markers)
         else:
-            return Mutation(ast.old, None, markers=ast.markers)
+            return Mutation(ast.before, None, markers=ast.markers)
 
     def RANGE(self, ast):
         level = {

@@ -28,28 +28,27 @@ class Mutation(object):
 
     """
 
-    def __init__(self, old, new, markers=None, multiple=False):
+    def __init__(self, before, after, markers=None, multiple=False):
         # if old and not isinstance(old, Plasmid):
         #     old = FeatureTree(old)
         # if new and not isinstance(new, Plasmid):
         #     new = FeatureTree(new)
-        if markers is not None:
-            markers = FeatureTree(*markers)
-        self.old = old
-        self.new = new
-        self.markers = markers
+        self.markers = None
+        self.set_markers(markers)
+        self.before = before
+        self.after = after
         self.multiple = multiple
 
     def __eq__(self, other):
         return isinstance(other, Mutation) and \
-            self.old == other.old and \
-            self.new == other.new and \
+            self.before == other.before and \
+            self.after == other.after and \
             self.markers == other.markers and \
             self.multiple == other.multiple
 
     def __hash__(self):
-        return hash(self.old) + \
-               hash(self.new) + \
+        return hash(self.before) + \
+               hash(self.after) + \
                hash(self.markers) + \
                hash(self.multiple)
 
@@ -57,6 +56,30 @@ class Mutation(object):
         return '{}({})'.format(self.__class__.__name__,
                                ', '.join('{}={}'.format(key, repr(value))
                                          for key, value in self.__dict__.items() if value is not None))
+
+    def set_markers(self, marker_list):
+        self.markers = FeatureTree(*marker_list) if marker_list else None
+
+    def is_opposite_to(self, other):
+        params = (self.before is not None, self.after is not None, other.before is not None, other.after is not None)
+        if params == (False, True, True, False):
+            return self.after.match(other.before)
+        elif params == (True, False, False, True):
+            return self.before.match(other.after)
+        elif params == (True, True, True, True):
+            return self.after.match(other.before) and self.before.match(other.after)
+        else:
+            return False
+
+    def is_identical_to(self, other):
+        params = (self.before is not None, self.after is not None, other.before is not None, other.after is not None)
+        return {
+            (False, True, False, True): lambda: self.after.match(other.after),
+            (True, False, True, False): lambda: self.before.match(other.before),
+            (True, True, True, True): lambda: self.after.match(other.after) and self.before.match(other.before)
+        }.get(params, lambda: False)()
+
+
 
 
 def Ins(insert, **kwargs):
@@ -79,6 +102,9 @@ class Presence(object):
         self.present = present
         self.markers = markers
         self.multiple = multiple
+
+    def match(self, other, **kwargs):
+        return self.element.match(other.element, **kwargs)
 
     def __eq__(self, other):
         return isinstance(other, Presence) and \
@@ -165,15 +191,6 @@ class FeatureSet(FeatureTree, MatchableMixin):
 
         return all(a.match(b) for a, b in zip(self.contents, other.contents))
 
-    def updated_copy(self, old, new):
-        new_contents = []
-        for element in self:
-            new_element = element.updated_copy(old, new)
-            if new_element:
-                new_contents.append(new_element)
-
-        return FeatureSet(*new_contents) if new_contents else None
-
 
 class Fusion(FeatureTree, MatchableMixin):
     """
@@ -206,9 +223,10 @@ class Fusion(FeatureTree, MatchableMixin):
     # checks if a feature, featureset or another fusion is contained in the fusion and returns the slice corresponding
     # to the location of the match in the fusion or None if there is no match. This function can also serve as
     # 'contains' function.
-    def part_range(self, other):
+    def part_range(self, other, start_index=0):
         if isinstance(other, Fusion):
-            for i, feature in enumerate(self.contents):
+            for i in range(start_index, len(self.contents)):
+                feature = self.contents[i]
                 if feature == other[0]:
                     if self.contents[i:i + len(other)] == other.contents:
                         return slice(i, i + len(other))
@@ -318,6 +336,7 @@ class Feature(MatchableMixin):
                             rule_name='FEATURE')
 
     def match(self, other, match_variant=True):
+        print "MATCH: ", match_variant
         if not isinstance(other, Feature):
             return False
 
@@ -338,9 +357,9 @@ class Feature(MatchableMixin):
 
             # if this feature has no variant, match any other feature; otherwise, match only features with the same
             # variant
-            if not self.variant or match_variant is False:
-                return True
-            if self.variant == other.variant:
+            # if not self.variant or match_variant is False:
+            #     return True
+            if self.variant == other.variant or match_variant is False:
                 return True
             return False
         else:

@@ -367,16 +367,16 @@ class GenotypeToStringTestCase(BaseTestCase):
                                                '-vectorD{}',
                                                '+geneE::markerF+',
                                                '+gene.G::{markerH+, markerI+}'))
-        # TODO: should markers have '+' prefix?
+
         self.assertEqual(
             set(gnomic.split()),
             set('+geneE '
-                '+markerH+ '
+                'markerH+ '
                 'vectorC{geneC} '
                 '-e.coli/geneA '
-                '+markerF+ '
+                'markerF+ '
                 '+geneB(a) '
-                '+markerI+ '
+                'markerI+ '
                 '+gene.G '
                 '-vectorD{}'.split())
         )
@@ -531,6 +531,11 @@ class GenotypeFusionsUpdateOnChangeTestCase(BaseTestCase):
         self.assertEqual({
             Ins(Feature(name='geneA')),
         }, self.chain('+geneA:{geneB geneC:geneD}', '-geneB', '-geneC:geneD',
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
+
+        self.assertEqual({
+            Ins(Feature(name='geneC')),
+        }, self.chain('+geneA:geneB:genekC:geneA:geneB', '-geneA:geneB',
                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
 
         # TODO: test for provisional logic (not implemented yet)

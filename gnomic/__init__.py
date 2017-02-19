@@ -3,7 +3,7 @@ from grako.exceptions import GrakoException
 from gnomic.models import *
 from gnomic.grammar import GnomicParser
 from gnomic.semantics import DefaultSemantics
-from gnomic.utils import genotype_to_text, genotype_to_string
+from gnomic.utils import genotype_to_text, genotype_to_string, change_to_string
 
 __all__ = (
     'DEFAULT_TYPES',
@@ -32,6 +32,16 @@ DEFAULT_ORGANISMS = (
 )
 
 
+class Match:
+    NONE = 0
+    PARTIAL = 1
+    COMPLETE = 2
+
+
+class AmbiguityError(Exception):
+    pass
+
+
 class Genotype(object):
     """
 
@@ -53,68 +63,206 @@ class Genotype(object):
     FUSION_SPLIT_ON_CHANGE = 'split-on-change'
     FUSION_EXPLODE_ON_CHANGE = 'explode-on-change'
 
-    def __init__(self, changes, parent=None, fusion_strategy=FUSION_MATCH_WHOLE):
+    MARKERS_KEEP_IN_MUTATION_TIL_CHANGE = 'keep-in-mutation-til-change'
+    MARKERS_KEEP_AS_PRESENCE = 'keep-as-presence'
+
+    def __init__(self, changes, parent=None, fusion_strategy=FUSION_MATCH_WHOLE, unambiguous_mode=False):
         self.parent = parent
         self._changes = tuple(changes)
-        self.mutation_list = parent.mutation_list if parent else []
-        self.additions = parent.additions if parent else []
+        self.mutations = parent.mutations if parent else []
+        self.presences = parent.presences if parent else []
 
-        def replace_mutation(old_mutation, new_mutation):
-            # TODO: Add 'if' when locus is implemented
-            # if old_mutation.locus == new_mutation.locus:
-            #     return old_mutation
-
-            is_insertion = new_mutation.new and not new_mutation.old
-            target_feature = new_mutation.new if is_insertion else new_mutation.old
-            substitute = new_mutation.new if new_mutation.new and new_mutation.old else None
-            target_tree = old_mutation.old if is_insertion else old_mutation.new
-            other_tree = old_mutation.new if is_insertion else old_mutation.old
-
-            if not target_tree:
-                return old_mutation
-
-            if fusion_strategy == Genotype.FUSION_MATCH_WHOLE:
-                new_feature = substitute if target_tree == target_feature else target_tree
-            elif fusion_strategy == Genotype.FUSION_UPDATE_ON_CHANGE:
-                new_feature = target_tree.updated_copy(target_feature, substitute)
-
-            after = other_tree if is_insertion else new_feature
-            before = new_feature if is_insertion else other_tree
-
-            return Mutation(before, after) if before or after else None
-
-        def replace_addition(old_addition, new_addition):
-                kwargs = {"match_variant": False} if isinstance(new_addition.element, Feature) else {}
-                if new_addition.element.match(old_addition.element, **kwargs):
-                    return new_addition if new_addition.present == old_addition.present else None
+        print "Changes:", changes
+        def get_match(obj, element):
+            if isinstance(obj, Feature):
+                return Match.COMPLETE if isinstance(element, Feature) and element.match(obj) else Match.NONE
+            elif isinstance(obj, FeatureSet):
+                if isinstance(element, FeatureSet):
+                    return Match.COMPLETE if element.match(obj) else Match.NONE
+                elif isinstance(element, (Fusion, Feature)):
+                    for part in obj:
+                        result = element.match(part)
+                        if result != Match.NONE:
+                            return Match.PARTIAL
+                        return Match.NONE
                 else:
-                    return old_addition
-
-        def update_component_list(component_list, change_list, replace_function):
-            for change in change_list:
-                new_change_list = [replace_function(component, change) for component in component_list]
-                new_change_list = [new_change for new_change in new_change_list if new_change]
-                if new_change_list == component_list:
-                    component_list.append(change)
+                    return Match.None
+            elif isinstance(obj, Fusion):
+                if isinstance(element, Fusion) and element.match(obj):
+                    return Match.COMPLETE
+                elif isinstance(element, (Feature, Fusion, FeatureSet)):
+                    return Match.PARTIAL if obj.contains(element) else Match.NONE
                 else:
-                    component_list = new_change_list
-            return component_list
+                    return Match.NONE
 
-        # extract markers from changes and place them in the right positions
-        updated_changes = []
-        for change in changes:
-            updated_changes.append(change)
+        def substitute(obj, old, new):
+            count = 0
+            if isinstance(obj, Feature):
+                return new if obj == old else obj, 1 if obj == old else 0
+            elif isinstance(obj, FeatureSet):
+                new_contents = []
+                for element in obj:
+                    new_element, sub_count = substitute(element, old, new)
+                    count += sub_count
+                    if new_element:
+                        new_contents.append(new_element)
+
+                return FeatureSet(*new_contents) if new_contents else None, count
+            elif isinstance(obj, Fusion):
+                new_contents = []
+                for element in obj:
+                    # Element can be a Feature or a FeatureSet. If element is a feature, don't process it now so that
+                    # e.g. +A:B B>C:D does not parse to Fusion(A, Fusion(C, D)) - update only FeatureSets
+                    new_element, sub_count = substitute(element, old, new) if isinstance(element, FeatureSet) \
+                        else (element, 0)
+                    count += sub_count
+                    if new_element:
+                        new_contents.append(new_element)
+
+                new_fusion = Fusion(*new_contents)
+                # locate range to be removed or substituted
+                target_range = new_fusion.part_range(old)
+                while target_range:
+                    count += 1
+                    pos = target_range.start
+                    if new and not isinstance(new, Fusion):
+                        new = [new]
+                    new_fusion[target_range] = new or []
+                    pos += len(new) if isinstance(new, list) else 0
+                    target_range = new_fusion.part_range(old, pos)
+
+                if len(new_fusion) > 1:
+                    return new_fusion, count
+                elif len(new_fusion) == 1:
+                    return new_fusion[0], count
+                else:
+                    return None, count
+
+        def update_mutations(change):
+            new_mutations = []
+            count = 0
+            append_change = True
+            for mutation in self.mutations:
+                if isinstance(mutation, Mutation):
+                    updated_mutation, new_count, new_append_change = apply_change_to_mutation(mutation, change, unambiguous_mode)
+                    count += new_count
+                else:
+                    updated_mutation, new_append_change = apply_change_to_presence(mutation, change)
+                    print "Return:", updated_mutation, new_append_change
+                append_change &= new_append_change
+                if updated_mutation is not None:
+                    new_mutations.append(updated_mutation)
+
+            if count > 1:
+                if unambiguous_mode:
+                    raise AmbiguityError("Change {} matches multiple mutations.".format(change_to_string(change)))
+                else:
+                    raise NotImplementedError()
+
+            if append_change:
+                new_mutations.append(change)
+
+            return new_mutations
+
+        def apply_change_to_mutation(mutation, change, unambiguous_mode=False):
+            # presences can only influence the displayable markers within mutation
+            if isinstance(change, Presence):
+                if mutation.markers:
+                    mutation.set_markers(*[marker for marker in mutation.markers if change.element.match(marker)])
+                return mutation, 0, False  # TODO: 0, False or something else?
+
+            # Loci does not match
+            # +A@L1 -A / +A -A@L1
+            # if mutation.locus != change.locus:
+            #     return mutation, 0, True
+
+            # Change is the opposite of a mutation -> Delete that mutation, no additional changes
+            # +A -A / -A +A / A>B B>A / B>A A>B
+
+            if change.is_opposite_to(mutation):
+                return None, 1, False
+
+            # Any change that is repeated after it is established is ambiguous. It has no additional effect.
+            if change.is_identical_to(mutation):
+                if unambiguous_mode:
+                    raise AmbiguityError("Mutation {} is already in genotype.".format(change_to_string(change)))
+                return mutation, 0, False
+
+            # Before part matches the whole before part of exactly one mutation that has no after part(deletion)
+            # -> Replace mutation, Ambiguous
+            if change.before is not None and mutation.before is not None and get_match(mutation.before, change.before) == Match.COMPLETE:
+                if unambiguous_mode:
+                    raise AmbiguityError()
+                if change.after is None:  # A>B -A
+                    return mutation, 1, False
+                else:  # -A A>B
+                    return None, 1, True  # TODO: Should it be 1?
+
+            # TODO: A>B -B = -A but +A A>B = A>B
+            if change.before is not None and mutation.after is not None:
+                match = get_match(mutation.after, change.before)
+                print match
+                # if no match or if partial match but fusion strategy is match whole, don't change mutation
+                if match == Match.NONE or (match == Match.PARTIAL and fusion_strategy == Genotype.FUSION_MATCH_WHOLE):
+                    return mutation, 0, True  # and add change
+                # if match is complete but mutation was insertion and change was substitution (+A A>B), keep only change
+                elif match == Match.COMPLETE and mutation.before is None and change.after is not None:
+                        return None, 1, True
+                else:
+                    new_after, count = substitute(mutation.after, change.before, change.after)
+                    print "Count: ", count
+                    return Mutation(mutation.before, new_after), count, False
+
+            # raise AmbiguityError("Case not considererd")
+            return mutation, 0, True
+
+# None (MATCH WHOLE/ UPDATE), PARTIAL (MATCH WHOLE), COMPLETE ()
+
+
+            # if mutation.after.contains(change.before):
+            #     new_after, count = substitute(mutation.after, change.before, change.after)
+            #
+            #     if new_after is None:
+            #         # return only the markers (as presences)
+            #         return None, count
+            #
+            #     if KEEP_NEW_MARKERS:
+            #         markers = change.markers
+            #     else:
+            #         markers = None
+            #
+            #     return Mutation(mutation.before, mutation.after,
+            #                     locus=mutation.locus,
+            #                     multiple=mutation.multiple,
+            #                     markers=change.markers), count
+
+
+        def apply_change_to_presence(presence, change):
+            print "Presence: ", presence, change
+            if isinstance(change, Presence):
+                kwargs = {"match_variant": False} if isinstance(change.element, Feature) else {}
+                print change.match(presence, **kwargs), change, presence, kwargs
+                if change.match(presence, **kwargs):
+                    return (change, False) if change.present == presence.present else (None, False)
+                else:
+                    return presence, True
+
+            # "M-, A>B::M+" becomes "A>B::M+"
             if change.markers:
-                for marker in change.markers:
-                    updated_changes.append(Present(marker))
-                change.markers = None
-        changes = updated_changes
 
-        mutation_change_list = filter(lambda change: isinstance(change, Mutation), changes)
-        self.mutation_list = update_component_list(self.mutation_list, mutation_change_list, replace_mutation)
+                    if marker.match(presence):
+                        return None
+            # if any(marker.match(presence) for marker in change.markers):
+            #     return  # new presence, (last match counts)
 
-        addition_change_list = filter(lambda change: isinstance(change, Presence), changes)
-        self.additions = update_component_list(self.additions, addition_change_list, replace_addition)
+            if change.before.match(presence.element):
+                return None
+
+        for change in changes:
+            print "Change:", change
+            self.mutations = update_mutations(change)
+
+        print "RESULT:", self.mutations
 
     @property
     def raw(self):
@@ -175,19 +323,22 @@ class Genotype(object):
 
     def _iter_changes(self, fusions=True):
         if fusions:
-            for mutation in self.mutation_list:
+            for mutation in self.mutations:
                 yield mutation
         else:
-            for mutation in self.mutation_list:
-                if mutation.old is not None:
-                    for feature in mutation.old.features():
-                        yield Del(feature)
-                if mutation.new is not None:
-                    for feature in mutation.new.features():
-                        yield Ins(feature)
+            for mutation in self.mutations:
+                if isinstance(mutation, Mutation):
+                    if mutation.before is not None:
+                        for feature in mutation.before.features():
+                            yield Del(feature)
+                    if mutation.after is not None:
+                        for feature in mutation.after.features():
+                            yield Ins(feature)
+                else:
+                    yield mutation
 
-        for addition in self.additions:
-            yield addition
+        # for presence in self.presences:
+        #     yield presence
 
     # TODO some getter for accessing the original changes (self._changes)
 

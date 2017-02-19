@@ -129,12 +129,12 @@ class GnomicParser(Parser):
     def _insertion_(self):
         self._token('+')
         self._INSERTABLE_()
-        self.name_last_node('new')
+        self.name_last_node('after')
         with self._optional():
             self._MARKERS_()
             self.name_last_node('markers')
         self.ast._define(
-            ['markers', 'new'],
+            ['after', 'markers'],
             []
         )
 
@@ -143,27 +143,27 @@ class GnomicParser(Parser):
         with self._choice():
             with self._option():
                 self._REPLACEABLE_()
-                self.name_last_node('old')
+                self.name_last_node('before')
                 self._token('>')
                 self.name_last_node('op')
                 self._SUBSTITUTE_()
-                self.name_last_node('new')
+                self.name_last_node('after')
                 with self._optional():
                     self._MARKERS_()
                     self.name_last_node('markers')
             with self._option():
                 self._REPLACEABLE_()
-                self.name_last_node('old')
+                self.name_last_node('before')
                 self._token('>>')
                 self.name_last_node('op')
                 self._SUBSTITUTE_()
-                self.name_last_node('new')
+                self.name_last_node('after')
                 with self._optional():
                     self._MARKERS_()
                     self.name_last_node('markers')
             self._error('no available options')
         self.ast._define(
-            ['markers', 'new', 'old', 'op'],
+            ['after', 'before', 'markers', 'op'],
             []
         )
 
@@ -171,12 +171,12 @@ class GnomicParser(Parser):
     def _deletion_(self):
         self._token('-')
         self._DELETABLE_()
-        self.name_last_node('old')
+        self.name_last_node('before')
         with self._optional():
             self._MARKERS_()
             self.name_last_node('markers')
         self.ast._define(
-            ['markers', 'old'],
+            ['before', 'markers'],
             []
         )
 

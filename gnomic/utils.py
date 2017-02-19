@@ -119,16 +119,16 @@ def change_to_string(change):
     s = None
 
     if isinstance(change, Mutation):
-        if change.old and change.new:
+        if change.before and change.after:
             if change.multiple:
-                s = '{}>>{}'.format(feature_to_string(change.old), feature_to_string(change.new))
+                s = '{}>>{}'.format(feature_to_string(change.before), feature_to_string(change.after))
             else:
-                s = '{}>{}'.format(feature_to_string(change.old), feature_to_string(change.new))
-        elif change.old is None:
+                s = '{}>{}'.format(feature_to_string(change.before), feature_to_string(change.after))
+        elif change.before is None:
             # FIXME phenotypes should not have a + or - prefix; only a postfix.
-            s = '+{}'.format(feature_to_string(change.new))
-        elif change.new is None:
-            s = '-{}'.format(feature_to_string(change.old))
+            s = '+{}'.format(feature_to_string(change.after))
+        elif change.after is None:
+            s = '-{}'.format(feature_to_string(change.before))
     elif isinstance(change, Presence):
         prefix = "-" if not change.present else ""
         s = prefix + feature_to_string(change.element)
