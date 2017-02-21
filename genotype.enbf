@@ -4,14 +4,14 @@ start = (@+:change {(sep | list_separator [sep]) @+:change}* | {}) [sep] $;
 
 change = insertion | replacement | deletion | PLASMID | PHENE;
 
-insertion = "+" new:INSERTABLE [locus:LOCUS] [markers:MARKERS];
+insertion = "+" after:INSERTABLE [locus:LOCUS] [markers:MARKERS];
 
 replacement =
-     old:REPLACEABLE [locus:LOCUS] op:">" new:SUBSTITUTE [markers:MARKERS] |
-     old:REPLACEABLE [locus:LOCUS] op:">>" new:SUBSTITUTE [markers:MARKERS];
+     before:REPLACEABLE [locus:LOCUS] op:">" after:SUBSTITUTE [markers:MARKERS] |
+     before:REPLACEABLE [locus:LOCUS] op:">>" after:SUBSTITUTE [markers:MARKERS];
 
 deletion
-    = "-" old:DELETABLE [locus:LOCUS] [markers:MARKERS];
+    = "-" before:DELETABLE [locus:LOCUS] [markers:MARKERS];
 
 INSERTABLE
     = FUSION

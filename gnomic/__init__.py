@@ -66,11 +66,10 @@ class Genotype(object):
     MARKERS_KEEP_IN_MUTATION_TIL_CHANGE = 'keep-in-mutation-til-change'
     MARKERS_KEEP_AS_PRESENCE = 'keep-as-presence'
 
-    def __init__(self, changes, parent=None, fusion_strategy=FUSION_MATCH_WHOLE, unambiguous_mode=False):
+    def __init__(self, changes, parent=None, fusion_strategy=FUSION_MATCH_WHOLE, unambiguous_mode=True):
         self.parent = parent
         self._changes = tuple(changes)
-        self.mutations = parent.mutations if parent else []
-        self.presences = parent.presences if parent else []
+        self.contents = parent.contents if parent else []
 
         print "Changes:", changes
         def get_match(obj, element):
@@ -138,47 +137,62 @@ class Genotype(object):
                 else:
                     return None, count
 
-        def update_mutations(change):
-            new_mutations = []
+        def update_contents(change):
+            new_contents = []
             count = 0
             append_change = True
-            for mutation in self.mutations:
-                if isinstance(mutation, Mutation):
-                    updated_mutation, new_count, new_append_change = apply_change_to_mutation(mutation, change, unambiguous_mode)
-                    count += new_count
-                else:
-                    updated_mutation, new_append_change = apply_change_to_presence(mutation, change)
-                    print "Return:", updated_mutation, new_append_change
+            for element in self.contents:
+                updated_element, new_count, new_append_change = apply_change_to_element(element, change)
+                count += new_count
                 append_change &= new_append_change
-                if updated_mutation is not None:
-                    new_mutations.append(updated_mutation)
+                if updated_element is not None:
+                    new_contents.append(updated_element)
 
             if count > 1:
                 if unambiguous_mode:
                     raise AmbiguityError("Change {} matches multiple mutations.".format(change_to_string(change)))
                 else:
-                    raise NotImplementedError()
+                    append_change = True
+                    new_contents = self.contents
 
             if append_change:
-                new_mutations.append(change)
+                new_contents.append(change)
 
-            return new_mutations
+            if isinstance(change, (Mutation, Plasmid)) and change.markers is not None:
+                inserted_markers = []
+                for marker in change.markers:
+                    for i in range(len(inserted_markers)):
+                        inserted_marker = inserted_markers[i]
+                        if marker.match(inserted_marker, match_variant=False):
+                            if unambiguous_mode:
+                                raise AmbiguityError("Same marker cannot be updated twice in one change.")
+                            del inserted_markers[i]
+                            break
+                    inserted_markers.append(marker)
+                change.set_markers(inserted_markers)
+                new_contents += [Present(marker) for marker in inserted_markers]
 
-        def apply_change_to_mutation(mutation, change, unambiguous_mode=False):
+            return new_contents
+
+        def apply_change_to_element(element, change):
+            func = apply_change_to_mutation if isinstance(element, Mutation) else apply_change_to_presence
+            return func(element, change)
+
+        def apply_change_to_mutation(mutation, change):
             # presences can only influence the displayable markers within mutation
             if isinstance(change, Presence):
                 if mutation.markers:
-                    mutation.set_markers(*[marker for marker in mutation.markers if change.element.match(marker)])
-                return mutation, 0, False  # TODO: 0, False or something else?
+                    mutation.set_markers([marker for marker in mutation.markers
+                                          if not change.element.match(marker, match_variant=False)])
+                return mutation, 0, True  # TODO: should it be zero?
 
             # Loci does not match
             # +A@L1 -A / +A -A@L1
-            # if mutation.locus != change.locus:
-            #     return mutation, 0, True
+            if mutation.locus != change.locus:
+                return mutation, 0, True
 
             # Change is the opposite of a mutation -> Delete that mutation, no additional changes
             # +A -A / -A +A / A>B B>A / B>A A>B
-
             if change.is_opposite_to(mutation):
                 return None, 1, False
 
@@ -190,7 +204,8 @@ class Genotype(object):
 
             # Before part matches the whole before part of exactly one mutation that has no after part(deletion)
             # -> Replace mutation, Ambiguous
-            if change.before is not None and mutation.before is not None and get_match(mutation.before, change.before) == Match.COMPLETE:
+            if change.before is not None and mutation.before is not None \
+                    and get_match(mutation.before, change.before) == Match.COMPLETE:
                 if unambiguous_mode:
                     raise AmbiguityError()
                 if change.after is None:  # A>B -A
@@ -210,59 +225,50 @@ class Genotype(object):
                         return None, 1, True
                 else:
                     new_after, count = substitute(mutation.after, change.before, change.after)
-                    print "Count: ", count
-                    return Mutation(mutation.before, new_after), count, False
+                    # TODO: in unambiguous mode, throw error here if count > 1?
+                    return Mutation(mutation.before, new_after, change.markers), count, False
 
-            # raise AmbiguityError("Case not considererd")
+            # raise AmbiguityError("Case not considered")
             return mutation, 0, True
 
-# None (MATCH WHOLE/ UPDATE), PARTIAL (MATCH WHOLE), COMPLETE ()
-
-
-            # if mutation.after.contains(change.before):
-            #     new_after, count = substitute(mutation.after, change.before, change.after)
-            #
-            #     if new_after is None:
-            #         # return only the markers (as presences)
-            #         return None, count
-            #
-            #     if KEEP_NEW_MARKERS:
-            #         markers = change.markers
-            #     else:
-            #         markers = None
-            #
-            #     return Mutation(mutation.before, mutation.after,
-            #                     locus=mutation.locus,
-            #                     multiple=mutation.multiple,
-            #                     markers=change.markers), count
-
-
         def apply_change_to_presence(presence, change):
-            print "Presence: ", presence, change
             if isinstance(change, Presence):
-                kwargs = {"match_variant": False} if isinstance(change.element, Feature) else {}
-                print change.match(presence, **kwargs), change, presence, kwargs
-                if change.match(presence, **kwargs):
-                    return (change, False) if change.present == presence.present else (None, False)
+                kwargs_dont_match_variants = {"match_variant": False} if isinstance(change.element, Feature) else {}
+                kwargs_match_variants = {"match_variant": True} if isinstance(change.element, Feature) else {}
+
+                if change.match(presence, **kwargs_match_variants):
+                    if change.present == presence.present:
+                        if unambiguous_mode:  # change.element must be Plasmid
+                            raise AmbiguityError("Change {} already in the genotype.".format(change_to_string(change)))
+                        return presence, 0, False
+                    else:  # presences cancel out
+                        return None, 1, False
+                elif change.match(presence, **kwargs_dont_match_variants):
+                    return change, 1, False
                 else:
-                    return presence, True
+                    return presence, 0, True
 
-            # "M-, A>B::M+" becomes "A>B::M+"
-            if change.markers:
+            if change.markers is not None:
+                match = None
+                for marker in change.markers:
+                    if marker.match(presence.element, match_variant=False):
+                        match = marker
+                if match is None:
+                    return presence, 0, True
+                else:
+                    return None, 1, True
 
-                    if marker.match(presence):
-                        return None
-            # if any(marker.match(presence) for marker in change.markers):
-            #     return  # new presence, (last match counts)
+            if change.before.match(presence.element, match_variant=False) and change.after is None:
+                return None, 1, True
+            else:
+                return presence, 0, True
 
-            if change.before.match(presence.element):
-                return None
 
         for change in changes:
             print "Change:", change
-            self.mutations = update_mutations(change)
+            self.contents = update_contents(change)
 
-        print "RESULT:", self.mutations
+        print "RESULT:", self.contents
 
     @property
     def raw(self):
@@ -323,22 +329,19 @@ class Genotype(object):
 
     def _iter_changes(self, fusions=True):
         if fusions:
-            for mutation in self.mutations:
-                yield mutation
+            for element in self.contents:
+                yield element
         else:
-            for mutation in self.mutations:
-                if isinstance(mutation, Mutation):
-                    if mutation.before is not None:
-                        for feature in mutation.before.features():
-                            yield Del(feature)
-                    if mutation.after is not None:
-                        for feature in mutation.after.features():
-                            yield Ins(feature)
+            for element in self.contents:
+                if isinstance(element, Mutation):
+                    if element.before is not None:
+                        for feature in element.before.features():
+                            yield Del(feature, locus=element.locus)
+                    if element.after is not None:
+                        for feature in element.after.features():
+                            yield Ins(feature, locus=element.locus)
                 else:
-                    yield mutation
-
-        # for presence in self.presences:
-        #     yield presence
+                    yield element
 
     # TODO some getter for accessing the original changes (self._changes)
 

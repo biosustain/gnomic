@@ -131,10 +131,13 @@ class GnomicParser(Parser):
         self._INSERTABLE_()
         self.name_last_node('after')
         with self._optional():
+            self._LOCUS_()
+            self.name_last_node('locus')
+        with self._optional():
             self._MARKERS_()
             self.name_last_node('markers')
         self.ast._define(
-            ['after', 'markers'],
+            ['after', 'locus', 'markers'],
             []
         )
 
@@ -144,6 +147,9 @@ class GnomicParser(Parser):
             with self._option():
                 self._REPLACEABLE_()
                 self.name_last_node('before')
+                with self._optional():
+                    self._LOCUS_()
+                    self.name_last_node('locus')
                 self._token('>')
                 self.name_last_node('op')
                 self._SUBSTITUTE_()
@@ -154,6 +160,9 @@ class GnomicParser(Parser):
             with self._option():
                 self._REPLACEABLE_()
                 self.name_last_node('before')
+                with self._optional():
+                    self._LOCUS_()
+                    self.name_last_node('locus')
                 self._token('>>')
                 self.name_last_node('op')
                 self._SUBSTITUTE_()
@@ -163,7 +172,7 @@ class GnomicParser(Parser):
                     self.name_last_node('markers')
             self._error('no available options')
         self.ast._define(
-            ['after', 'before', 'markers', 'op'],
+            ['after', 'before', 'locus', 'markers', 'op'],
             []
         )
 
@@ -173,10 +182,13 @@ class GnomicParser(Parser):
         self._DELETABLE_()
         self.name_last_node('before')
         with self._optional():
+            self._LOCUS_()
+            self.name_last_node('locus')
+        with self._optional():
             self._MARKERS_()
             self.name_last_node('markers')
         self.ast._define(
-            ['before', 'markers'],
+            ['before', 'locus', 'markers'],
             []
         )
 
@@ -555,6 +567,12 @@ class GnomicParser(Parser):
         )
 
     @graken()
+    def _LOCUS_(self):
+        self._token('@')
+        self._IDENTIFIER_()
+        self.name_last_node('@')
+
+    @graken()
     def _DATABASE_(self):
         self._pattern(r'[A-Za-z0-9-][A-Za-z0-9]+')
 
@@ -654,6 +672,9 @@ class GnomicSemantics(object):
         return ast
 
     def ACCESSION(self, ast):
+        return ast
+
+    def LOCUS(self, ast):
         return ast
 
     def DATABASE(self, ast):

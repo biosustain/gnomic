@@ -26,15 +26,15 @@ def genotype_to_text(genotype, fusions=False, delta_char=u"\u0394"):
     for change in genotype.changes(fusions=fusions):
         change_type = type(change)
         if change_type is Mutation:
-            if change.old and change.new:
+            if change.before and change.after:
                 # Substitution
-                result.append(delta_char + feature_to_text(change.old) + '::' + feature_to_text(change.new))
-            elif change.old is None:
+                result.append(delta_char + feature_to_text(change.before) + '::' + feature_to_text(change.after))
+            elif change.before is None:
                 # Insertion
-                result.append(feature_to_text(change.new))
-            elif change.new is None:
+                result.append(feature_to_text(change.after))
+            elif change.after is None:
                 # Deletion
-                result.append(delta_char + feature_to_text(change.old, integrated=False))
+                result.append(delta_char + feature_to_text(change.before, integrated=False))
 
         elif change_type is Plasmid:
             result.append(feature_to_text(change, integrated=False))

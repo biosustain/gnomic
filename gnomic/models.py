@@ -28,7 +28,7 @@ class Mutation(object):
 
     """
 
-    def __init__(self, before, after, markers=None, multiple=False):
+    def __init__(self, before, after, markers=None, locus=None, multiple=False):
         # if old and not isinstance(old, Plasmid):
         #     old = FeatureTree(old)
         # if new and not isinstance(new, Plasmid):
@@ -38,6 +38,7 @@ class Mutation(object):
         self.before = before
         self.after = after
         self.multiple = multiple
+        self.locus = locus
 
     def __eq__(self, other):
         return isinstance(other, Mutation) and \
@@ -59,8 +60,9 @@ class Mutation(object):
                                ', '.join('{}={}'.format(key, repr(value))
                                          for key, value in self.__dict__.items() if value is not None))
 
-    def set_markers(self, marker_list):
-        self.markers = FeatureTree(*marker_list) if marker_list else None
+    def set_markers(self, markers):
+        print "MARKERS", markers
+        self.markers = FeatureTree(*markers) if markers else None
 
     def is_opposite_to(self, other):
         params = (self.before is not None, self.after is not None, other.before is not None, other.after is not None)
