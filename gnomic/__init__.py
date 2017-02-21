@@ -71,28 +71,26 @@ class Genotype(object):
         self._changes = tuple(changes)
         self.contents = parent.contents if parent else []
 
-        print "Changes:", changes
         def get_match(obj, element):
-            if isinstance(obj, Feature):
-                return Match.COMPLETE if isinstance(element, Feature) and element.match(obj) else Match.NONE
+            if isinstance(obj, Feature) and isinstance(element, Feature) and element.match(obj):
+                return Match.COMPLETE
             elif isinstance(obj, FeatureSet):
-                if isinstance(element, FeatureSet):
-                    return Match.COMPLETE if element.match(obj) else Match.NONE
+                if isinstance(element, FeatureSet) and element.match(obj):
+                    return Match.COMPLETE
                 elif isinstance(element, (Fusion, Feature)):
-                    for part in obj:
-                        result = element.match(part)
-                        if result != Match.NONE:
-                            return Match.PARTIAL
-                        return Match.NONE
-                else:
-                    return Match.None
+                    if any(get_match(part, element) != Match.NONE for part in obj):
+                        return Match.PARTIAL
             elif isinstance(obj, Fusion):
                 if isinstance(element, Fusion) and element.match(obj):
                     return Match.COMPLETE
                 elif isinstance(element, (Feature, Fusion, FeatureSet)):
-                    return Match.PARTIAL if obj.contains(element) else Match.NONE
-                else:
-                    return Match.NONE
+                    if obj.contains(element):
+                        return Match.PARTIAL
+                    feature_sets_in_fusion = [el for el in obj if isinstance(el, FeatureSet)]
+                    if any(get_match(feature_set, element) != Match.NONE for feature_set in feature_sets_in_fusion):
+                        return Match.PARTIAL
+
+            return Match.NONE
 
         def substitute(obj, old, new):
             count = 0
@@ -213,10 +211,10 @@ class Genotype(object):
                 else:  # -A A>B
                     return None, 1, True  # TODO: Should it be 1?
 
-            # TODO: A>B -B = -A but +A A>B = A>B
+            # delete or replace mutation.after (or its part)
             if change.before is not None and mutation.after is not None:
                 match = get_match(mutation.after, change.before)
-                print match
+                print "MATCH: ", match, mutation.after, change.before
                 # if no match or if partial match but fusion strategy is match whole, don't change mutation
                 if match == Match.NONE or (match == Match.PARTIAL and fusion_strategy == Genotype.FUSION_MATCH_WHOLE):
                     return mutation, 0, True  # and add change
@@ -225,7 +223,7 @@ class Genotype(object):
                         return None, 1, True
                 else:
                     new_after, count = substitute(mutation.after, change.before, change.after)
-                    # TODO: in unambiguous mode, throw error here if count > 1?
+                    # TODO: in unambiguous mode, throw error here if count > 1? it will be thrown anyway later on
                     return Mutation(mutation.before, new_after, change.markers), count, False
 
             # raise AmbiguityError("Case not considered")
@@ -242,9 +240,9 @@ class Genotype(object):
                             raise AmbiguityError("Change {} already in the genotype.".format(change_to_string(change)))
                         return presence, 0, False
                     else:  # presences cancel out
-                        return None, 1, False
+                        return None, 0, False
                 elif change.match(presence, **kwargs_dont_match_variants):
-                    return change, 1, False
+                    return change, 0, False
                 else:
                     return presence, 0, True
 
@@ -256,16 +254,14 @@ class Genotype(object):
                 if match is None:
                     return presence, 0, True
                 else:
-                    return None, 1, True
+                    return None, 0, True
 
-            if change.before.match(presence.element, match_variant=False) and change.after is None:
-                return None, 1, True
+            if change.before is not None and change.before.match(presence.element):
+                return None, 0, True
             else:
                 return presence, 0, True
 
-
         for change in changes:
-            print "Change:", change
             self.contents = update_contents(change)
 
         print "RESULT:", self.contents
@@ -345,12 +341,14 @@ class Genotype(object):
 
     # TODO some getter for accessing the original changes (self._changes)
 
-    def changes(self, fusions=False):
+    def changes(self, fusions=False, as_set=True):
         """
         :param bool fusions: Keeps fusions together if ``True``, otherwise includes them as individual features.
+        :param bool as_set: Return as set if ``True``, otherwise return as list.
         :return:
         """
-        return set(self._iter_changes(fusions=fusions))
+        converter = set if as_set else list
+        return converter(self._iter_changes(fusions=fusions))
 
     def format(self, fusions=True, output='text'):
         """

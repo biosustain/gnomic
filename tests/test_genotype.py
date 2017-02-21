@@ -1,7 +1,7 @@
 from unittest import TestCase, SkipTest
 
 from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range, Plasmid, FeatureTree, Organism, FeatureSet, \
-    Present, Absent
+    Present, Absent, AmbiguityError
 from gnomic.utils import genotype_to_text, feature_to_text, genotype_to_string, change_to_string
 
 
@@ -12,12 +12,10 @@ class BaseTestCase(TestCase):
 
 class GenotypeTestCase(BaseTestCase):
     def test_chain_propagate_added_features(self):
-        genotype = self.chain('+geneA', '+geneB')
-
         self.assertEqual({
             Ins(Feature(name='geneA')),
             Ins(Feature(name='geneB')),
-        }, genotype.changes())
+        }, self.chain('+geneA', '+geneB').changes())
 
     def test_chain_propagate_removed_features(self):
         self.assertEqual({
@@ -29,6 +27,254 @@ class GenotypeTestCase(BaseTestCase):
             Del(Feature(name='geneA')),
             Ins(Feature(name='geneC')),
         }, self.chain('-geneA -geneB', '+geneB', '+geneC').changes())
+
+    def test_opposite_mutations(self):
+        self.assertEqual(set(), self.chain('+geneA', '-geneA').changes())
+
+        self.assertEqual(set(), self.chain('-geneA', '+geneA').changes())
+
+        self.assertEqual(set(), self.chain('geneA>geneB', 'geneB>geneA').changes())
+
+        self.assertEqual(set(), self.chain('geneA(x)>geneB', 'geneB>geneA').changes())
+        #
+        self.assertEqual({
+            Sub(Feature(name='geneA'), Feature(name='geneB')),
+            Sub(Feature(name='geneB', variant='x'), Feature(name='geneA'))
+        }, self.chain('geneA>geneB', 'geneB(x)>geneA').changes(True))
+
+    def test_identical_mutations(self):
+        self.assertEqual({
+            Ins(Feature(name='geneA')),
+            Del(Feature(name='geneB')),
+            Sub(Feature(name='geneC'), Feature(name='geneD'))
+        }, self.chain('+geneA', '+geneA', '-geneB', '-geneB', 'geneC>geneD', 'geneC>geneD',
+                      unambiguous_mode=False).changes(True))
+
+        with self.assertRaises(AmbiguityError):
+            self.chain('+geneA', '+geneA')
+
+        with self.assertRaises(AmbiguityError):
+            self.chain('-geneA', '-geneA')
+
+        with self.assertRaises(AmbiguityError):
+            self.chain('geneA>geneB', 'geneA>geneB')
+
+    def test_simple_deletion_and_substitution(self):
+        self.assertEqual({
+            Sub(Feature(name='geneA'), Feature(name='geneB'))
+        }, self.chain('-geneA', 'geneA>geneB', unambiguous_mode=False).changes(True))
+
+        self.assertEqual({
+            Sub(Feature(name='geneA'), Feature(name='geneB'))
+        }, self.chain('geneA>geneB', '-geneA', unambiguous_mode=False).changes(True))
+
+        with self.assertRaises(AmbiguityError):
+            self.chain('geneA>geneB', '-geneA')
+
+        with self.assertRaises(AmbiguityError):
+            self.chain('-geneA', 'geneA>geneB')
+
+        self.assertEqual({
+            Del(Feature(name='geneA')),
+            Sub(Feature(name='geneB'), Feature(name='geneA'))
+        }, self.chain('-geneA', 'geneB>geneA').changes(True))
+
+        self.assertEqual({
+            Del(Feature(name='geneB'))
+        }, self.chain('geneB>geneA', '-geneA').changes(True))
+
+    def test_simple_insertion_and_substitution(self):
+        self.assertEqual({
+            Sub(Feature(name='geneA'), Feature(name='geneB'))
+        }, self.chain('+geneA', 'geneA>geneB').changes(True))
+
+        self.assertEqual({
+            Ins(Feature(name='geneA')),
+            Sub(Feature(name='geneB'), Feature(name='geneA'))
+        }, self.chain('+geneA', 'geneB>geneA').changes(True))
+
+        self.assertEqual({
+            Ins(Feature(name='geneA')),
+            Sub(Feature(name='geneA'), Feature(name='geneB'))
+        }, self.chain('geneA>geneB', '+geneA').changes(True))
+
+        self.assertEqual({
+            Ins(Feature(name='geneA')),
+            Sub(Feature(name='geneB'), Feature(name='geneA'))
+        }, self.chain('geneB>geneA', '+geneA').changes(True))
+
+    def test_mutations_with_fusions(self):
+        self.assertEqual({
+            Sub(Feature(name='geneB'), Fusion(Feature(name='geneA'), Feature(name='geneB')))
+        }, self.chain('geneB>geneA', 'geneA>geneA:geneB').changes(True))
+
+        self.assertEqual({
+            Del(Feature(name='geneB')),
+        }, self.chain('geneB>geneA:geneB', '-geneA:geneB').changes(True))
+
+        self.assertEqual({
+            Sub(Feature(name='geneB'), Fusion(Feature(name='geneD'), Feature(name='geneC')))
+        }, self.chain('geneB>geneA:geneB:geneC', 'geneA:geneB>geneD',
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(True))
+
+        self.assertEqual({
+            Ins(Fusion(Feature(name='geneA'), Feature(name='geneA'))),
+            Sub(Feature(name='geneA'), Feature(name='geneB')),
+        }, self.chain('+geneA:geneA', 'geneA>geneB', unambiguous_mode=False,
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(True))
+
+        # +A:A A>B normally throws AmbiguityError for FUSION_UPDATE_ON_CHANGE strategy as there are two matches
+        with self.assertRaises(AmbiguityError):
+            self.chain('+geneA:geneA', 'geneA>geneB', fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE)
+
+        # but for FUSION_MATCH_WHOLE +A:A A>B gives no matches so the test should pass
+        self.assertEqual({
+            Ins(Fusion(Feature(name='geneA'), Feature(name='geneA'))),
+            Sub(Feature(name='geneA'), Feature(name='geneB')),
+        }, self.chain('+geneA:geneA', 'geneA>geneB', fusion_strategy=Genotype.FUSION_MATCH_WHOLE).changes(True))
+
+        self.assertEqual({
+            Sub(Fusion(Feature(name='geneA'), Feature(name='geneA')),
+                Fusion(Feature(name='geneB'), Feature(name='geneB')))
+        }, self.chain('+geneA:geneA', 'geneA:geneA>geneB:geneB',
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(True))
+
+        self.assertEqual({
+            Ins(Fusion(Feature(name='geneB'), Feature(name='geneC')))
+        }, self.chain('+geneA:geneC', 'geneA>geneB',
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(True))
+
+        self.assertEqual({
+            Ins(Fusion(Feature(name='geneA'), Feature(name='geneC'))),
+            Ins(Fusion(Feature(name='geneA'), Feature(name='geneD'))),
+            Sub(Feature(name='geneA'), Feature(name='geneB')),
+        }, self.chain('+geneA:geneC +geneA:geneD', 'geneA>geneB', unambiguous_mode=False,
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(True))
+        #
+        with self.assertRaises(AmbiguityError):
+            self.chain('+geneA:geneC +geneA:geneD', 'geneA>geneB', fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE)
+
+    def test_loci(self):
+        self.assertEqual({
+            Ins(Feature(name='geneA'), locus='L1'),
+            Del(Feature(name='geneA'), locus='L2'),
+        }, self.chain('+geneA@L1', '-geneA@L2').changes())
+
+        self.assertEqual({
+            Ins(Feature(name='geneA'), locus='L1'),
+            Sub(Feature(name='geneA'), Feature(name='geneB')),
+        }, self.chain('+geneA@L1', 'geneA>geneB').changes(True))
+
+        self.assertEqual({
+            Ins(Feature(name='geneA'), locus='L1'),
+            Ins(Feature(name='geneA')),
+        }, self.chain('+geneA', '+geneA@L1').changes())
+
+        self.assertEqual({
+            Sub(Feature(name='geneA'), Feature(name='geneB'), locus='L1'),
+            Del(Feature(name='geneB')),
+        }, self.chain('geneA@L1>geneB', '-geneB').changes(True))
+
+    def test_plasmids(self):
+        self.assertEqual({
+            Present(Plasmid('p3', []))
+        }, self.chain('-p1{} p2{} p3{}', '-p2{} p1{}').changes())
+
+        self.assertEqual({
+            Present(Plasmid('p2', [])),
+            Absent(Plasmid('p1', []))
+        }, self.chain('-p1{} p2{}').changes())
+
+        self.assertEqual({
+            Absent(Plasmid('p1', [])),
+            Present(Plasmid('p2', []))
+        }, self.chain('-p1{} -p1{} p2{} p2{}', unambiguous_mode=False).changes())
+
+        with self.assertRaises(AmbiguityError):
+            self.chain('-p1{} -p1{}')
+
+        with self.assertRaises(AmbiguityError):
+            self.chain('p1{} p1{}')
+
+    def test_phenotypes(self):
+        self.assertEqual({
+            Present(Feature(name='geneA', type=Type('phene'), variant='y')),
+        }, self.chain('geneA(x)', 'geneA(y)').changes())
+
+        self.assertEqual({
+            Present(Feature(name='geneB', type=Type('phene'), variant='x')),
+            Del(Feature(name='geneA', variant='x'))
+        }, self.chain('geneA(x) geneB(x)', '-geneA(x)').changes())
+
+        self.assertEqual({
+            Present(Feature(name='geneA', type=Type('phene'), variant='y')),
+            Ins(Feature(name='geneA', variant='x'))
+        }, self.chain('+geneA(x)', 'geneA(y)').changes())
+
+        self.assertEqual({
+            Present(Feature(name='geneB', type=Type('phene'), variant='x')),
+            Del(Feature(name='geneA'))
+        }, self.chain('geneA(x) geneB(x)', '-geneA').changes())
+
+        self.assertEqual({
+            Present(Feature(name='geneA', type=Type('phene'), variant='x')),
+        }, self.chain('geneA(x) geneA(x)', unambiguous_mode=False).changes())
+
+        with self.assertRaises(AmbiguityError):
+            self.chain('geneA(x) geneA(x)')
+
+        self.assertEqual({
+            Present(Feature(name='geneA', type=Type('phene'), variant='x')),
+            Ins(Feature(name='geneA', variant='x'))
+        }, self.chain('geneA(x)', '+geneA(x)').changes())
+
+        self.assertEqual(set(), self.chain('geneA(x)', '+geneA(x)', '-geneA(x)').changes())
+
+        self.assertEqual({
+            Sub(Feature(name='geneA', variant='x'), Feature(name='geneB'))
+        }, self.chain('geneA(x)', '+geneA(x)', 'geneA(x)>geneB').changes(True))
+
+    def test_marker_presences(self):
+        self.assertEqual({
+            Present(Feature(name='M', type=Type('phene'), variant='wild-type')),
+            Ins(Feature(name='geneA'), markers=[Feature(name='M', type=Type('phene'), variant='wild-type')])
+        }, self.chain('+geneA::M+').changes(True))
+
+        self.assertEqual({
+            Present(Feature(name='M', type=Type('phene'), variant='wild-type')),
+            Ins(Feature(name='geneA'), markers=[Feature(name='M', type=Type('phene'), variant='wild-type')])
+        }, self.chain('M-', '+geneA::M+').changes(True))
+
+        self.assertEqual({
+            Present(Feature(name='M', type=Type('phene'), variant='mutant')),
+            Ins(Feature(name='geneA'))
+        }, self.chain('+geneA::M+', 'M-').changes(True))
+
+        self.assertEqual({
+            Present(Feature(name='M', type=Type('phene'), variant='mutant')),
+            Present(Feature(name='N', type=Type('phene'), variant='wild-type')),
+            Ins(Feature(name='geneA'), markers=[Feature(name='N', type=Type('phene'), variant='wild-type')])
+        }, self.chain('+geneA::{M+ N+}', 'M-').changes(True))
+
+        self.assertEqual({
+            Present(Feature(name='M', type=Type('phene'), variant='wild-type')),
+            Sub(Feature(name='geneA'), Feature(name='geneC'))
+        }, self.chain('geneA>geneB::M+', 'geneB>geneC').changes(True))
+
+        self.assertEqual({
+            Present(Feature(name='M', type=Type('phene'), variant='x')),
+            Present(Feature(name='N', type=Type('phene'), variant='y')),
+            Sub(Feature(name='geneA'), Feature(name='geneC'),
+                markers=[Feature(name='N', type=Type('phene'), variant='y')])
+        }, self.chain('geneA>geneB::M(x)', 'geneB>geneC::N(y)').changes(True))
+
+        self.assertEqual({
+            Present(Feature(name='M', type=Type('phene'), variant='y')),
+            Ins(Feature(name='geneA'), markers=[Feature(name='M', type=Type('phene'), variant='y')])
+        }, self.chain('+geneA::{M(x) M(y)}', unambiguous_mode=False).changes(True))
+
+        with self.assertRaises(AmbiguityError):
+            self.chain('+geneA::{M(x) M(y)}')
 
     def test_integrated_plasmid_vector(self):
         self.assertEqual({
@@ -45,122 +291,22 @@ class GenotypeTestCase(BaseTestCase):
             Ins(Feature(name='geneB')),
         }, self.chain('siteA>pA{geneA geneB}').changes())
 
-    def test_deletion_of_plasmid_vector(self):
         self.assertEqual({
-            Present(Plasmid('pA', []))
-        }, self.chain('pA{}').changes())
-
-        self.assertEqual({
-            Absent(Plasmid('pA', []))
-        }, self.chain('-pA{}').changes())
-
-        self.assertEqual(set(), self.chain('pA{}', '-pA{}').changes())
-        self.assertEqual(set(), self.chain('pA{foo}', '-pA{}').changes())
-
-    def test_variants(self):
-        # TODO: shouldn't it be empty set? Also this is the same assertion as in test_no_delete_if_present
-        self.assertEqual({
-            Del(Feature(name='geneA')),
-        }, self.chain('+geneA(x)', '-geneA').changes())
+            Ins(Fusion(Feature(name='geneA'), FeatureSet(Feature(name='geneC'), Feature(name='geneD')))),
+        }, self.chain('+geneA:geneB', 'geneB>pA{geneC geneD}',
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(True))
 
         self.assertEqual({
-            Ins(Feature(name='geneA')),
-            Del(Feature(name='geneA', variant='x')),
-        }, self.chain('+geneA', '-geneA(x)').changes())
+            Ins(Fusion(Feature(name='geneA'), FeatureSet(Feature(name='geneC'), Feature(name='geneD')))),
+        }, self.chain('+geneA:geneB:geneC', 'geneB>pA{}',
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(True))
 
-        self.assertEqual({
-            Del(Feature(name='geneA', variant='x')),
-            Ins(Feature(name='geneA', variant='y')),
-        }, self.chain('-geneA(x)', '+geneA(y)').changes())
-
-    def test_insertion_followed_by_deletion(self):
-        self.assertEqual({
-            Ins(Feature(name='geneX')),
-        }, self.chain('+geneX +geneA', '-geneA').changes())
-
-        self.assertEqual({
-            Ins(Feature(name='geneX')),
-            Ins(Feature(name='geneY')),
-        }, self.chain('+geneX +geneA', '+geneY', '-geneA').changes())
-
-    def test_deletion_followed_by_insertion(self):
-        self.assertEqual({
-            Ins(Feature(name='geneX')),
-        }, self.chain('+geneX -geneA', '+geneA').changes())
-
-        self.assertEqual({
-            Ins(Feature(name='geneX')),
-            Ins(Feature(name='geneY')),
-        }, self.chain('+geneX -geneA', '+geneY', '+geneA').changes())
-
-    def test_phenotypes_replace_variants(self):
-        # when variants are used (default case):
-        self.assertEqual({
-            Ins(Feature(name='geneA', variant='x')),
-            Ins(Feature(name='geneA', variant='y')),
-            Ins(Feature(name='geneA', variant='z')),
-        }, self.chain('+geneA(x) +geneA(y)', '+geneA(z)').changes())
-
-        # when phenotypes are used:
-        self.assertEqual({
-            Present(Feature(name='pheneA', type=Type('phene'), variant='mutant')),
-        }, self.chain('pheneA+', 'pheneA-').changes())
-
-        # when variants are mixed:
-        # TODO: how does it work?
-        self.assertEqual({
-            Ins(Feature(name='geneA', type=Type('phene'), variant='z')),
-        }, self.chain('+geneA(x) +geneA(y)', 'geneA(z)').changes())
-
-        self.assertEqual({
-            Ins(Feature(name='geneA', variant='x')),
-            Ins(Feature(name='geneA', type=Type('phene'), variant='z')),
-        }, self.chain('+geneA(x) +geneA(y)', 'geneA(z)', '+geneA(x)').changes())
-
-    def test_markers_as_phenotypes(self):
-        self.assertEqual({
-            Ins(Feature(name='geneA')),
-            Present(Feature(name='pheneA', type=Type('phene'), variant='wild-type')),
-        }, self.chain('+geneA::pheneA+').changes())
-
-        self.assertEqual({
-            Ins(Feature(name='geneA')),
-            Present(Feature(name='pheneA', type=Type('phene'), variant='mutant')),
-        }, self.chain('+geneA::pheneA+', 'pheneA-').changes())
-
-        self.assertEqual({
-            Present(Feature(name='pheneA', type=Type('phene'), variant='wild-type')),
-        }, self.chain('+geneA::pheneA+', 'pheneA-', '-geneA::pheneA+').changes())
-
-        self.assertEqual({
-            Present(Feature(name='pheneA', type=Type('phene'), variant='mutant')),
-            Present(Feature(name='pheneB', type=Type('phene'), variant='mutant')),
-        }, self.chain('+geneA::{pheneA+ pheneB+}', 'pheneA-', '-geneA::pheneB-').changes())
-
-    def test_multiple_insertion(self):
-        self.assertEqual(Sub(Feature(name='siteA'), Feature(name='geneA'), multiple=True),
-                         self.chain('siteA>>geneA').raw[0])
-
-        self.assertNotEqual(Sub(Feature(name='siteA'), Feature(name='geneA'), multiple=True),
-                            self.chain('siteA>geneA').raw[0])
-
-    def test_no_delete_if_present(self):
-        # geneA(x) is not marked as deleted as the removal was an exact match
-        self.assertEqual({
-            Ins(Feature(name='geneB')),
-        }, self.chain('+geneA(x) +geneB', '-geneA(x)').changes())
-
-        # geneA(x) is now marked as deleted as it was not present
-        self.assertEqual({
-            Ins(Feature(name='geneB')),
-            Del(Feature(name='geneA', variant='x')),
-        }, self.chain('+geneB', '-geneA(x)').changes())
-
-        # TODO: Ambiguous?
-        # geneA is marked as deleted because the match was not exact
-        self.assertEqual({
-            Del(Feature(name='geneA')),
-        }, self.chain('+geneA(x)', '-geneA').changes())
+    # def test_multiple_insertion(self):
+    #     self.assertEqual(Sub(Feature(name='siteA'), Feature(name='geneA'), multiple=True),
+    #                      self.chain('siteA>>geneA').raw[0])
+    #
+    #     self.assertNotEqual(Sub(Feature(name='siteA'), Feature(name='geneA'), multiple=True),
+    #                         self.chain('siteA>geneA').raw[0])
 
 
 class GenotypeRangeTestCase(BaseTestCase):
@@ -355,31 +501,23 @@ class FeatureToTextTestCase(BaseTestCase):
 
     def test_feature_is_maker(self):
         feature = Feature(name="foo")
-        self.assertEqual(feature_to_text(feature, is_maker=True), "::foo")
+        self.assertEqual(feature_to_text(feature, is_marker=True), "::foo")
 
 
 class GenotypeToStringTestCase(BaseTestCase):
 
     def test_genotype_to_string(self):
-        gnomic = genotype_to_string(self.chain('-e.coli/geneA',
-                                               '+geneB(a)',
-                                               'vectorC{geneC}',
-                                               '-vectorD{}',
-                                               '+geneE::markerF+',
-                                               '+gene.G::{markerH+, markerI+}'))
+        changes = [
+            '-e.coli/geneA',
+            '+geneB(a)',
+            'vectorC{geneC}',
+            '-vectorD{}',
+            '+geneE::markerF+',
+            '+gene.G::{markerH+ markerI+}'
+        ]
+        gnomic = genotype_to_string(self.chain(*changes))
 
-        self.assertEqual(
-            set(gnomic.split()),
-            set('+geneE '
-                'markerH+ '
-                'vectorC{geneC} '
-                '-e.coli/geneA '
-                'markerF+ '
-                '+geneB(a) '
-                'markerI+ '
-                '+gene.G '
-                '-vectorD{}'.split())
-        )
+        self.assertEqual(gnomic, " ".join(changes))
 
         self.assertIsInstance(Genotype.parse(gnomic), Genotype)
 
@@ -416,6 +554,7 @@ class GenotypeToStringTestCase(BaseTestCase):
 
 class GenotypeFusionsUpdateOnChangeTestCase(BaseTestCase):
 
+    @SkipTest
     def test_fusion_insert_update_on_change(self):
         self.assertEqual({
             Del(Fusion(Feature(name='geneA'), Feature(name='geneC')))
@@ -508,10 +647,9 @@ class GenotypeFusionsUpdateOnChangeTestCase(BaseTestCase):
         }, self.chain('+geneA:geneB:geneC', '-geneA:geneC',
                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
 
-        self.assertEqual({
-            Ins(Fusion(Feature(name='geneB'), Feature(name='geneC'))),
-        }, self.chain('+geneA:geneB:geneC +geneA', '-geneA',
-                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
+        with self.assertRaises(AmbiguityError):
+            self.chain('+geneA:geneB:geneC +geneA', '-geneA',
+                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True)
 
         self.assertEqual({
             Ins(Fusion(Feature(name='geneA'), FeatureSet(Feature(name='geneB')))),
@@ -533,25 +671,18 @@ class GenotypeFusionsUpdateOnChangeTestCase(BaseTestCase):
         }, self.chain('+geneA:{geneB geneC:geneD}', '-geneB', '-geneC:geneD',
                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
 
-        self.assertEqual({
-            Ins(Feature(name='geneC')),
-        }, self.chain('+geneA:geneB:genekC:geneA:geneB', '-geneA:geneB',
-                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
-
-        # TODO: test for provisional logic (not implemented yet)
-        # self.assertEqual({
-        #     Ins(Feature(name='geneD')),
-        # }, self.chain('+{geneB geneC geneD}', '-{geneB geneC}',
-        #               fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
+        with self.assertRaises(AmbiguityError):
+            self.chain('+geneA:geneB:geneC:geneA:geneB', '-geneA:geneB',
+                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True)
 
     def test_fusion_replace_update_on_change(self):
         self.assertEqual({
-            Ins(Fusion(Feature(name='geneB'), Feature(name='geneC'))),
+            Sub(Feature(name='geneA'), Fusion(Feature(name='geneB'), Feature(name='geneC'))),
         }, self.chain('+geneA', 'geneA>geneB:geneC',
                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
 
         self.assertEqual({
-            Ins(Feature(name='geneC')),
+            Sub(Fusion(Feature(name='geneA'), Feature(name='geneB')), Feature(name='geneC')),
         }, self.chain('+geneA:geneB', 'geneA:geneB>geneC',
                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
 
@@ -591,12 +722,9 @@ class GenotypeFusionsUpdateOnChangeTestCase(BaseTestCase):
         }, self.chain('+geneA:{geneB geneC:geneD}', 'geneC:geneD>geneE',
                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
 
-        self.assertEqual({
-            Ins(Fusion(Feature(name='geneA'), Feature(name='geneB'),
-                       FeatureSet(Feature(name='geneC'), Feature(name='geneF')),
-                       Feature(name='geneF'))),
-        }, self.chain('+geneA:geneB:{geneC geneD:geneE}:geneD:geneE', 'geneD:geneE>geneF',
-                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True))
+        with self.assertRaises(AmbiguityError):
+            self.chain('+geneA:geneB:{geneC geneD:geneE}:geneD:geneE', 'geneD:geneE>geneF',
+                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(fusions=True)
 
         self.assertEqual({
             Ins(Fusion(Feature(name='geneA'), FeatureSet(Feature(name='geneD'), Feature(name='geneE')))),

@@ -36,11 +36,12 @@ def genotype_to_text(genotype, fusions=False, delta_char=u"\u0394"):
                 # Deletion
                 result.append(delta_char + feature_to_text(change.before, integrated=False))
 
-        elif change_type is Plasmid:
-            result.append(feature_to_text(change, integrated=False))
+        elif change_type is Presence:
+            prefix = delta_char if change.present is False else ""
+            result.append(prefix + feature_to_text(change.element, integrated=False))
 
         if change.markers:
-            result.append(feature_to_text(change, is_maker=True))
+            result.append(feature_to_text(change, is_marker=True))
 
         result_string = ""
 
@@ -54,12 +55,12 @@ def genotype_to_text(genotype, fusions=False, delta_char=u"\u0394"):
     return " ".join(result)
 
 
-def feature_to_text(feature, integrated=True, is_maker=False):
+def feature_to_text(feature, integrated=True, is_marker=False):
     """
     A method to transform a genotype feature into text
     :param feature: Genotype feature
     :param integrated: boolean
-    :param is_maker: boolean
+    :param is_marker: boolean
     :return: str
     """
     feature_type = type(feature)
@@ -86,7 +87,7 @@ def feature_to_text(feature, integrated=True, is_maker=False):
 
     else:
         text = ''
-        if is_maker:
+        if is_marker:
             text += '::'
 
         if feature.organism:
@@ -109,8 +110,13 @@ def feature_to_text(feature, integrated=True, is_maker=False):
 
 def genotype_to_string(genotype, fusions=True):
     parts = []
-
-    for change in genotype.changes(fusions=fusions):
+    markers = set()
+    # print "LIST:", list(genotype.changes(fusions=fusions))
+    for change in genotype.changes(fusions=fusions, as_set=False):
+        if change.markers is not None:
+            markers |= set(change.markers)
+        if isinstance(change, Presence) and change.element in markers:
+            continue
         parts.append(change_to_string(change))
     return ' '.join(parts)
 

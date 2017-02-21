@@ -61,9 +61,9 @@ class Mutation(object):
                                          for key, value in self.__dict__.items() if value is not None))
 
     def set_markers(self, markers):
-        print "MARKERS", markers
         self.markers = FeatureTree(*markers) if markers else None
 
+    # TODO: which implementation is better? is_opposite_to or is_identical_to?
     def is_opposite_to(self, other):
         params = (self.before is not None, self.after is not None, other.before is not None, other.after is not None)
         if params == (False, True, True, False):
@@ -360,9 +360,9 @@ class Feature(MatchableMixin):
 
             # if this feature has no variant, match any other feature; otherwise, match only features with the same
             # variant
-            # if not self.variant or match_variant is False:
-            #     return True
-            if self.variant == other.variant or match_variant is False:
+            if not self.variant or match_variant is False:
+                return True
+            if self.variant == other.variant:# or match_variant is False:
                 return True
             return False
         else:
