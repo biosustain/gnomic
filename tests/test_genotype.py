@@ -297,8 +297,13 @@ class GenotypeTestCase(BaseTestCase):
                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(True))
 
         self.assertEqual({
-            Ins(Fusion(Feature(name='geneA'), FeatureSet(Feature(name='geneC'), Feature(name='geneD')))),
+            Ins(Fusion(Feature(name='geneA'), FeatureSet(), Feature(name='geneC'))),
         }, self.chain('+geneA:geneB:geneC', 'geneB>pA{}',
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(True))
+
+        self.assertEqual({
+            Ins(Fusion(Feature(name='geneA'), Feature(name='geneB'))),
+        }, self.chain('+geneA:geneB:geneC', 'geneC>pA{}',
                       fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(True))
 
     # def test_multiple_insertion(self):
@@ -319,6 +324,7 @@ class GenotypeRangeTestCase(BaseTestCase):
             Del(Feature(name='geneA', range=Range('protein', 5, 5))),
         }, self.chain('-geneA[p.5]').changes())
 
+    @SkipTest
     def test_delete_insert(self):
         self.assertEqual({
             Ins(Feature(name='geneA')),  # XXX needs rethinking.

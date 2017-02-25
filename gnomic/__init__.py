@@ -93,9 +93,10 @@ class Genotype(object):
             return Match.NONE
 
         def substitute(obj, old, new):
+            print "Substitute", old, "with", new, "in", obj
             count = 0
             if isinstance(obj, Feature):
-                return new if obj == old else obj, 1 if obj == old else 0
+                return (new, 1) if old.match(obj) else (obj, 0)
             elif isinstance(obj, FeatureSet):
                 new_contents = []
                 for element in obj:
@@ -112,6 +113,7 @@ class Genotype(object):
                     # e.g. +A:B B>C:D does not parse to Fusion(A, Fusion(C, D)) - update only FeatureSets
                     new_element, sub_count = substitute(element, old, new) if isinstance(element, FeatureSet) \
                         else (element, 0)
+                    print isinstance(element, FeatureSet)
                     count += sub_count
                     if new_element:
                         new_contents.append(new_element)
@@ -122,18 +124,25 @@ class Genotype(object):
                 while target_range:
                     count += 1
                     pos = target_range.start
-                    if new and not isinstance(new, Fusion):
+                    if new is not None and not isinstance(new, Fusion):
                         new = [new]
                     new_fusion[target_range] = new or []
                     pos += len(new) if isinstance(new, list) else 0
                     target_range = new_fusion.part_range(old, pos)
 
-                if len(new_fusion) > 1:
-                    return new_fusion, count
-                elif len(new_fusion) == 1:
-                    return new_fusion[0], count
-                else:
+                if len(new_fusion) == 0:
                     return None, count
+
+                first_is_empty_set = isinstance(new_fusion[0], FeatureSet) and len(new_fusion[0]) == 0
+                if len(new_fusion) == 1:
+                    return (None, count) if first_is_empty_set else (new_fusion[0], count)
+
+                last_is_empty_set = isinstance(new_fusion[-1], FeatureSet) and len(new_fusion[-1]) == 0
+                left_index = 1 if first_is_empty_set else 0
+                right_index = -1 if last_is_empty_set else len(new_fusion)
+                new_fusion.contents = new_fusion.contents[left_index:right_index]
+
+                return new_fusion or None, count
 
         def update_contents(change):
             new_contents = []

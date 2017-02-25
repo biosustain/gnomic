@@ -84,8 +84,6 @@ class Mutation(object):
         }.get(params, lambda: False)()
 
 
-
-
 def Ins(insert, **kwargs):
     return Mutation(None, insert, **kwargs)
 
@@ -135,7 +133,6 @@ def Present(element, **kwargs):
 
 def Absent(element, **kwargs):
     return Presence(element, False, **kwargs)
-
 
 
 class MatchableMixin(object):
@@ -242,34 +239,6 @@ class Fusion(FeatureTree, MatchableMixin):
             except ValueError:
                 return None
 
-    def updated_copy(self, old, new):
-        new_contents = []
-        for element in self:
-            # element can be a Feature or a FeatureSet
-            # if element is a feature, don't process it now so that e.g. +A:B B>C:D does not parse to
-            # Fusion(A, Fusion(C, D)) - update only FeatureSets
-            new_element = element.updated_copy(old, new) if isinstance(element, FeatureSet) else element
-            if new_element:
-                new_contents.append(new_element)
-
-        new_fusion = Fusion(*new_contents)
-        # locate range to be removed or substituted
-        target_range = new_fusion.part_range(old)
-        # if located, perform replacement (with empty list if deletion)
-        if target_range:
-            # if not fusion, wrap new in a list so that the whole 'new' is inserted into the fusion as one element
-            # instead of iterating through the contents
-            if new and not isinstance(new, Fusion):
-                new = [new]
-            new_fusion[target_range] = new or []
-
-        if len(new_fusion) > 1:
-            return new_fusion
-        elif len(new_fusion) == 1:
-            return new_fusion[0]
-        else:
-            return None
-
     def __eq__(self, other):
         return isinstance(other, Fusion) and self.contents == other.contents
 
@@ -368,9 +337,6 @@ class Feature(MatchableMixin):
         else:
             # not enough information for any match
             return False
-
-    def updated_copy(self, old, new):
-        return new if self == old else self
 
     def features(self):
         yield self
@@ -481,6 +447,7 @@ class Accession(object):
         return '{}({})'.format(self.__class__.__name__,
                                ', '.join('{}={}'.format(key, repr(value))
                                          for key, value in self.__dict__.items() if value))
+
 
 class Type(object):
     def __init__(self, name, aliases=None):
