@@ -1,6 +1,6 @@
 from unittest import TestCase
 from gnomic import Feature, Organism, Genotype, Ins, Accession, Type, DEFAULT_ORGANISMS, DEFAULT_TYPES, Del, Plasmid, \
-    Sub, Fusion, Mutation, FeatureTree, FeatureSet
+    Sub, Fusion, Mutation, FeatureTree, FeatureSet, Present, Absent
 
 
 def parse(string):
@@ -43,42 +43,34 @@ class GrammarTestCase(TestCase):
             Ins(Feature(accession=Accession(identifier=123)))
         ], parse('+#123'))
 
-
     def test_parse_variants(self):
         self.assertEqual([
-            Feature(type=Type('phene'), name='A', variant='wild-type')
+            Present(Feature(type=Type('phene'), name='A', variant='wild-type'))
         ], parse('A+'))
 
         self.assertEqual([
-            Feature(type=Type('phene'), name='A', variant='mutant')
+            Present(Feature(type=Type('phene'), name='A', variant='mutant'))
         ], parse('A-'))
 
         self.assertEqual([
-            Feature(type=Type('phene'), name='A', variant='custom')
+            Present(Feature(type=Type('phene'), name='A', variant='custom'))
         ], parse('A(custom)'))
 
         self.assertEqual([
-            Feature(type=Type('phene'), name='A', variant='first, second')
+            Present(Feature(type=Type('phene'), name='A', variant='first, second'))
         ], parse('A(first, second)'))
 
         self.assertEqual([
-            Feature(type=Type('phene'),
+            Present(Feature(type=Type('phene'),
                     name='A',
                     organism=Organism('Escherichia coli'),
-                    variant='wild-type')
+                    variant='wild-type'))
         ], parse('Ec/A+'))
 
         self.assertEqual([
-            Feature(type=Type('phene'),
-                    name='A',
-                    organism=Organism('Escherichia coli'),
-                    variant='wild-type')
-        ], parse('Ec/A+'))
-
-        self.assertEqual([
-            Feature(type=Type('phene'),
+            Present(Feature(type=Type('phene'),
                     accession=Accession(identifier=123, database='FOO'),
-                    variant='wild-type')
+                    variant='wild-type'))
         ], parse('#FOO:123+'))
 
     def test_parse_simple_deletions(self):
@@ -87,17 +79,17 @@ class GrammarTestCase(TestCase):
         ], parse('-fooF'))
 
         self.assertEqual([
-            Del(Plasmid('pFoo', None))
+            Absent(Plasmid('pFoo', None))
         ], parse('-pFoo{}'))
 
         result = parse('-pFoo{fooF}')
         self.assertEqual([
-            Del(Plasmid('pFoo', None))
+            Absent(Plasmid('pFoo', None))
         ], result)
 
         self.assertEqual((
-            Feature(name='fooF'),
-        ), result[0].old.contents)
+            FeatureSet(Feature(name='fooF'))
+        ), result[0].element.contents)
 
     def test_parse_simple_replacements(self):
         self.assertEqual([
@@ -134,13 +126,12 @@ class GrammarTestCase(TestCase):
     def test_parse_plasmid_deletions(self):
         result = parse('-pFoo{barB, bazZ}')
         self.assertEqual([
-            Del(Plasmid('pFoo', None))
+            Absent(Plasmid('pFoo', None))
         ], result)
 
         self.assertEqual((
-            Feature(name='barB'),
-            Feature(name='bazZ'),
-        ), result[0].old.contents)
+            FeatureSet(Feature(name='barB'), Feature(name='bazZ'))
+        ), result[0].element.contents)
 
     def test_parse_fusion_featureset(self):
         self.assertEqual([

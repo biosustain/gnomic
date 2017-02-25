@@ -93,7 +93,6 @@ class Genotype(object):
             return Match.NONE
 
         def substitute(obj, old, new):
-            print "Substitute", old, "with", new, "in", obj
             count = 0
             if isinstance(obj, Feature):
                 return (new, 1) if old.match(obj) else (obj, 0)
@@ -113,7 +112,6 @@ class Genotype(object):
                     # e.g. +A:B B>C:D does not parse to Fusion(A, Fusion(C, D)) - update only FeatureSets
                     new_element, sub_count = substitute(element, old, new) if isinstance(element, FeatureSet) \
                         else (element, 0)
-                    print isinstance(element, FeatureSet)
                     count += sub_count
                     if new_element:
                         new_contents.append(new_element)
@@ -191,7 +189,7 @@ class Genotype(object):
                 if mutation.markers:
                     mutation.set_markers([marker for marker in mutation.markers
                                           if not change.element.match(marker, match_variant=False)])
-                return mutation, 0, True  # TODO: should it be zero?
+                return mutation, 0, True
 
             # Loci does not match
             # +A@L1 -A / +A -A@L1
@@ -218,12 +216,11 @@ class Genotype(object):
                 if change.after is None:  # A>B -A
                     return mutation, 1, False
                 else:  # -A A>B
-                    return None, 1, True  # TODO: Should it be 1?
+                    return None, 1, True  # TODO: Should it be 1? -A +A:C A>B would throw AmbiguityError
 
             # delete or replace mutation.after (or its part)
             if change.before is not None and mutation.after is not None:
                 match = get_match(mutation.after, change.before)
-                print "MATCH: ", match, mutation.after, change.before
                 # if no match or if partial match but fusion strategy is match whole, don't change mutation
                 if match == Match.NONE or (match == Match.PARTIAL and fusion_strategy == Genotype.FUSION_MATCH_WHOLE):
                     return mutation, 0, True  # and add change
@@ -272,8 +269,6 @@ class Genotype(object):
 
         for change in changes:
             self.contents = update_contents(change)
-
-        print "RESULT:", self.contents
 
     @property
     def raw(self):

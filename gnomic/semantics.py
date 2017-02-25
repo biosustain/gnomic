@@ -17,7 +17,6 @@ class DefaultSemantics(GnomicSemantics):
         return Fusion(*ast)
 
     def FEATURE_SET(self, ast):
-        print "Creating Featureset:", ast, FeatureSet(*ast)
         return FeatureSet(*ast)
 
     def ORGANISM(self, name):
@@ -73,8 +72,6 @@ class DefaultSemantics(GnomicSemantics):
         return Accession(ast['id'], ast['db'])
 
     def PLASMID(self, ast):
-        print "Creating plasmid"
-
         return Plasmid(ast.name, ast.contents or FeatureSet(), markers=ast.markers)
 
     def PHENE(self, ast):
