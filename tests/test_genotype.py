@@ -35,8 +35,22 @@ class GenotypeTestCase(BaseTestCase):
 
         self.assertEqual(set(), self.chain('geneA>geneB', 'geneB>geneA').changes())
 
+    def test_mutations_with_variants(self):
+        self.assertEqual({
+            Ins(Feature(name='geneB')),
+        }, self.chain('+geneA(x) +geneB', '-geneA', unambiguous_mode=False).changes())
+
+        with self.assertRaises(AmbiguityError):
+            self.chain('+geneA(x) +geneA(y)', '-geneA')
+
+        self.assertEqual({
+            Ins(Feature(name='geneA', variant='x')),
+            Ins(Feature(name='geneA', variant='y')),
+            Del(Feature(name='geneA')),
+        }, self.chain('+geneA(x) +geneA(y)', '-geneA', unambiguous_mode=False).changes())
+
         self.assertEqual(set(), self.chain('geneA(x)>geneB', 'geneB>geneA').changes())
-        #
+
         self.assertEqual({
             Sub(Feature(name='geneA'), Feature(name='geneB')),
             Sub(Feature(name='geneB', variant='x'), Feature(name='geneA'))
