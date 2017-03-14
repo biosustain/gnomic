@@ -63,24 +63,12 @@ class Mutation(object):
     def set_markers(self, markers):
         self.markers = FeatureTree(*markers) if markers else None
 
-    # TODO: which implementation is better? is_opposite_to or is_identical_to?
     def is_opposite_to(self, other):
         params = (self.before is not None, self.after is not None, other.before is not None, other.after is not None)
-        if params == (False, True, True, False):
-            return self.after.match(other.before)
-        elif params == (True, False, False, True):
-            return self.before.match(other.after)
-        elif params == (True, True, True, True):
-            return self.after.match(other.before) and self.before.match(other.after)
-        else:
-            return False
-
-    def is_identical_to(self, other):
-        params = (self.before is not None, self.after is not None, other.before is not None, other.after is not None)
         return {
-            (False, True, False, True): lambda: self.after.match(other.after),
-            (True, False, True, False): lambda: self.before.match(other.before),
-            (True, True, True, True): lambda: self.after.match(other.after) and self.before.match(other.before)
+            (False, True, True, False): lambda: self.after.match(other.before),
+            (True, False, False, True): lambda: self.before.match(other.after),
+            (True, True, True, True): lambda: self.after.match(other.before) and self.before.match(other.after)
         }.get(params, lambda: False)()
 
 

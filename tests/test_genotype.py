@@ -10,24 +10,65 @@ class BaseTestCase(TestCase):
         return Genotype.chain_parse(list(definitions), **kwargs)
 
 
+class GenotypeFeaturesTestCase(BaseTestCase):
+    def test_added_features(self):
+        self.assertEqual({
+            Feature(name='geneA'),
+            Feature(name='geneB'),
+            Feature(name='M', type=Type('phene'), variant='x'),
+            Feature(name='N', type=Type('phene'), variant='x'),
+            Feature(name='N2', type=Type('phene'), variant='x')
+        }, self.chain('+geneA', '+geneB::M(x)', '-geneC::N(x)', '-geneD', 'N2(x)').added_features)
+
+        self.assertEqual({
+            Feature(name='geneB'),
+            Feature(name='geneC'),
+            Feature(name='geneD'),
+            Feature(name='geneE'),
+            Feature(name='geneG')
+        }, self.chain('-geneA:{geneF}:geneB', '+geneB:{geneC:geneD geneE}', '+geneG -geneH').added_features)
+
+    def test_removed_features(self):
+        self.assertEqual({
+            Feature(name='geneC'),
+            Feature(name='geneD')
+        }, self.chain('+geneA', '+geneB::M(x)', '-geneC::N(x)', '-geneD', 'N2(x)').removed_features)
+
+        self.assertEqual({
+            Feature(name='geneA'),
+            Feature(name='geneF'),
+            Feature(name='geneB'),
+            Feature(name='geneH')
+        }, self.chain('-geneA:{geneF}:geneB', '+geneB:{geneC:geneD geneE}', '+geneG -geneH').removed_features)
+
+    def test_added_fusion_features(self):
+        self.assertEqual({
+            Fusion(Feature(name='geneB'),
+                   FeatureSet(Fusion(Feature(name='geneC'), Feature(name='geneD')),
+                              Feature(name='geneE'))),
+            Feature(name='geneG')
+        }, self.chain('-geneA:{geneF}:geneB', '+geneB:{geneC:geneD geneE}', '+geneG -geneH').added_fusion_features)
+
+    def test_removed_fusion_features(self):
+        self.assertEqual({
+            Fusion(Feature(name='geneA'),
+                   FeatureSet(Feature(name='geneF')),
+                   Feature(name='geneB')),
+            Feature(name='geneH')
+        }, self.chain('-geneA:{geneF}:geneB', '+geneB:{geneC:geneD geneE}', '+geneG -geneH').removed_fusion_features)
+
+    def test_added_plasmids(self):
+        self.assertEqual({
+            Plasmid(name='pA', contents=FeatureSet(Feature(name='geneB'), Feature(name='geneC')))
+        }, self.chain('+geneA', 'pA{geneB geneC}', '-pB{geneD geneE}', '-geneF').added_plasmids)
+
+    def test_removed_plasmids(self):
+        self.assertEqual({
+            Plasmid(name='pB', contents=FeatureSet(Feature(name='geneD'), Feature(name='geneE')))
+        }, self.chain('+geneA', 'pA{geneB geneC}', '-pB{geneD geneE}', '-geneF').removed_plasmids)
+
+
 class GenotypeTestCase(BaseTestCase):
-    def test_chain_propagate_added_features(self):
-        self.assertEqual({
-            Ins(Feature(name='geneA')),
-            Ins(Feature(name='geneB')),
-        }, self.chain('+geneA', '+geneB').changes())
-
-    def test_chain_propagate_removed_features(self):
-        self.assertEqual({
-            Del(Feature(name='geneA')),
-            Del(Feature(name='geneB')),
-        }, self.chain('-geneA', '-geneB').changes())
-
-        self.assertEqual({
-            Del(Feature(name='geneA')),
-            Ins(Feature(name='geneC')),
-        }, self.chain('-geneA -geneB', '+geneB', '+geneC').changes())
-
     def test_opposite_mutations(self):
         self.assertEqual(set(), self.chain('+geneA', '-geneA').changes())
 
@@ -36,6 +77,11 @@ class GenotypeTestCase(BaseTestCase):
         self.assertEqual(set(), self.chain('geneA>geneB', 'geneB>geneA').changes())
 
     def test_mutations_with_variants(self):
+        self.assertEqual({
+            Ins(Feature(name='geneA')),
+            Ins(Feature(name='geneA', variant='x')),
+        }, self.chain('+geneA(x) +geneA').changes())
+
         self.assertEqual({
             Ins(Feature(name='geneB')),
         }, self.chain('+geneA(x) +geneB', '-geneA', unambiguous_mode=False).changes())
