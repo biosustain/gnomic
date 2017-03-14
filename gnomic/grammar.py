@@ -18,12 +18,6 @@ from grako.parsing import graken, Parser
 from grako.util import re, RE_FLAGS, generic_main  # noqa
 
 
-__all__ = [
-    'GnomicParser',
-    'GnomicSemantics',
-    'main'
-]
-
 KEYWORDS = {}
 
 
@@ -114,16 +108,54 @@ class GnomicParser(Parser):
     def _change_(self):
         with self._choice():
             with self._option():
+                self._mutation_()
+                with self._if():
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._sep_()
+                            with self._option():
+                                self._list_separator_()
+                                with self._optional():
+                                    self._sep_()
+                            with self._option():
+                                self._check_eof()
+                            self._error('no available options')
+            with self._option():
+                self._presence_()
+            self._error('no available options')
+
+    @graken()
+    def _mutation_(self):
+        with self._choice():
+            with self._option():
                 self._insertion_()
             with self._option():
                 self._replacement_()
             with self._option():
                 self._deletion_()
+            self._error('no available options')
+
+    @graken()
+    def _presence_(self):
+        with self._choice():
             with self._option():
+                with self._optional():
+                    self._token('-')
+                    self.name_last_node('op')
                 self._PLASMID_()
+                self.name_last_node('element')
+                with self._optional():
+                    self._MARKERS_()
+                    self.name_last_node('markers')
             with self._option():
                 self._PHENE_()
+                self.name_last_node('element')
             self._error('no available options')
+        self.ast._define(
+            ['element', 'markers', 'op'],
+            []
+        )
 
     @graken()
     def _insertion_(self):
@@ -234,8 +266,6 @@ class GnomicParser(Parser):
     def _DELETABLE_(self):
         with self._choice():
             with self._option():
-                self._PLASMID_()
-            with self._option():
                 self._FUSION_()
             with self._option():
                 self._FEATURE_SET_()
@@ -252,19 +282,13 @@ class GnomicParser(Parser):
                 self.name_last_node('name')
                 self._FEATURE_SET_()
                 self.name_last_node('contents')
-                with self._optional():
-                    self._MARKERS_()
-                    self.name_last_node('markers')
             with self._option():
                 self._IDENTIFIER_()
                 self.name_last_node('name')
                 self._token('{}')
-                with self._optional():
-                    self._MARKERS_()
-                    self.name_last_node('markers')
             self._error('no available options')
         self.ast._define(
-            ['contents', 'markers', 'name'],
+            ['contents', 'name'],
             []
         )
 
@@ -605,6 +629,12 @@ class GnomicSemantics(object):
     def change(self, ast):
         return ast
 
+    def mutation(self, ast):
+        return ast
+
+    def presence(self, ast):
+        return ast
+
     def insertion(self, ast):
         return ast
 
@@ -699,16 +729,18 @@ class GnomicSemantics(object):
 def main(filename, startrule, **kwargs):
     with open(filename) as f:
         text = f.read()
-    parser = GnomicParser(parseinfo=False)
+    parser = GnomicParser()
     return parser.parse(text, startrule, filename=filename, **kwargs)
 
 
 if __name__ == '__main__':
     import json
+    from grako.util import asjson
+
     ast = generic_main(main, GnomicParser, name='Gnomic')
     print('AST:')
     print(ast)
     print()
     print('JSON:')
-    print(json.dumps(ast, indent=2))
+    print(json.dumps(asjson(ast), indent=2))
     print()

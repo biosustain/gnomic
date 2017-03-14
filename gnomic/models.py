@@ -85,12 +85,9 @@ def Del(delete, **kwargs):
 
 
 class Presence(object):
-    def __init__(self, element, present, markers=None, multiple=False):
-        if markers is not None:
-            markers = FeatureTree(*markers)
+    def __init__(self, element, present, multiple=False):
         self.element = element
         self.present = present
-        self.markers = markers
         self.multiple = multiple
 
     def match(self, other, **kwargs):
@@ -100,13 +97,11 @@ class Presence(object):
         return isinstance(other, Presence) and \
             self.element == other.element and \
             self.present == other.present and \
-            self.markers == other.markers and \
             self.multiple == other.multiple
 
     def __hash__(self):
         return hash(self.element) + \
                hash(self.present) + \
-               hash(self.markers) + \
                hash(self.multiple)
 
     def __repr__(self):
@@ -235,11 +230,10 @@ class Plasmid(MatchableMixin):
     def __init__(self, name, contents, site=None, markers=None):
         # super(Plasmid, self).__init__(*contents if contents else ())
         self.contents = contents
-        if markers is not None:
-            markers = FeatureSet(*markers)
+        self.markers = None
+        self.set_markers(markers)
         self.name = name
         self.site = site
-        self.markers = markers
 
     def __hash__(self):
         return hash(self.name)
@@ -249,6 +243,9 @@ class Plasmid(MatchableMixin):
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, repr(self.__dict__))
+
+    def set_markers(self, markers):
+        self.markers = FeatureTree(*markers) if markers else None
 
     def features(self):
         return self.contents.features()

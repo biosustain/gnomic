@@ -32,11 +32,10 @@ class DefaultSemantics(GnomicSemantics):
         else:
             return 'mutant'
 
-    def change(self, ast):
-        if isinstance(ast, Mutation) or isinstance(ast, Presence):  # Mutation or deleted Plasmid
-            return ast
-        else:  # inserted Plasmid or Phene
-            return Presence(ast, True)
+    def presence(self, ast):
+        if ast.markers is not None and isinstance(ast.element, Plasmid):
+            ast.element.set_markers(ast.markers)
+        return Presence(ast.element, ast.op != '-')
 
     def insertion(self, ast):
         return Mutation(None, ast.after, locus=ast.locus, markers=ast.markers)
@@ -49,10 +48,7 @@ class DefaultSemantics(GnomicSemantics):
                         multiple=ast.op == '>>')
 
     def deletion(self, ast):
-        if isinstance(ast.before, Plasmid):
-            return Presence(ast.before, False, markers=ast.markers)
-        else:
-            return Mutation(ast.before, None, locus=ast.locus, markers=ast.markers)
+        return Mutation(ast.before, None, locus=ast.locus, markers=ast.markers)
 
     def RANGE(self, ast):
         level = {
@@ -72,7 +68,7 @@ class DefaultSemantics(GnomicSemantics):
         return Accession(ast['id'], ast['db'])
 
     def PLASMID(self, ast):
-        return Plasmid(ast.name, ast.contents or FeatureSet(), markers=ast.markers)
+        return Plasmid(ast.name, ast.contents or FeatureSet())
 
     def PHENE(self, ast):
         return self.FEATURE(ast, default_type='phene')

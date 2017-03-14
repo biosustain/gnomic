@@ -35,13 +35,12 @@ def genotype_to_text(genotype, fusions=False, delta_char=u"\u0394"):
             elif change.after is None:
                 # Deletion
                 result.append(delta_char + feature_to_text(change.before, integrated=False))
+            if change.markers:
+                result.append(feature_to_text(change, is_marker=True))
 
         elif change_type is Presence:
             prefix = delta_char if change.present is False else ""
             result.append(prefix + feature_to_text(change.element, integrated=False))
-
-        if change.markers:
-            result.append(feature_to_text(change, is_marker=True))
 
         result_string = ""
 
@@ -113,7 +112,7 @@ def genotype_to_string(genotype, fusions=True):
     markers = set()
     # print "LIST:", list(genotype.changes(fusions=fusions))
     for change in genotype.changes(fusions=fusions, as_set=False):
-        if change.markers is not None:
+        if isinstance(change, Mutation) and change.markers is not None:
             markers |= set(change.markers)
         if isinstance(change, Presence) and change.element in markers:
             continue
@@ -135,16 +134,11 @@ def change_to_string(change):
             s = '+{}'.format(feature_to_string(change.after))
         elif change.after is None:
             s = '-{}'.format(feature_to_string(change.before))
+        if change.markers:
+            s += '::{}'.format(feature_to_string(change.markers))
     elif isinstance(change, Presence):
         prefix = "-" if not change.present else ""
         s = prefix + feature_to_string(change.element)
-    # elif isinstance(change, Plasmid):
-    #     s = feature_to_string(change)
-    else:
-        raise TypeError()
-
-    if change.markers:
-        s += '::{}'.format(feature_to_string(change.markers))
 
     return s
 

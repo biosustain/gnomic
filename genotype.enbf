@@ -2,7 +2,13 @@
 
 start = (@+:change {(sep | list_separator [sep]) @+:change}* | {}) [sep] $;
 
-change = insertion | replacement | deletion | PLASMID | PHENE;
+change = mutation &(sep | list_separator [sep] | $) | presence;
+
+mutation = insertion | replacement | deletion;
+
+presence
+    = [op:"-"] element:PLASMID [markers:MARKERS]
+    | element:PHENE;
 
 insertion = "+" after:INSERTABLE [locus:LOCUS] [markers:MARKERS];
 
@@ -30,14 +36,13 @@ SUBSTITUTE
     | FEATURE;
 
 DELETABLE
-    = PLASMID
-    | FUSION
+    = FUSION
     | @:FEATURE_SET
     | FEATURE;
 
 PLASMID
-    = name:IDENTIFIER contents:FEATURE_SET [markers:MARKERS]
-    | name:IDENTIFIER "{}" [markers:MARKERS];
+    = name:IDENTIFIER contents:FEATURE_SET
+    | name:IDENTIFIER "{}";
 
 PHENE
     = [organism:FEATURE_ORGANISM] name:IDENTIFIER accession:ACCESSION variant:BINARY_VARIANT
