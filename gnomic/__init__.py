@@ -362,70 +362,26 @@ class Genotype(object):
     @property
     def added_features(self):
         return self._get_elements('features')
-        # added_features = set()
-        # for element in self.contents:
-        #     if isinstance(element, Mutation):
-        #         if element.after is not None:
-        #             for feature in element.after.features():
-        #                 added_features.add(feature)
-        #     elif not isinstance(element.element, Plasmid) and element.present is True:  # element is Presence
-        #         added_features.add(element.element)
-        # return added_features
 
     @property
     def removed_features(self):
         return self._get_elements('features', False)
-        # removed_features = set()
-        # for element in self.contents:
-        #     if isinstance(element, Mutation):
-        #         if element.before is not None:
-        #             for feature in element.before.features():
-        #                 removed_features.add(feature)
-        #     elif not isinstance(element.element, Plasmid) and element.present is False:  # element is Presence
-        #         removed_features.add(element.element)
-        # return removed_features
 
     @property
     def added_fusion_features(self):
         return self._get_elements('fusion_features')
-        # added_fusion_features = set()
-        # for element in self.contents:
-        #     if isinstance(element, Mutation):
-        #         if element.after is not None:
-        #             added_fusion_features.add(element.after)
-        #     elif not isinstance(element.element, Plasmid) and element.present is True:  # element is Presence
-        #         added_fusion_features.add(element.element)
-        # return added_fusion_features
 
     @property
     def removed_fusion_features(self):
         return self._get_elements('fusion_features', False)
-        # removed_fusion_features = set()
-        # for element in self.contents:
-        #     if isinstance(element, Mutation):
-        #         if element.before is not None:
-        #             removed_fusion_features.add(element.before)
-        #     elif not isinstance(element.element, Plasmid) and element.present is False:  # element is Presence
-        #         removed_fusion_features.add(element.element)
-        # return removed_fusion_features
 
     @property
     def added_plasmids(self):
         return self._get_elements('plasmids')
-        # added_plasmids = set()
-        # for element in self.contents:
-        #     if isinstance(element, Presence) and element.present is True and isinstance(element.element, Plasmid):
-        #         added_plasmids.add(element.element)
-        # return added_plasmids
 
     @property
     def removed_plasmids(self):
         return self._get_elements('plasmids', False)
-        # removed_plasmids = set()
-        # for element in self.contents:
-        #     if isinstance(element, Presence) and element.present is False and isinstance(element.element, Plasmid):
-        #         removed_plasmids.add(element.element)
-        # return removed_plasmids
 
     def _get_elements(self, target, added=True):
         elements = set()
