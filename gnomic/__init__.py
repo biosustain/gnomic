@@ -144,12 +144,16 @@ class Genotype(object):
             new_contents = []
             count = 0
             append_change = True
+            elements_to_append = []
             for element in self.contents:
                 updated_element, new_count, new_append_change = apply_change_to_element(element, change)
                 count += new_count
                 append_change &= new_append_change
                 if updated_element is not None:
-                    new_contents.append(updated_element)
+                    if new_count == 0:
+                        new_contents.append(updated_element)
+                    else:
+                        elements_to_append.append(updated_element)
 
             if count > 1:
                 if unambiguous_mode:
@@ -157,6 +161,9 @@ class Genotype(object):
                 else:
                     append_change = True
                     new_contents = self.contents
+                    elements_to_append = []
+            print elements_to_append
+            new_contents += elements_to_append
 
             if append_change:
                 new_contents.append(change)

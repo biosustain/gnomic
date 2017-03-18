@@ -10,6 +10,42 @@ class BaseTestCase(TestCase):
         return Genotype.chain_parse(list(definitions), **kwargs)
 
 
+class GenotypeChangeOrderTestCase(BaseTestCase):
+    def test_unchanged_order(self):
+        self.assertEqual([
+            Ins(Feature(name='geneA')),
+            Ins(Fusion(Feature(name='geneB'), Feature(name='geneC'))),
+            Del(Feature(name='geneD'))
+        ], self.chain('+geneA', '+geneB:geneC', '-geneD').changes(as_set=False, fusions=True))
+
+    def test_modified_mutation(self):
+        self.assertEqual([
+            Ins(Feature(name='geneA')),
+            Ins(Feature(name='geneB')),
+            Del(Feature(name='geneD'))
+        ], self.chain('+geneB:geneC', '+geneA', '-geneC', '-geneD',
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(as_set=False, fusions=True))
+
+    def test_modified_mutation_markers(self):
+        self.assertEqual([
+            Ins(Feature(name='geneA'), markers=[Feature(name='M', type=Type('phene'), variant='x')]),
+            Present(Feature(name='M', type=Type('phene'), variant='x')),
+            Present(Feature(name='N', type=Type('phene'), variant='y'))
+        ], self.chain('+geneA::{M(x) N(x)}', 'N(y)',
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(as_set=False, fusions=True))
+
+    def test_modified_presence(self):
+        # TODO: should N(x) be before +geneA:: or after?
+        self.assertEqual([
+            Ins(Feature(name='geneB')),
+            Ins(Feature(name='geneA'), markers=[Feature(name='M', type=Type('phene'), variant='x'),
+                                                Feature(name='N', type=Type('phene'), variant='x')]),
+            Present(Feature(name='M', type=Type('phene'), variant='x')),
+            Present(Feature(name='N', type=Type('phene'), variant='x'))
+        ], self.chain('N(y)', '+geneB', '+geneA::{M(x) N(x)}',
+                      fusion_strategy=Genotype.FUSION_UPDATE_ON_CHANGE).changes(as_set=False, fusions=True))
+
+
 class GenotypeFeaturesTestCase(BaseTestCase):
     def test_added_features(self):
         self.assertEqual({
