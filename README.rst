@@ -107,10 +107,12 @@ Feature variants
 
 Features may have one or more variants, separated by colon ";" or comma ",".
 
-For example: `geneX(cold_resistant; heat_resistant)`
+For example: ``geneX(cold_resistant; heat_resistant)``
 
-Variants can either be identifiers using the characters a-z, 0-9 and "_"; or be sequence variants following
-the HGVS `Sequence Variant Nomenclature <http://www.hgvs.org/varnomen>`_. For example `geneY(c.123G>T)`
+Variants can either be identifiers (using the characters a-z, 0-9 and "_") or be sequence variants following
+the HGVS `Sequence Variant Nomenclature <http://www.hgvs.org/varnomen>`_.
+
+For example ``geneY(c.123G>T)``
 
 Development
 -----------
