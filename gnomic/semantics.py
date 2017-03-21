@@ -31,6 +31,15 @@ class DefaultSemantics(GnomicSemantics):
         else:
             return 'mutant'
 
+    def DNA_SEQUENCE_VARIANT(self, ast):
+        return ''.join(map(str, ast))
+
+    def PROTEIN_SEQUENCE_VARIANT(self, ast):
+        return ''.join(map(str, ast))
+
+    def SEQUENCE_VARIANT(self, ast):
+        return ''.join(ast)
+
     def insertion(self, ast):
         return Mutation(None, ast.new, markers=ast.markers)
 

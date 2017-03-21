@@ -83,6 +83,123 @@ class GnomicParser(Parser):
         )
 
     @graken()
+    def _SEQUENCE_VARIANT_(self):
+        with self._group():
+            with self._choice():
+                with self._option():
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._token('g')
+                            with self._option():
+                                self._token('c')
+                            with self._option():
+                                self._token('n')
+                            self._error('expecting one of: c g n')
+                    self._token('.')
+                    self._DNA_SEQUENCE_VARIANT_()
+                with self._option():
+                    self._token('p.')
+                    self._PROTEIN_SEQUENCE_VARIANT_()
+                self._error('no available options')
+
+    @graken()
+    def _DNA_SEQUENCE_VARIANT_(self):
+        with self._group():
+            with self._choice():
+                with self._option():
+                    self._DNA_SUBSTITUTION_()
+                with self._option():
+                    self._DNA_DELETION_()
+                with self._option():
+                    self._DNA_INSERTION_()
+                with self._option():
+                    self._DNA_DELETION_INSERTION_()
+                with self._option():
+                    self._DNA_DUPLICATION_()
+                self._error('no available options')
+
+    @graken()
+    def _DNA_SUBSTITUTION_(self):
+        self._INTEGER_()
+        self._NUCLEOTIDE_()
+        self._token('>')
+        self._NUCLEOTIDE_()
+
+    @graken()
+    def _DNA_DELETION_(self):
+        self._INTEGER_()
+        self._token('_')
+        self._INTEGER_()
+        self._token('del')
+
+    @graken()
+    def _DNA_INSERTION_(self):
+        self._INTEGER_()
+        self._token('_')
+        self._INTEGER_()
+        self._token('ins')
+        self._NUCLEOTIDE_SEQUENCE_()
+
+    @graken()
+    def _DNA_DELETION_INSERTION_(self):
+        self._INTEGER_()
+        self._token('_')
+        self._INTEGER_()
+        self._token('delins')
+        self._NUCLEOTIDE_SEQUENCE_()
+
+    @graken()
+    def _DNA_DUPLICATION_(self):
+        self._INTEGER_()
+        self._token('_')
+        self._INTEGER_()
+        self._token('dup')
+
+    @graken()
+    def _NUCLEOTIDE_SEQUENCE_(self):
+        self._NUCLEOTIDE_()
+
+        def block0():
+            self._NUCLEOTIDE_()
+        self._closure(block0)
+
+    @graken()
+    def _NUCLEOTIDE_(self):
+        self._pattern(r'[ACGTBDHKMNRSVWY]')
+
+    @graken()
+    def _PROTEIN_SEQUENCE_VARIANT_(self):
+        with self._group():
+            self._PROTEIN_SUBSTITUTION_()
+
+    @graken()
+    def _PROTEIN_SUBSTITUTION_(self):
+        with self._group():
+            with self._choice():
+                with self._option():
+                    self._AA_()
+                    self._INTEGER_()
+                    self._AA_()
+                with self._option():
+                    self._AA_()
+                    self._INTEGER_()
+                    self._token('*')
+                self._error('no available options')
+
+    @graken()
+    def _AA_SEQUENCE_(self):
+        self._AA_()
+
+        def block0():
+            self._AA_()
+        self._closure(block0)
+
+    @graken()
+    def _AA_(self):
+        self._pattern(r'[A-Z]([a-z]{2})?')
+
+    @graken()
     def _start_(self):
         with self._group():
             with self._choice():
@@ -465,7 +582,7 @@ class GnomicParser(Parser):
         with self._choice():
             with self._option():
                 self._token('(')
-                self._VARIANT_DEFINITION_()
+                self._VARIANT_LIST_()
                 self.name_last_node('@')
                 self._token(')')
             with self._option():
@@ -474,11 +591,17 @@ class GnomicParser(Parser):
             self._error('no available options')
 
     @graken()
-    def _VARIANT_DEFINITION_(self):
-        self._VARIANT_IDENTIFIER_()
+    def _VARIANT_LIST_(self):
+        with self._group():
+            with self._choice():
+                with self._option():
+                    self._SEQUENCE_VARIANT_()
+                with self._option():
+                    self._VARIANT_IDENTIFIER_()
+                self._error('no available options')
         self.name_last_node('@')
 
-        def block1():
+        def block2():
             with self._group():
                 with self._choice():
                     with self._option():
@@ -488,13 +611,15 @@ class GnomicParser(Parser):
                     self._error('expecting one of: , ;')
             with self._optional():
                 self._sep_()
-            self._VARIANT_IDENTIFIER_()
+            with self._group():
+                with self._choice():
+                    with self._option():
+                        self._SEQUENCE_VARIANT_()
+                    with self._option():
+                        self._VARIANT_IDENTIFIER_()
+                    self._error('no available options')
             self.name_last_node('@')
-        self._closure(block1)
-
-    @graken()
-    def _VARIANT_IDENTIFIER_(self):
-        self._pattern(r'[A-Za-z0-9\*]+([A-Za-z0-9\*_\-]+[A-Za-z0-9\*])?')
+        self._closure(block2)
 
     @graken()
     def _BINARY_VARIANT_(self):
@@ -506,12 +631,16 @@ class GnomicParser(Parser):
             self._error('expecting one of: + -')
 
     @graken()
+    def _VARIANT_IDENTIFIER_(self):
+        self._pattern(r'[A-Za-z0-9]+([A-Za-z0-9_\-]+[A-Za-z0-9])?')
+
+    @graken()
     def _RANGE_(self):
         with self._choice():
             with self._option():
                 self._token('[')
                 with self._optional():
-                    self._RANGE_SEQUENCE_LEVEL_()
+                    self._SEQUENCE_LEVEL_PREFIX_()
                     self.name_last_node('level')
                 self._INTEGER_()
                 self.name_last_node('start')
@@ -522,7 +651,7 @@ class GnomicParser(Parser):
             with self._option():
                 self._token('[')
                 with self._optional():
-                    self._RANGE_SEQUENCE_LEVEL_()
+                    self._SEQUENCE_LEVEL_PREFIX_()
                     self.name_last_node('level')
                 self._INTEGER_()
                 self.name_last_node('pos')
@@ -534,14 +663,16 @@ class GnomicParser(Parser):
         )
 
     @graken()
-    def _RANGE_SEQUENCE_LEVEL_(self):
+    def _SEQUENCE_LEVEL_PREFIX_(self):
         with self._group():
             with self._choice():
+                with self._option():
+                    self._token('g')
                 with self._option():
                     self._token('c')
                 with self._option():
                     self._token('p')
-                self._error('expecting one of: c p')
+                self._error('expecting one of: c g p')
         self.name_last_node('@')
         self._token('.')
 
@@ -604,6 +735,45 @@ class GnomicParser(Parser):
 
 
 class GnomicSemantics(object):
+    def SEQUENCE_VARIANT(self, ast):
+        return ast
+
+    def DNA_SEQUENCE_VARIANT(self, ast):
+        return ast
+
+    def DNA_SUBSTITUTION(self, ast):
+        return ast
+
+    def DNA_DELETION(self, ast):
+        return ast
+
+    def DNA_INSERTION(self, ast):
+        return ast
+
+    def DNA_DELETION_INSERTION(self, ast):
+        return ast
+
+    def DNA_DUPLICATION(self, ast):
+        return ast
+
+    def NUCLEOTIDE_SEQUENCE(self, ast):
+        return ast
+
+    def NUCLEOTIDE(self, ast):
+        return ast
+
+    def PROTEIN_SEQUENCE_VARIANT(self, ast):
+        return ast
+
+    def PROTEIN_SUBSTITUTION(self, ast):
+        return ast
+
+    def AA_SEQUENCE(self, ast):
+        return ast
+
+    def AA(self, ast):
+        return ast
+
     def start(self, ast):
         return ast
 
@@ -664,19 +834,19 @@ class GnomicSemantics(object):
     def VARIANT(self, ast):
         return ast
 
-    def VARIANT_DEFINITION(self, ast):
-        return ast
-
-    def VARIANT_IDENTIFIER(self, ast):
+    def VARIANT_LIST(self, ast):
         return ast
 
     def BINARY_VARIANT(self, ast):
         return ast
 
+    def VARIANT_IDENTIFIER(self, ast):
+        return ast
+
     def RANGE(self, ast):
         return ast
 
-    def RANGE_SEQUENCE_LEVEL(self, ast):
+    def SEQUENCE_LEVEL_PREFIX(self, ast):
         return ast
 
     def ACCESSION(self, ast):

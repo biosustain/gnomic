@@ -188,3 +188,8 @@ class GrammarTestCase(TestCase):
                 markers=[Feature(variant='wild-type', type=Type('phene'), name='markerA'),
                 Feature(variant='mutant', type=Type('phene'), name='markerB')])
         ], parse('-geneA::{markerA+ markerB-}'))
+
+    def test_sequence_variants(self):
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant='c.123A>G, p.M12N, p.Gln5*, foo'))
+        ], parse('+geneA(c.123A>G, p.M12N, p.Gln5*, foo)'))

@@ -1,4 +1,5 @@
 @@whitespace :: /[\t ]+/
+#include :: "sequence-variant.enbf"
 
 start = (@+:change {(sep | list_separator [sep]) @+:change}* | {}) [sep] $;
 
@@ -70,18 +71,21 @@ FEATURE_FUSION
     = @+:FEATURE {":" @+:FEATURE}+;
 
 
-VARIANT = "(" @:VARIANT_DEFINITION ")" | @:BINARY_VARIANT;
+VARIANT = "(" @:VARIANT_LIST ")" | @:BINARY_VARIANT;
 
-VARIANT_DEFINITION = @:VARIANT_IDENTIFIER {("," | ";") [sep] @:VARIANT_IDENTIFIER}*;
-
-VARIANT_IDENTIFIER = /[A-Za-z0-9\*]+([A-Za-z0-9\*_\-]+[A-Za-z0-9\*])?/;
+VARIANT_LIST = @:(SEQUENCE_VARIANT | VARIANT_IDENTIFIER) {("," | ";") [sep] @:(SEQUENCE_VARIANT | VARIANT_IDENTIFIER)}*;
 
 BINARY_VARIANT = "+" | "-";
 
-RANGE = "[" [level:RANGE_SEQUENCE_LEVEL] start:INTEGER "_" end:INTEGER "]"
-      | "[" [level:RANGE_SEQUENCE_LEVEL] pos:INTEGER "]";
+VARIANT_IDENTIFIER = /[A-Za-z0-9]+([A-Za-z0-9_\-]+[A-Za-z0-9])?/;
 
-RANGE_SEQUENCE_LEVEL = @:("g" | "c" | "p") ".";
+RANGE = "[" [level:SEQUENCE_LEVEL_PREFIX] start:INTEGER "_" end:INTEGER "]"
+      | "[" [level:SEQUENCE_LEVEL_PREFIX] pos:INTEGER "]";
+
+SEQUENCE_LEVEL_PREFIX = @:("g" | "c" | "p") ".";
+
+
+
 
 (* NOTE ACCESSION with its optional ":" can be ambiguous when it is used within a fusion and the IDENTIFIER is not numeric.
    In these cases, a DATABASE should be specified. *)
