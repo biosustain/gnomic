@@ -46,10 +46,10 @@ phenotype: wild-type                                          ``phene+`` or ``ph
 phenotype: mutant                                             ``phene-`` or ``phene(mutant)``
 selection marker: used (wild-type)                            ``marker+``
 selection marker: available (mutant)                          ``marker-``
-a non-integrated plasmid                                      ``plasmid{}`` or ``plasmid{..insertables}``
-plasmid with single selection marker                          ``plasmid{..insertables}::marker+``
-plasmid with multiple selection markers                       ``plasmid{..insertables}::{markerA+ markerB+}``
-integrated plasmid vector with required insertion site        ``site>vector{..insertables}``
+a non-integrated plasmid                                      ``(plasmid)``, ``(plasmid ...insertables)``, ``plasmid{}`` or ``plasmid{...insertables}``
+plasmid with single selection marker                          ``(plasmid ...insertables)::marker+``
+plasmid with multiple selection markers                       ``(plasmid ...insertables)::{markerA+ markerB+}``
+integrated plasmid vector with required insertion site        ``site>(vector ..insertables)``
 genomic nucleotide range of a ``feature``                     ``feature[g.startBase_endBase]``
 ============================================================= ==================================
 
