@@ -84,77 +84,55 @@ class GnomicParser(Parser):
 
     @graken()
     def _SEQUENCE_VARIANT_(self):
-        with self._group():
-            with self._choice():
-                with self._option():
-                    with self._group():
-                        with self._choice():
-                            with self._option():
-                                self._token('g')
-                            with self._option():
-                                self._token('c')
-                            with self._option():
-                                self._token('n')
-                            self._error('expecting one of: c g n')
-                    self._token('.')
-                    self._DNA_SEQUENCE_VARIANT_()
-                with self._option():
-                    self._token('p.')
-                    self._PROTEIN_SEQUENCE_VARIANT_()
-                self._error('no available options')
+        with self._choice():
+            with self._option():
+                self._DNA_SEQUENCE_VARIANT_()
+            with self._option():
+                self._PROTEIN_SEQUENCE_VARIANT_()
+            self._error('no available options')
 
     @graken()
     def _DNA_SEQUENCE_VARIANT_(self):
         with self._group():
             with self._choice():
                 with self._option():
-                    self._DNA_SUBSTITUTION_()
+                    self._token('g')
                 with self._option():
-                    self._DNA_DELETION_()
+                    self._token('c')
                 with self._option():
-                    self._DNA_INSERTION_()
+                    self._token('n')
+                self._error('expecting one of: c g n')
+        self._token('.')
+        with self._group():
+            with self._choice():
                 with self._option():
-                    self._DNA_DELETION_INSERTION_()
+                    self._INTEGER_()
+                    self._NUCLEOTIDE_()
+                    self._token('>')
+                    self._NUCLEOTIDE_()
                 with self._option():
-                    self._DNA_DUPLICATION_()
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token('del')
+                with self._option():
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token('ins')
+                    self._NUCLEOTIDE_SEQUENCE_()
+                with self._option():
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token('delins')
+                    self._NUCLEOTIDE_SEQUENCE_()
+                with self._option():
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token('dup')
                 self._error('no available options')
-
-    @graken()
-    def _DNA_SUBSTITUTION_(self):
-        self._INTEGER_()
-        self._NUCLEOTIDE_()
-        self._token('>')
-        self._NUCLEOTIDE_()
-
-    @graken()
-    def _DNA_DELETION_(self):
-        self._INTEGER_()
-        self._token('_')
-        self._INTEGER_()
-        self._token('del')
-
-    @graken()
-    def _DNA_INSERTION_(self):
-        self._INTEGER_()
-        self._token('_')
-        self._INTEGER_()
-        self._token('ins')
-        self._NUCLEOTIDE_SEQUENCE_()
-
-    @graken()
-    def _DNA_DELETION_INSERTION_(self):
-        self._INTEGER_()
-        self._token('_')
-        self._INTEGER_()
-        self._token('delins')
-        self._NUCLEOTIDE_SEQUENCE_()
-
-    @graken()
-    def _DNA_DUPLICATION_(self):
-        self._INTEGER_()
-        self._token('_')
-        self._INTEGER_()
-        self._token('dup')
 
     @graken()
     def _NUCLEOTIDE_SEQUENCE_(self):
@@ -170,33 +148,29 @@ class GnomicParser(Parser):
 
     @graken()
     def _PROTEIN_SEQUENCE_VARIANT_(self):
-        with self._group():
-            self._PROTEIN_SUBSTITUTION_()
-
-    @graken()
-    def _PROTEIN_SUBSTITUTION_(self):
+        self._token('p.')
         with self._group():
             with self._choice():
                 with self._option():
-                    self._AA_()
+                    self._AMINO_ACID_()
                     self._INTEGER_()
-                    self._AA_()
+                    self._AMINO_ACID_()
                 with self._option():
-                    self._AA_()
+                    self._AMINO_ACID_()
                     self._INTEGER_()
                     self._token('*')
                 self._error('no available options')
 
     @graken()
-    def _AA_SEQUENCE_(self):
-        self._AA_()
+    def _AMINO_ACID_SEQUENCE_(self):
+        self._AMINO_ACID_()
 
         def block0():
-            self._AA_()
+            self._AMINO_ACID_()
         self._closure(block0)
 
     @graken()
-    def _AA_(self):
+    def _AMINO_ACID_(self):
         self._pattern(r'[A-Z]([a-z]{2})?')
 
     @graken()
@@ -741,21 +715,6 @@ class GnomicSemantics(object):
     def DNA_SEQUENCE_VARIANT(self, ast):
         return ast
 
-    def DNA_SUBSTITUTION(self, ast):
-        return ast
-
-    def DNA_DELETION(self, ast):
-        return ast
-
-    def DNA_INSERTION(self, ast):
-        return ast
-
-    def DNA_DELETION_INSERTION(self, ast):
-        return ast
-
-    def DNA_DUPLICATION(self, ast):
-        return ast
-
     def NUCLEOTIDE_SEQUENCE(self, ast):
         return ast
 
@@ -765,13 +724,10 @@ class GnomicSemantics(object):
     def PROTEIN_SEQUENCE_VARIANT(self, ast):
         return ast
 
-    def PROTEIN_SUBSTITUTION(self, ast):
+    def AMINO_ACID_SEQUENCE(self, ast):
         return ast
 
-    def AA_SEQUENCE(self, ast):
-        return ast
-
-    def AA(self, ast):
+    def AMINO_ACID(self, ast):
         return ast
 
     def start(self, ast):
