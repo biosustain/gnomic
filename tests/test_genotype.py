@@ -351,21 +351,21 @@ class GenotypeToStringTestCase(BaseTestCase):
     def test_genotype_to_string(self):
         gnomic = genotype_to_string(self.chain('-e.coli/geneA',
                                                '+geneB(a)',
-                                               'vectorC{geneC}',
-                                               '-vectorD{}',
+                                               '(vectorC geneC)',
+                                               '-(vectorD)',
                                                '+geneE::markerF+',
                                                '+gene.G::{markerH+, markerI+}'))
         self.assertEqual(
             set(gnomic.split()),
             set('+geneE '
                 '+markerH+ '
-                'vectorC{geneC} '
+                '(vectorC geneC) '
                 '-e.coli/geneA '
                 '+markerF+ '
                 '+geneB(a) '
                 '+markerI+ '
                 '+gene.G '
-                '-vectorD{}'.split())
+                '-(vectorD)'.split())
         )
 
         self.assertIsInstance(Genotype.parse(gnomic), Genotype)
@@ -388,10 +388,10 @@ class GenotypeToStringTestCase(BaseTestCase):
         self.assertEqual('+{geneA geneB}',
                          change_to_string(Ins([Feature('geneA'), Feature('geneB')])))
 
-        self.assertEqual('plasmid{}',
+        self.assertEqual('(plasmid)',
                          change_to_string(Plasmid('plasmid', [])))
 
-        self.assertEqual('-plasmid{}',
+        self.assertEqual('-(plasmid)',
                          change_to_string(Del(Plasmid('plasmid', []))))
 
         self.assertEqual('siteX>geneY',

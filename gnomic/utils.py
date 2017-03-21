@@ -145,9 +145,9 @@ def feature_to_string(feature):
         name = feature.name
         if feature.contents:
             contents = ' '.join(feature_to_string(f) for f in feature.contents)
-            return r'{name}{{{contents}}}'.format(name=name, contents=contents)
+            return r'({name} {contents})'.format(name=name, contents=contents)
         else:
-            return '{name}{{}}'.format(name=name)
+            return '({name})'.format(name=name)
     elif isinstance(feature, Fusion):
         return ':'.join(feature_to_string(f) for f in feature.contents)
     elif isinstance(feature, FeatureTree):
