@@ -81,7 +81,7 @@ BINARY_VARIANT = "+" | "-";
 RANGE = "[" [level:RANGE_SEQUENCE_LEVEL] start:INTEGER "_" end:INTEGER "]"
       | "[" [level:RANGE_SEQUENCE_LEVEL] pos:INTEGER "]";
 
-RANGE_SEQUENCE_LEVEL = @:("c" | "p") ".";
+RANGE_SEQUENCE_LEVEL = @:("g" | "c" | "p") ".";
 
 (* NOTE ACCESSION with its optional ":" can be ambiguous when it is used within a fusion and the IDENTIFIER is not numeric.
    In these cases, a DATABASE should be specified. *)
