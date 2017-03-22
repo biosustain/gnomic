@@ -13,7 +13,7 @@ def namedtuple_with_defaults(typename, field_names, default_values=()):
     return T
 
 
-def genotype_to_text(genotype, fusions=False, delta_char=u"\u0394"):
+def genotype_to_text(genotype, fusions=False):
     """
     A method to create a more biologist friendly representation
     of the genotype string
@@ -22,36 +22,30 @@ def genotype_to_text(genotype, fusions=False, delta_char=u"\u0394"):
     :param delta_char: This symbol is used to display a deletion
     :return: str
     """
-    result = []
+    parts = []
     for change in genotype.changes(fusions=fusions):
-        change_type = type(change)
-        if change_type is Mutation:
-            if change.old and change.new:
-                # Substitution
-                result.append(delta_char + feature_to_text(change.old) + '::' + feature_to_text(change.new))
-            elif change.old is None:
-                # Insertion
-                result.append(feature_to_text(change.new))
-            elif change.new is None:
-                # Deletion
-                result.append(delta_char + feature_to_text(change.old, integrated=False))
+        parts.append(change_to_text(change))
 
-        elif change_type is Plasmid:
-            result.append(feature_to_text(change, integrated=False))
+    return " ".join(parts)
 
-        if change.markers:
-            result.append(feature_to_text(change, is_maker=True))
 
-        result_string = ""
+def change_to_text(change, delta_char=u"\u0394"):
+    s = None
+    change_type = type(change)
+    if change_type is Mutation:
+        if change.old and change.new:  # substitution
+            s = delta_char + feature_to_text(change.old) + '::' + feature_to_text(change.new)
+        elif change.old is None:  # insertion
+            s = feature_to_text(change.new)
+        elif change.new is None:  # deletion
+            s = delta_char + feature_to_text(change.old, integrated=False)
+    elif change_type is Plasmid:
+        s = feature_to_text(change, integrated=False)
 
-    for i, item in enumerate(result):
-        if i + 1 < len(result) - 1:
-            if "::" in result[i]:
-                result_string += item
-                continue
-        result_string += " %s" % item
+    if change.markers:
+        s += "::" + feature_to_text(change, is_maker=True)
 
-    return " ".join(result)
+    return s
 
 
 def feature_to_text(feature, integrated=True, is_maker=False):
