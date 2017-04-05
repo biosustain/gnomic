@@ -1,8 +1,8 @@
 Gnomic
 ======
 
-.. image:: https://travis-ci.org/biosustain/gnomic-python.svg?branch=master
-    :target: https://travis-ci.org/biosustain/gnomic-python
+.. image:: https://travis-ci.org/biosustain/gnomic.svg?branch=master
+    :target: https://travis-ci.org/biosustain/gnomic
 
 .. image:: https://zenodo.org/badge/47830031.svg
    :target: https://zenodo.org/badge/latestdoi/47830031
