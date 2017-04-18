@@ -347,7 +347,7 @@ class FeatureToTextTestCase(BaseTestCase):
 
     def test_feature_is_maker(self):
         feature = Feature(name="foo")
-        self.assertEqual(feature_to_text(feature, is_maker=True), "::foo")
+        self.assertEqual(feature_to_text(feature, is_marker=True), "::foo")
 
 
 class GenotypeToStringTestCase(BaseTestCase):

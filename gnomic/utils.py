@@ -43,17 +43,17 @@ def change_to_text(change, delta_char=u"\u0394"):
         s = feature_to_text(change, integrated=False)
 
     if change.markers:
-        s += "::" + feature_to_text(change, is_maker=True)
+        s += "::" + feature_to_text(change, is_marker=True)
 
     return s
 
 
-def feature_to_text(feature, integrated=True, is_maker=False):
+def feature_to_text(feature, integrated=True, is_marker=False):
     """
     A method to transform a genotype feature into text
     :param feature: Genotype feature
     :param integrated: boolean
-    :param is_maker: boolean
+    :param is_marker: boolean
     :return: str
     """
     if isinstance(feature, Plasmid):
@@ -76,7 +76,7 @@ def feature_to_text(feature, integrated=True, is_maker=False):
         return ' '.join(map(feature_to_text, feature.contents))
     else:
         text = ''
-        if is_maker:
+        if is_marker:
             text += '::'
 
         if feature.organism:
