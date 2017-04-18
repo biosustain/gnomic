@@ -43,7 +43,7 @@ def change_to_text(change, delta_char=u"\u0394"):
         s = feature_to_text(change, integrated=False)
 
     if change.markers:
-        s += "::" + feature_to_text(change, is_marker=True)
+        s += "::" + feature_to_text(change.markers, is_marker=True)
 
     return s
 
@@ -73,7 +73,11 @@ def feature_to_text(feature, integrated=True, is_marker=False):
     elif isinstance(feature, Fusion):
         return ':'.join(map(feature_to_text, feature.contents))
     elif isinstance(feature, FeatureTree):
-        return ' '.join(map(feature_to_text, feature.contents))
+        contents = ' '.join(feature_to_text(f) for f in feature.contents)
+        if len(feature) != 1:
+            return '{{{contents}}}'.format(contents=contents)
+        else:
+            return contents
     else:
         text = ''
         if is_marker:

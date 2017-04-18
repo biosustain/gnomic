@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 from unittest import TestCase, SkipTest
 
 from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range, Plasmid, FeatureTree, Organism, FeatureSet
@@ -291,6 +293,10 @@ class GenotypeToTextTestCase(BaseTestCase):
         self.assertEqual(genotype_to_text(self.chain('-pA{}')),
                          u"\u0394(pA)")
 
+    def test_markers(self):
+        self.assertEqual(genotype_to_text(self.chain('(p)::m+')), '(p)::m⁺')
+        self.assertEqual(genotype_to_text(self.chain('(p)::{m+ n+}')), '(p)::{m⁺ n⁺}')
+
     def test_variants(self):
         self.assertEqual(genotype_to_text(self.chain('-geneA(x)')),
                          u"\u0394geneA(x)")
@@ -322,11 +328,11 @@ class FeatureToTextTestCase(BaseTestCase):
 
     def test_feature_tree(self):
         feature = FeatureTree(Feature(name="foo"), Feature(name="bar"))
-        self.assertEqual(feature_to_text(feature), "foo bar")
+        self.assertEqual(feature_to_text(feature), "{foo bar}")
 
     def test_feature_set(self):
         feature = FeatureSet(Feature(name="foo"), Feature(name="bar"))
-        self.assertEqual(feature_to_text(feature), "foo bar")
+        self.assertEqual(feature_to_text(feature), "{foo bar}")
 
     def test_feature(self):
         feature = Feature(name="foo")
@@ -345,7 +351,7 @@ class FeatureToTextTestCase(BaseTestCase):
         self.assertEqual(feature_to_text(feature_mutant), u"foo\u207B")
         self.assertEqual(feature_to_text(feature_other), "foo(x)")
 
-    def test_feature_is_maker(self):
+    def test_feature_is_marker(self):
         feature = Feature(name="foo")
         self.assertEqual(feature_to_text(feature, is_marker=True), "::foo")
 
