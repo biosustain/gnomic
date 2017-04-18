@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import collections
 from gnomic.models import Mutation, Plasmid, Fusion, FeatureTree, FeatureSet, Feature
 
