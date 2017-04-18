@@ -56,11 +56,10 @@ def feature_to_text(feature, integrated=True, is_maker=False):
     :param is_maker: boolean
     :return: str
     """
-    feature_type = type(feature)
-    if feature_type is Plasmid:
+    if isinstance(feature, Plasmid):
         name = feature.name
         if feature.contents:
-            content = ' '.join(map(feature_to_text, feature.contents))
+            content = ' '.join(feature_to_text(f) for f in feature.contents)
 
             if integrated:
                 return '%s(%s)' % (name, content)
@@ -71,13 +70,10 @@ def feature_to_text(feature, integrated=True, is_maker=False):
             return name
         else:
             return '(%s)' % name
-
-    elif feature_type is Fusion:
+    elif isinstance(feature, Fusion):
         return ':'.join(map(feature_to_text, feature.contents))
-
-    elif feature_type is FeatureTree:
+    elif isinstance(feature, FeatureTree):
         return ' '.join(map(feature_to_text, feature.contents))
-
     else:
         text = ''
         if is_maker:

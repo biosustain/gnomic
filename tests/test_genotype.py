@@ -1,6 +1,6 @@
 from unittest import TestCase, SkipTest
 
-from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range, Plasmid, FeatureTree, Organism
+from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range, Plasmid, FeatureTree, Organism, FeatureSet
 from gnomic.utils import genotype_to_text, feature_to_text, genotype_to_string, change_to_string
 
 
@@ -320,8 +320,12 @@ class FeatureToTextTestCase(BaseTestCase):
         feature = Fusion(Feature(name="foo"), Feature(name="bar"))
         self.assertEqual(feature_to_text(feature), "foo:bar")
 
-    def test_featuretree(self):
+    def test_feature_tree(self):
         feature = FeatureTree(Feature(name="foo"), Feature(name="bar"))
+        self.assertEqual(feature_to_text(feature), "foo bar")
+
+    def test_feature_set(self):
+        feature = FeatureSet(Feature(name="foo"), Feature(name="bar"))
         self.assertEqual(feature_to_text(feature), "foo bar")
 
     def test_feature(self):
