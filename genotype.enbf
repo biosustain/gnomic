@@ -1,5 +1,6 @@
 @@whitespace :: /[\t ]+/
 #include :: "sequence-variant.enbf"
+#include :: "variable-variant.enbf"
 
 start = (@+:change {(sep | list_separator [sep]) @+:change}* | {}) [sep] $;
 
@@ -73,7 +74,9 @@ FEATURE_FUSION
 
 VARIANT = "(" @:VARIANT_LIST ")" | @:BINARY_VARIANT;
 
-VARIANT_LIST = @:(SEQUENCE_VARIANT | VARIANT_IDENTIFIER) {("," | ";") [sep] @:(SEQUENCE_VARIANT | VARIANT_IDENTIFIER)}*;
+VARIANT_LIST =
+    @:(VARIABLE_VARIANT | SEQUENCE_VARIANT | VARIANT_IDENTIFIER)
+    {("," | ";") [sep] @:(VARIABLE_VARIANT | SEQUENCE_VARIANT | VARIANT_IDENTIFIER)}*;
 
 BINARY_VARIANT = "+" | "-";
 

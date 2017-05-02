@@ -174,6 +174,39 @@ class GnomicParser(Parser):
         self._pattern(r'[A-Z]([a-z]{2})?')
 
     @graken()
+    def _VARIABLE_VARIANT_(self):
+        self._VARIABLE_VARIANT_IDENTIFIER_()
+        self._token('=')
+        self._VARIABLE_VARIANT_VALUE_()
+
+    @graken()
+    def _VARIABLE_VARIANT_IDENTIFIER_(self):
+        self._pattern(r'[a-z0-9][a-zA-Z0-9]*(\.[a-z0-9][a-zA-Z0-9]*)*')
+
+    @graken()
+    def _VARIABLE_VARIANT_VALUE_(self):
+        with self._choice():
+            with self._option():
+                self._NUMBER_()
+            with self._option():
+                self._QUOTED_STRING_()
+            with self._option():
+                self._UNQUOTED_STRING_()
+            self._error('no available options')
+
+    @graken()
+    def _QUOTED_STRING_(self):
+        self._pattern(r'"(?:[^"\\]|\\.)*"')
+
+    @graken()
+    def _UNQUOTED_STRING_(self):
+        self._VARIANT_IDENTIFIER_()
+
+    @graken()
+    def _NUMBER_(self):
+        self._pattern(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?')
+
+    @graken()
     def _start_(self):
         with self._group():
             with self._choice():
@@ -569,6 +602,8 @@ class GnomicParser(Parser):
         with self._group():
             with self._choice():
                 with self._option():
+                    self._VARIABLE_VARIANT_()
+                with self._option():
                     self._SEQUENCE_VARIANT_()
                 with self._option():
                     self._VARIANT_IDENTIFIER_()
@@ -587,6 +622,8 @@ class GnomicParser(Parser):
                 self._sep_()
             with self._group():
                 with self._choice():
+                    with self._option():
+                        self._VARIABLE_VARIANT_()
                     with self._option():
                         self._SEQUENCE_VARIANT_()
                     with self._option():
@@ -728,6 +765,24 @@ class GnomicSemantics(object):
         return ast
 
     def AMINO_ACID(self, ast):
+        return ast
+
+    def VARIABLE_VARIANT(self, ast):
+        return ast
+
+    def VARIABLE_VARIANT_IDENTIFIER(self, ast):
+        return ast
+
+    def VARIABLE_VARIANT_VALUE(self, ast):
+        return ast
+
+    def QUOTED_STRING(self, ast):
+        return ast
+
+    def UNQUOTED_STRING(self, ast):
+        return ast
+
+    def NUMBER(self, ast):
         return ast
 
     def start(self, ast):
