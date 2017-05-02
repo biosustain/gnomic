@@ -44,8 +44,8 @@ PLASMID
     | "(" name:IDENTIFIER ")" [markers:MARKERS];
 
 PHENE
-    = [organism:FEATURE_ORGANISM] name:IDENTIFIER accession:ACCESSION variant:BINARY_VARIANT
-    | accession:ACCESSION variant:BINARY_VARIANT
+    = [organism:FEATURE_ORGANISM] name:IDENTIFIER accession:ACCESSION variant:VARIANT
+    | accession:ACCESSION variant:VARIANT
     | [organism:FEATURE_ORGANISM] name:IDENTIFIER variant:VARIANT;
 
 PHENE_SET
