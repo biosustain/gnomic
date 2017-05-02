@@ -93,12 +93,6 @@ def feature_to_text(feature, integrated=True, is_marker=False):
 
         text += feature.name
 
-        if feature.accession:
-            text += '#'
-            if feature.accession.database:
-                text += feature.accession.database + ':'
-            text += feature.accession.identifier
-
         variant_map = {'wild-type': u"\u207A",
                        'mutant': u"\u207B"}
         variant = feature.variant
@@ -108,6 +102,12 @@ def feature_to_text(feature, integrated=True, is_marker=False):
                 text += variant_map[variant]
             else:
                 text += "(%s)" % variant
+
+        if feature.accession:
+            text += '#'
+            if feature.accession.database:
+                text += feature.accession.database + ':'
+            text += feature.accession.identifier
 
         return text
 
@@ -174,12 +174,6 @@ def feature_to_string(feature):
 
         s += feature.name
 
-        if feature.accession:
-            s += '#'
-            if feature.accession.database:
-                s += feature.accession.database + ':'
-            s += feature.accession.identifier
-
         variant = feature.variant
         variant_map = {'wild-type': '+', 'mutant': '-'}
 
@@ -188,4 +182,11 @@ def feature_to_string(feature):
                 s += variant_map[variant]
             except KeyError:
                 s += '({})'.format(variant)
+
+        if feature.accession:
+            s += '#'
+            if feature.accession.database:
+                s += feature.accession.database + ':'
+            s += feature.accession.identifier
+
         return s

@@ -357,8 +357,9 @@ class FeatureToTextTestCase(BaseTestCase):
         self.assertEqual(feature_to_text(feature, is_marker=True), "::foo")
 
     def test_feature_with_accession(self):
-        feature = Feature(name="foo", accession=Accession(identifier='bar', database='database'), type=Type('type'))
-        self.assertEqual(feature_to_text(feature), "type.foo#database:bar")
+        feature = Feature(name="foo", accession=Accession(identifier='bar', database='database'),
+                          type=Type('type'), variant='value=0.3')
+        self.assertEqual(feature_to_text(feature), "type.foo(value=0.3)#database:bar")
 
 
 class GenotypeToStringTestCase(BaseTestCase):
@@ -370,7 +371,7 @@ class GenotypeToStringTestCase(BaseTestCase):
                                                '-(vectorD)',
                                                '+geneE::markerF+',
                                                '+gene.G::{markerH+, markerI+}',
-                                               '-Ecoli/reaction.PGK#bigg:PGK'))
+                                               '-Ecoli/reaction.PGK(flux=0.3)#bigg:PGK'))
         self.assertEqual(
             set(gnomic.split()),
             set('+geneE '
@@ -382,7 +383,7 @@ class GenotypeToStringTestCase(BaseTestCase):
                 '+markerI+ '
                 '+gene.G '
                 '-(vectorD) '
-                '-Ecoli/reaction.PGK#bigg:PGK'.split())
+                '-Ecoli/reaction.PGK(flux=0.3)#bigg:PGK'.split())
         )
 
         self.assertIsInstance(Genotype.parse(gnomic), Genotype)
