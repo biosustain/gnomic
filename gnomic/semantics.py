@@ -38,7 +38,6 @@ class DefaultSemantics(GnomicSemantics):
         return ''.join(map(str, ast))
 
     def VARIABLE_VARIANT(self, ast):
-        print(ast)
         return ''.join(ast)
 
     def SEQUENCE_VARIANT(self, ast):
