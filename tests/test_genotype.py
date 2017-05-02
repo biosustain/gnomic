@@ -2,7 +2,8 @@
 from __future__ import unicode_literals
 from unittest import TestCase, SkipTest
 
-from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range, Plasmid, FeatureTree, Organism, FeatureSet
+from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range, Plasmid, FeatureTree, Organism, FeatureSet, \
+    Accession
 from gnomic.utils import genotype_to_text, feature_to_text, genotype_to_string, change_to_string
 
 
@@ -355,6 +356,10 @@ class FeatureToTextTestCase(BaseTestCase):
         feature = Feature(name="foo")
         self.assertEqual(feature_to_text(feature, is_marker=True), "::foo")
 
+    def test_feature_with_accession(self):
+        feature = Feature(name="foo", accession=Accession(identifier='bar', database='database'))
+        self.assertEqual(feature_to_text(feature), "foo#database:bar")
+
 
 class GenotypeToStringTestCase(BaseTestCase):
 
@@ -364,7 +369,8 @@ class GenotypeToStringTestCase(BaseTestCase):
                                                '(vectorC geneC)',
                                                '-(vectorD)',
                                                '+geneE::markerF+',
-                                               '+gene.G::{markerH+, markerI+}'))
+                                               '+gene.G::{markerH+, markerI+}',
+                                               '-reaction.PGK#bigg:PGK'))
         self.assertEqual(
             set(gnomic.split()),
             set('+geneE '
@@ -375,7 +381,8 @@ class GenotypeToStringTestCase(BaseTestCase):
                 '+geneB(a) '
                 '+markerI+ '
                 '+gene.G '
-                '-(vectorD)'.split())
+                '-(vectorD) '
+                '-reaction.PGK#bigg:PGK'.split())
         )
 
         self.assertIsInstance(Genotype.parse(gnomic), Genotype)
