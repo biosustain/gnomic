@@ -88,6 +88,9 @@ def feature_to_text(feature, integrated=True, is_marker=False):
         if feature.organism:
             text += '%s/' % feature.organism.name
 
+        if feature.type and feature.type.name != 'phene':
+            text += '{}.'.format(feature.type.name)
+
         text += feature.name
 
         if feature.accession:
@@ -162,11 +165,12 @@ def feature_to_string(feature):
             return contents
     else:
         s = ''
-        if feature.type and feature.type.name != 'phene':
-            s += '{}.'.format(feature.type.name)
 
         if feature.organism:
             s += '{}/'.format(feature.organism.name)
+
+        if feature.type and feature.type.name != 'phene':
+            s += '{}.'.format(feature.type.name)
 
         s += feature.name
 
