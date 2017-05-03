@@ -195,16 +195,16 @@ class GnomicParser(Parser):
             self._error('no available options')
 
     @graken()
+    def _NUMBER_(self):
+        self._pattern(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?')
+
+    @graken()
     def _QUOTED_STRING_(self):
         self._pattern(r'"(?:[^"\\]|\\.)*"')
 
     @graken()
     def _UNQUOTED_STRING_(self):
-        self._VARIANT_IDENTIFIER_()
-
-    @graken()
-    def _NUMBER_(self):
-        self._pattern(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?')
+        self._pattern(r'[a-zA-Z0-9]+')
 
     @graken()
     def _start_(self):
@@ -409,12 +409,12 @@ class GnomicParser(Parser):
                 self.name_last_node('name')
                 self._ACCESSION_()
                 self.name_last_node('accession')
-                self._BINARY_VARIANT_()
+                self._VARIANT_()
                 self.name_last_node('variant')
             with self._option():
                 self._ACCESSION_()
                 self.name_last_node('accession')
-                self._BINARY_VARIANT_()
+                self._VARIANT_()
                 self.name_last_node('variant')
             with self._option():
                 with self._optional():
@@ -776,13 +776,13 @@ class GnomicSemantics(object):
     def VARIABLE_VARIANT_VALUE(self, ast):
         return ast
 
+    def NUMBER(self, ast):
+        return ast
+
     def QUOTED_STRING(self, ast):
         return ast
 
     def UNQUOTED_STRING(self, ast):
-        return ast
-
-    def NUMBER(self, ast):
         return ast
 
     def start(self, ast):
