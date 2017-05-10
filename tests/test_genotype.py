@@ -4,7 +4,8 @@ from unittest import TestCase, SkipTest
 
 from gnomic import Genotype, Feature, Ins, Del, Fusion, Sub, Type, Range, Plasmid, FeatureTree, Organism, FeatureSet, \
     Accession
-from gnomic.utils import genotype_to_text, feature_to_text, genotype_to_string, change_to_string
+from gnomic.utils import genotype_to_text, feature_to_text, genotype_to_string, change_to_string, genotype_to_html, \
+    feature_to_html
 
 
 class BaseTestCase(TestCase):
@@ -312,6 +313,49 @@ class GenotypeToTextTestCase(BaseTestCase):
                          u"geneA\u207B")
 
 
+class GenotypeToHtmlTestCase(BaseTestCase):
+    def test_added_features(self):
+        self.assertEqual(genotype_to_html(self.chain("+geneA")), 
+                         '<span class="gnomic-feature">geneA</span>')
+
+    def test_removed_features(self):
+        self.assertEqual(genotype_to_html(self.chain("-geneA")),
+                         u'\u0394<span class="gnomic-feature">geneA</span>')
+
+    def test_added_and_removed_features(self):
+        self.assertEqual(genotype_to_html(self.chain("-geneB")),
+                         u'\u0394<span class="gnomic-feature">geneB</span>')
+
+    def test_plasmid(self):
+        self.assertEqual(genotype_to_html(self.chain("siteA>pA{}")),
+                         u'\u0394<span class="gnomic-feature">siteA</span>')
+
+        self.assertEqual(genotype_to_html(self.chain("-pA{}")),
+                         u'\u0394<span class="gnomic-plasmid">(<span class="gnomic-plasmid-name">pA</span>)</span>')
+
+    def test_markers(self):
+        self.assertEqual(genotype_to_html(self.chain("(p)::m+")),
+                         '<span class="gnomic-plasmid">(<span class="gnomic-plasmid-name">p</span>)</span>'
+                         '::<span class="gnomic-feature">m<sup>+</sup></span>')
+        self.assertEqual(genotype_to_html(self.chain("(p)::{m+ n+}")),
+                         '<span class="gnomic-plasmid">(<span class="gnomic-plasmid-name">p</span>)</span>'
+                         '::<span class="gnomic-feature-set">{<span class="gnomic-feature">m<sup>+</sup></span> '
+                         '<span class="gnomic-feature">n<sup>+</sup></span>}</span>')
+
+    def test_variants(self):
+        self.assertEqual(genotype_to_html(self.chain("-geneA(x)")),
+                         u'\u0394<span class="gnomic-feature">geneA<sup>x</sup></span>')
+
+        self.assertEqual(genotype_to_html(self.chain("+geneA(x)")),
+                         u'<span class="gnomic-feature">geneA<sup>x</sup></span>')
+
+        self.assertEqual(genotype_to_html(self.chain("+geneA(wild-type)")),
+                         u'<span class="gnomic-feature">geneA<sup>+</sup></span>')
+
+        self.assertEqual(genotype_to_html(self.chain("+geneA(mutant)")),
+                         u'<span class="gnomic-feature">geneA<sup>-</sup></span>')
+
+
 class FeatureToTextTestCase(BaseTestCase):
     def test_plasmid_without_contents(self):
         feature = Plasmid("foo", contents=None)
@@ -364,6 +408,69 @@ class FeatureToTextTestCase(BaseTestCase):
         feature = Feature(name="foo", accession=Accession(identifier='bar', database='database'), type=Type('type'),
                           variant="var=1")
         self.assertEqual(feature_to_text(feature), "type.foo(var=1)#database:bar")
+
+
+class FeatureToHtmlTestCase(BaseTestCase):
+    def test_plasmid_without_contents(self):
+        feature = Plasmid('foo', contents=None)
+        self.assertEqual(feature_to_html(feature),
+                         '<span class="gnomic-plasmid"><span class="gnomic-plasmid-name">foo</span></span>')
+        self.assertEqual(feature_to_html(feature, integrated=False),
+                         '<span class="gnomic-plasmid">(<span class="gnomic-plasmid-name">foo</span>)</span>')
+
+    def test_plasmid_with_contents(self):
+        feature = Plasmid('foo', contents=[Feature('bar')])
+        self.assertEqual(feature_to_html(feature),
+                         '<span class="gnomic-plasmid"><span class="gnomic-plasmid-name">foo</span>'
+                         '(<span class="gnomic-feature">bar</span>)</span>')
+        self.assertEqual(feature_to_html(feature, integrated=False),
+                         '<span class="gnomic-plasmid">(<span class="gnomic-plasmid-name">foo</span> '
+                         '<span class="gnomic-feature">bar</span>)</span>')
+
+    def test_fusion(self):
+        feature = Fusion(Feature(name='foo'), Feature(name='bar'))
+        self.assertEqual(feature_to_html(feature), '<span class="gnomic-fusion"><span class="gnomic-feature">foo</span>'
+                                                   ':<span class="gnomic-feature">bar</span></span>')
+
+    def test_feature_tree(self):
+        feature = FeatureTree(Feature(name='foo'), Feature(name='bar'))
+        self.assertEqual(feature_to_html(feature), '{<span class="gnomic-feature">foo</span> '
+                                                   '<span class="gnomic-feature">bar</span>}')
+
+    def test_feature_set(self):
+        feature = FeatureSet(Feature(name='foo'), Feature(name='bar'))
+        self.assertEqual(feature_to_html(feature), '<span class="gnomic-feature-set">{<span class="gnomic-feature">'
+                                                   'foo</span> <span class="gnomic-feature">bar</span>}</span>')
+
+    def test_feature(self):
+        feature = Feature(name='foo')
+        self.assertEqual(feature_to_html(feature), '<span class="gnomic-feature">foo</span>')
+
+    def test_feature_with_organism(self):
+        feature = Feature(name='foo', organism=Organism('bar'))
+        self.assertEqual(feature_to_html(feature), '<span class="gnomic-feature">bar/foo</span>')
+
+    def test_feature_with_variant(self):
+        feature_wild = Feature(name='foo', variant='wild-type')
+        feature_mutant = Feature(name='foo', variant='mutant')
+        feature_other = Feature(name='foo', variant='x')
+
+        self.assertEqual(feature_to_html(feature_wild), '<span class="gnomic-feature">foo<sup>+</sup></span>')
+        self.assertEqual(feature_to_html(feature_mutant), '<span class="gnomic-feature">foo<sup>-</sup></span>')
+        self.assertEqual(feature_to_html(feature_other), '<span class="gnomic-feature">foo<sup>x</sup></span>')
+
+    def test_feature_is_marker(self):
+        feature = Feature(name='foo')
+        self.assertEqual(feature_to_html(feature, is_marker=True), '::<span class="gnomic-feature">foo</span>')
+
+    def test_feature_with_accession(self):
+        feature = Feature(name='foo', accession=Accession(identifier='bar', database='database'), type=Type('type'))
+        self.assertEqual(feature_to_html(feature), '<span class="gnomic-feature">type.foo#database:bar</span>')
+
+    def test_feature_with_accession_and_variant(self):
+        feature = Feature(name='foo', accession=Accession(identifier='bar', database='database'), type=Type('type'),
+                          variant='var=1')
+        self.assertEqual(feature_to_html(feature),'<span class="gnomic-feature">type.foo<sup>var=1</sup>#database:bar</span>')
 
 
 class GenotypeToStringTestCase(BaseTestCase):

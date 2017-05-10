@@ -3,7 +3,7 @@ from grako.exceptions import GrakoException
 from gnomic.models import *
 from gnomic.grammar import GnomicParser
 from gnomic.semantics import DefaultSemantics
-from gnomic.utils import genotype_to_text, genotype_to_string
+from gnomic.utils import genotype_to_text, genotype_to_string, genotype_to_html
 
 __all__ = (
     'DEFAULT_TYPES',
@@ -263,13 +263,15 @@ class Genotype(object):
     def format(self, fusions=True, output='text'):
         """
         :param bool fusions: Keeps fusions together if ``True``, otherwise includes them as individual features.
-        :param str output: Output format; one of ``'text'`` and ``'string'``
+        :param str output: Output format; one of ``'text'``, ``'string'`` and ``'html'``
         :return:
         """
         if output == 'text':
             return genotype_to_text(self, fusions=fusions)
         elif output == 'string':
             return genotype_to_string(self, fusions=fusions)
+        elif output == 'html':
+            return genotype_to_html(self, fusions=fusions)
         else:
             raise NotImplementedError('Unknown output format: {}'.format(output))
 
