@@ -158,6 +158,17 @@ class GnomicParser(Parser):
                 with self._option():
                     self._AMINO_ACID_()
                     self._INTEGER_()
+                    self._token('del')
+                with self._option():
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._token('_')
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._token('del')
+                with self._option():
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
                     self._token('*')
                 self._error('no available options')
 

@@ -191,8 +191,8 @@ class GrammarTestCase(TestCase):
 
     def test_sequence_variants(self):
         self.assertEqual([
-            Ins(Feature(name='geneA', variant='c.123A>G, p.M12N, p.Gln5*, foo'))
-        ], parse('+geneA(c.123A>G, p.M12N, p.Gln5*, foo)'))
+            Ins(Feature(name='geneA', variant='c.123A>G, p.M12N, p.Gln5*, p.X5del, foo'))
+        ], parse('+geneA(c.123A>G, p.M12N, p.Gln5*, p.X5del, foo)'))
 
     def test_variable_variants(self):
         self.assertEqual([
