@@ -15,7 +15,7 @@ setup(
     test_suite='nose.collector',
     tests_require=['nose'],
     install_requires=[
-        'grako>=3.18.1',
+        'grako==3.18.1',
         'six>=1.8.0'
     ],
     classifiers=[
