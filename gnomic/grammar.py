@@ -222,38 +222,30 @@ class GnomicParser(Parser):
         with self._group():
             with self._choice():
                 with self._option():
-                    self._change_()
+                    self._CHANGE_()
                     self.add_last_node_to_name('@')
 
                     def block1():
-                        with self._group():
-                            with self._choice():
-                                with self._option():
-                                    self._sep_()
-                                with self._option():
-                                    self._list_separator_()
-                                    with self._optional():
-                                        self._sep_()
-                                self._error('no available options')
-                        self._change_()
+                        self._LIST_SEPARATOR_()
+                        self._CHANGE_()
                         self.add_last_node_to_name('@')
                     self._closure(block1)
                 with self._option():
                     self._empty_closure()
                 self._error('no available options')
         with self._optional():
-            self._sep_()
+            self._SEP_()
         self._check_eof()
 
     @graken()
-    def _change_(self):
+    def _CHANGE_(self):
         with self._choice():
             with self._option():
-                self._insertion_()
+                self._INSERTION_()
             with self._option():
-                self._replacement_()
+                self._REPLACEMENT_()
             with self._option():
-                self._deletion_()
+                self._DELETION_()
             with self._option():
                 self._PLASMID_()
             with self._option():
@@ -261,223 +253,194 @@ class GnomicParser(Parser):
             self._error('no available options')
 
     @graken()
-    def _insertion_(self):
+    def _INSERTION_(self):
         self._token('+')
-        self._INSERTABLE_()
-        self.name_last_node('new')
-        with self._optional():
-            self._MARKERS_()
-            self.name_last_node('markers')
+        self._ANNOTATION_()
+        self.name_last_node('after')
         self.ast._define(
-            ['markers', 'new'],
+            ['after'],
             []
         )
 
     @graken()
-    def _replacement_(self):
+    def _REPLACEMENT_(self):
         with self._choice():
             with self._option():
-                self._REPLACEABLE_()
-                self.name_last_node('old')
+                with self._group():
+                    with self._choice():
+                        with self._option():
+                            self._ANNOTATION_AT_LOCUS_()
+                        with self._option():
+                            self._ANNOTATION_()
+                        self._error('no available options')
+                self.name_last_node('before')
                 self._token('>')
                 self.name_last_node('op')
-                self._SUBSTITUTE_()
-                self.name_last_node('new')
-                with self._optional():
-                    self._MARKERS_()
-                    self.name_last_node('markers')
+                with self._group():
+                    with self._choice():
+                        with self._option():
+                            self._PLASMID_()
+                        with self._option():
+                            self._ANNOTATION_()
+                        self._error('no available options')
+                self.name_last_node('after')
             with self._option():
-                self._REPLACEABLE_()
-                self.name_last_node('old')
+                with self._group():
+                    with self._choice():
+                        with self._option():
+                            self._ANNOTATION_AT_LOCUS_()
+                        with self._option():
+                            self._ANNOTATION_()
+                        self._error('no available options')
+                self.name_last_node('before')
                 self._token('>>')
                 self.name_last_node('op')
-                self._SUBSTITUTE_()
-                self.name_last_node('new')
-                with self._optional():
-                    self._MARKERS_()
-                    self.name_last_node('markers')
+                with self._group():
+                    with self._choice():
+                        with self._option():
+                            self._PLASMID_()
+                        with self._option():
+                            self._ANNOTATION_()
+                        self._error('no available options')
+                self.name_last_node('after')
             self._error('no available options')
         self.ast._define(
-            ['markers', 'new', 'old', 'op'],
+            ['after', 'before', 'op'],
             []
         )
 
     @graken()
-    def _deletion_(self):
+    def _DELETION_(self):
         self._token('-')
-        self._DELETABLE_()
-        self.name_last_node('old')
-        with self._optional():
-            self._MARKERS_()
-            self.name_last_node('markers')
+        with self._group():
+            with self._choice():
+                with self._option():
+                    self._PLASMID_()
+                with self._option():
+                    self._ANNOTATION_AT_LOCUS_()
+                with self._option():
+                    self._ANNOTATION_()
+                self._error('no available options')
+        self.name_last_node('before')
         self.ast._define(
-            ['markers', 'old'],
+            ['before'],
             []
         )
-
-    @graken()
-    def _INSERTABLE_(self):
-        with self._choice():
-            with self._option():
-                self._FUSION_()
-            with self._option():
-                self._FEATURE_SET_()
-                self.name_last_node('@')
-            with self._option():
-                self._FEATURE_()
-            self._error('no available options')
-
-    @graken()
-    def _REPLACEABLE_(self):
-        with self._choice():
-            with self._option():
-                self._FUSION_()
-            with self._option():
-                self._FEATURE_SET_()
-                self.name_last_node('@')
-            with self._option():
-                self._FEATURE_()
-            self._error('no available options')
-
-    @graken()
-    def _SUBSTITUTE_(self):
-        with self._choice():
-            with self._option():
-                self._PLASMID_()
-            with self._option():
-                self._FUSION_()
-            with self._option():
-                self._FEATURE_SET_()
-                self.name_last_node('@')
-            with self._option():
-                self._FEATURE_()
-            self._error('no available options')
-
-    @graken()
-    def _DELETABLE_(self):
-        with self._choice():
-            with self._option():
-                self._PLASMID_()
-            with self._option():
-                self._FUSION_()
-            with self._option():
-                self._FEATURE_SET_()
-                self.name_last_node('@')
-            with self._option():
-                self._FEATURE_()
-            self._error('no available options')
 
     @graken()
     def _PLASMID_(self):
         with self._choice():
             with self._option():
-                self._IDENTIFIER_()
-                self.name_last_node('name')
-                self._FEATURE_SET_()
-                self.name_last_node('contents')
-                with self._optional():
-                    self._MARKERS_()
-                    self.name_last_node('markers')
-            with self._option():
-                self._IDENTIFIER_()
-                self.name_last_node('name')
-                self._token('{}')
-                with self._optional():
-                    self._MARKERS_()
-                    self.name_last_node('markers')
-            with self._option():
                 self._token('(')
                 self._IDENTIFIER_()
                 self.name_last_node('name')
-                self._FEATURE_SET_ITEMS_()
-                self.name_last_node('contents')
+                self._SEP_()
+                self._ANNOTATIONS_()
+                self.name_last_node('annotations')
                 self._token(')')
-                with self._optional():
-                    self._MARKERS_()
-                    self.name_last_node('markers')
             with self._option():
                 self._token('(')
                 self._IDENTIFIER_()
                 self.name_last_node('name')
                 self._token(')')
-                with self._optional():
-                    self._MARKERS_()
-                    self.name_last_node('markers')
             self._error('no available options')
         self.ast._define(
-            ['contents', 'markers', 'name'],
+            ['annotations', 'name'],
             []
         )
 
     @graken()
-    def _PHENE_(self):
+    def _ANNOTATION_AT_LOCUS_(self):
+        self._ANNOTATION_()
+        self.name_last_node('annotation')
+        self._token('@')
+        self._FEATURE_()
+        self.name_last_node('locus')
+        self.ast._define(
+            ['annotation', 'locus'],
+            []
+        )
+
+    @graken()
+    def _ANNOTATION_(self):
         with self._choice():
             with self._option():
-                with self._optional():
-                    self._FEATURE_ORGANISM_()
-                    self.name_last_node('organism')
-                self._IDENTIFIER_()
-                self.name_last_node('name')
-                self._ACCESSION_()
-                self.name_last_node('accession')
-                self._VARIANT_()
-                self.name_last_node('variant')
+                self._FUSION_()
             with self._option():
-                self._ACCESSION_()
-                self.name_last_node('accession')
-                self._VARIANT_()
-                self.name_last_node('variant')
+                self._FEATURE_()
             with self._option():
-                with self._optional():
-                    self._FEATURE_ORGANISM_()
-                    self.name_last_node('organism')
-                self._IDENTIFIER_()
-                self.name_last_node('name')
-                self._VARIANT_()
-                self.name_last_node('variant')
+                self._token('{')
+                self._ANNOTATIONS_()
+                self.name_last_node('@')
+                self._token('}')
             self._error('no available options')
-        self.ast._define(
-            ['accession', 'name', 'organism', 'variant'],
-            []
-        )
 
     @graken()
-    def _PHENE_SET_(self):
-        self._token('{')
+    def _ANNOTATIONS_(self):
         with self._optional():
-            self._sep_()
-        self._PHENE_()
-        self.add_last_node_to_name('@')
-
-        def block1():
-            with self._group():
-                with self._choice():
-                    with self._option():
-                        self._sep_()
-                    with self._option():
-                        self._list_separator_()
-                        with self._optional():
-                            self._sep_()
-                    self._error('no available options')
-            self._PHENE_()
-            self.add_last_node_to_name('@')
-        self._closure(block1)
-        with self._optional():
-            self._sep_()
-        self._token('}')
-
-    @graken()
-    def _MARKERS_(self):
-        self._token('::')
+            self._SEP_()
         with self._group():
             with self._choice():
                 with self._option():
-                    self._PHENE_()
-                    self.add_last_node_to_name('@')
+                    self._FEATURE_FUSION_()
                 with self._option():
-                    self._PHENE_SET_()
-                    self.name_last_node('@')
+                    self._FEATURE_()
                 self._error('no available options')
+        self.add_last_node_to_name('@')
+
+        def block2():
+            self._LIST_SEPARATOR_()
+            with self._group():
+                with self._choice():
+                    with self._option():
+                        self._FEATURE_FUSION_()
+                    with self._option():
+                        self._FEATURE_()
+                    self._error('no available options')
+            self.add_last_node_to_name('@')
+        self._closure(block2)
+        with self._optional():
+            self._SEP_()
+
+    @graken()
+    def _FUSION_(self):
+        with self._group():
+            with self._choice():
+                with self._option():
+                    self._token('{')
+                    self._ANNOTATIONS_()
+                    self.name_last_node('@')
+                    self._token('}')
+                with self._option():
+                    self._FEATURE_()
+                self._error('no available options')
+        self.add_last_node_to_name('@')
+
+        def block3():
+            self._token(':')
+            with self._group():
+                with self._choice():
+                    with self._option():
+                        self._token('{')
+                        self._ANNOTATIONS_()
+                        self.name_last_node('@')
+                        self._token('}')
+                    with self._option():
+                        self._FEATURE_()
+                    self._error('no available options')
+            self.add_last_node_to_name('@')
+        self._positive_closure(block3)
+
+    @graken()
+    def _FEATURE_FUSION_(self):
+        self._FEATURE_()
+        self.add_last_node_to_name('@')
+
+        def block1():
+            self._token(':')
+            self._FEATURE_()
+            self.add_last_node_to_name('@')
+        self._positive_closure(block1)
 
     @graken()
     def _FEATURE_(self):
@@ -493,210 +456,61 @@ class GnomicParser(Parser):
                 self._IDENTIFIER_()
                 self.name_last_node('name')
                 with self._optional():
-                    self._VARIANT_()
-                    self.name_last_node('variant')
-                with self._optional():
                     self._ACCESSION_()
                     self.name_last_node('accession')
                 with self._optional():
-                    self._RANGE_()
-                    self.name_last_node('range')
+                    self._FEATURE_VARIANT_()
+                    self.name_last_node('variant')
             with self._option():
                 self._ACCESSION_()
                 self.name_last_node('accession')
                 with self._optional():
-                    self._RANGE_()
-                    self.name_last_node('range')
+                    self._FEATURE_VARIANT_()
+                    self.name_last_node('variant')
             self._error('no available options')
         self.ast._define(
-            ['accession', 'name', 'organism', 'range', 'type', 'variant'],
+            ['accession', 'name', 'organism', 'type', 'variant'],
+            []
+        )
+
+    @graken()
+    def _PHENE_(self):
+        with self._choice():
+            with self._option():
+                with self._optional():
+                    self._FEATURE_ORGANISM_()
+                    self.name_last_node('organism')
+                with self._optional():
+                    self._IDENTIFIER_()
+                    self.name_last_node('type')
+                    self._token('.')
+                self._IDENTIFIER_()
+                self.name_last_node('name')
+                with self._optional():
+                    self._ACCESSION_()
+                    self.name_last_node('accession')
+                self._FEATURE_VARIANT_()
+                self.name_last_node('variant')
+            with self._option():
+                self._ACCESSION_()
+                self.name_last_node('accession')
+                self._FEATURE_VARIANT_()
+                self.name_last_node('variant')
+            self._error('no available options')
+        self.ast._define(
+            ['accession', 'name', 'organism', 'type', 'variant'],
             []
         )
 
     @graken()
     def _FEATURE_ORGANISM_(self):
-        self._ORGANISM_()
+        self._ORGANISM_IDENTIFIER_()
         self.name_last_node('@')
         self._token('/')
 
     @graken()
-    def _FEATURE_SET_(self):
-        self._token('{')
-        self._FEATURE_SET_ITEMS_()
-        self.name_last_node('@')
-        self._token('}')
-
-    @graken()
-    def _FEATURE_SET_ITEMS_(self):
-        with self._optional():
-            self._sep_()
-        with self._group():
-            with self._choice():
-                with self._option():
-                    self._FEATURE_FUSION_()
-                with self._option():
-                    self._FEATURE_()
-                self._error('no available options')
-        self.add_last_node_to_name('@')
-
-        def block2():
-            with self._group():
-                with self._choice():
-                    with self._option():
-                        self._sep_()
-                    with self._option():
-                        self._list_separator_()
-                        with self._optional():
-                            self._sep_()
-                    self._error('no available options')
-            with self._group():
-                with self._choice():
-                    with self._option():
-                        self._FEATURE_FUSION_()
-                    with self._option():
-                        self._FEATURE_()
-                    self._error('no available options')
-            self.add_last_node_to_name('@')
-        self._closure(block2)
-        with self._optional():
-            self._sep_()
-
-    @graken()
-    def _FUSION_(self):
-        with self._group():
-            with self._choice():
-                with self._option():
-                    self._FEATURE_SET_()
-                with self._option():
-                    self._FEATURE_()
-                self._error('no available options')
-        self.add_last_node_to_name('@')
-
-        def block2():
-            self._token(':')
-            with self._group():
-                with self._choice():
-                    with self._option():
-                        self._FEATURE_SET_()
-                    with self._option():
-                        self._FEATURE_()
-                    self._error('no available options')
-            self.add_last_node_to_name('@')
-        self._positive_closure(block2)
-
-    @graken()
-    def _FEATURE_FUSION_(self):
-        self._FEATURE_()
-        self.add_last_node_to_name('@')
-
-        def block1():
-            self._token(':')
-            self._FEATURE_()
-            self.add_last_node_to_name('@')
-        self._positive_closure(block1)
-
-    @graken()
-    def _VARIANT_(self):
-        with self._choice():
-            with self._option():
-                self._token('(')
-                self._VARIANT_LIST_()
-                self.name_last_node('@')
-                self._token(')')
-            with self._option():
-                self._BINARY_VARIANT_()
-                self.name_last_node('@')
-            self._error('no available options')
-
-    @graken()
-    def _VARIANT_LIST_(self):
-        with self._group():
-            with self._choice():
-                with self._option():
-                    self._VARIABLE_VARIANT_()
-                with self._option():
-                    self._SEQUENCE_VARIANT_()
-                with self._option():
-                    self._VARIANT_IDENTIFIER_()
-                self._error('no available options')
-        self.name_last_node('@')
-
-        def block2():
-            with self._group():
-                with self._choice():
-                    with self._option():
-                        self._token(',')
-                    with self._option():
-                        self._token(';')
-                    self._error('expecting one of: , ;')
-            with self._optional():
-                self._sep_()
-            with self._group():
-                with self._choice():
-                    with self._option():
-                        self._VARIABLE_VARIANT_()
-                    with self._option():
-                        self._SEQUENCE_VARIANT_()
-                    with self._option():
-                        self._VARIANT_IDENTIFIER_()
-                    self._error('no available options')
-            self.name_last_node('@')
-        self._closure(block2)
-
-    @graken()
-    def _BINARY_VARIANT_(self):
-        with self._choice():
-            with self._option():
-                self._token('+')
-            with self._option():
-                self._token('-')
-            self._error('expecting one of: + -')
-
-    @graken()
-    def _VARIANT_IDENTIFIER_(self):
-        self._pattern(r'[A-Za-z0-9]+([A-Za-z0-9_\-]+[A-Za-z0-9])?')
-
-    @graken()
-    def _RANGE_(self):
-        with self._choice():
-            with self._option():
-                self._token('[')
-                with self._optional():
-                    self._SEQUENCE_LEVEL_PREFIX_()
-                    self.name_last_node('level')
-                self._INTEGER_()
-                self.name_last_node('start')
-                self._token('_')
-                self._INTEGER_()
-                self.name_last_node('end')
-                self._token(']')
-            with self._option():
-                self._token('[')
-                with self._optional():
-                    self._SEQUENCE_LEVEL_PREFIX_()
-                    self.name_last_node('level')
-                self._INTEGER_()
-                self.name_last_node('pos')
-                self._token(']')
-            self._error('no available options')
-        self.ast._define(
-            ['end', 'level', 'pos', 'start'],
-            []
-        )
-
-    @graken()
-    def _SEQUENCE_LEVEL_PREFIX_(self):
-        with self._group():
-            with self._choice():
-                with self._option():
-                    self._token('g')
-                with self._option():
-                    self._token('c')
-                with self._option():
-                    self._token('p')
-                self._error('expecting one of: c g p')
-        self.name_last_node('@')
-        self._token('.')
+    def _ORGANISM_IDENTIFIER_(self):
+        self._pattern(r'[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)?')
 
     @graken()
     def _ACCESSION_(self):
@@ -740,19 +554,60 @@ class GnomicParser(Parser):
         self.name_last_node('@')
 
     @graken()
+    def _FEATURE_VARIANT_(self):
+        self._token('(')
+        self._VARIANT_()
+        self.add_last_node_to_name('@')
+
+        def block1():
+            with self._group():
+                with self._choice():
+                    with self._option():
+                        self._token(',')
+                    with self._option():
+                        self._token(';')
+                    self._error('expecting one of: , ;')
+            with self._optional():
+                self._SEP_()
+            self._VARIANT_()
+            self.add_last_node_to_name('@')
+        self._closure(block1)
+        self._token(')')
+
+    @graken()
+    def _VARIANT_(self):
+        with self._group():
+            with self._choice():
+                with self._option():
+                    self._VARIABLE_VARIANT_()
+                with self._option():
+                    self._SEQUENCE_VARIANT_()
+                with self._option():
+                    self._VARIANT_IDENTIFIER_()
+                self._error('no available options')
+
+    @graken()
+    def _VARIANT_IDENTIFIER_(self):
+        self._pattern(r'[A-Za-z0-9]+([A-Za-z0-9_\-]+[A-Za-z0-9])?')
+
+    @graken()
     def _IDENTIFIER_(self):
-        self._pattern(r'[A-Za-z0-9]+([A-Za-z0-9_-]+[A-Za-z0-9])?')
+        self._pattern(r'[a-zA-Z0-9]+([A-Za-z0-9_-]+[A-Za-z0-9])?')
 
     @graken()
-    def _ORGANISM_(self):
-        self._pattern(r'[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)?')
+    def _LIST_SEPARATOR_(self):
+        with self._group():
+            with self._choice():
+                with self._option():
+                    self._SEP_()
+                with self._option():
+                    self._token(',')
+                    with self._optional():
+                        self._SEP_()
+                self._error('expecting one of: ,')
 
     @graken()
-    def _list_separator_(self):
-        self._token(',')
-
-    @graken()
-    def _sep_(self):
+    def _SEP_(self):
         self._pattern(r'[\t ]+')
 
 
@@ -799,52 +654,28 @@ class GnomicSemantics(object):
     def start(self, ast):
         return ast
 
-    def change(self, ast):
+    def CHANGE(self, ast):
         return ast
 
-    def insertion(self, ast):
+    def INSERTION(self, ast):
         return ast
 
-    def replacement(self, ast):
+    def REPLACEMENT(self, ast):
         return ast
 
-    def deletion(self, ast):
-        return ast
-
-    def INSERTABLE(self, ast):
-        return ast
-
-    def REPLACEABLE(self, ast):
-        return ast
-
-    def SUBSTITUTE(self, ast):
-        return ast
-
-    def DELETABLE(self, ast):
+    def DELETION(self, ast):
         return ast
 
     def PLASMID(self, ast):
         return ast
 
-    def PHENE(self, ast):
+    def ANNOTATION_AT_LOCUS(self, ast):
         return ast
 
-    def PHENE_SET(self, ast):
+    def ANNOTATION(self, ast):
         return ast
 
-    def MARKERS(self, ast):
-        return ast
-
-    def FEATURE(self, ast):
-        return ast
-
-    def FEATURE_ORGANISM(self, ast):
-        return ast
-
-    def FEATURE_SET(self, ast):
-        return ast
-
-    def FEATURE_SET_ITEMS(self, ast):
+    def ANNOTATIONS(self, ast):
         return ast
 
     def FUSION(self, ast):
@@ -853,22 +684,16 @@ class GnomicSemantics(object):
     def FEATURE_FUSION(self, ast):
         return ast
 
-    def VARIANT(self, ast):
+    def FEATURE(self, ast):
         return ast
 
-    def VARIANT_LIST(self, ast):
+    def PHENE(self, ast):
         return ast
 
-    def BINARY_VARIANT(self, ast):
+    def FEATURE_ORGANISM(self, ast):
         return ast
 
-    def VARIANT_IDENTIFIER(self, ast):
-        return ast
-
-    def RANGE(self, ast):
-        return ast
-
-    def SEQUENCE_LEVEL_PREFIX(self, ast):
+    def ORGANISM_IDENTIFIER(self, ast):
         return ast
 
     def ACCESSION(self, ast):
@@ -880,16 +705,22 @@ class GnomicSemantics(object):
     def INTEGER(self, ast):
         return ast
 
+    def FEATURE_VARIANT(self, ast):
+        return ast
+
+    def VARIANT(self, ast):
+        return ast
+
+    def VARIANT_IDENTIFIER(self, ast):
+        return ast
+
     def IDENTIFIER(self, ast):
         return ast
 
-    def ORGANISM(self, ast):
+    def LIST_SEPARATOR(self, ast):
         return ast
 
-    def list_separator(self, ast):
-        return ast
-
-    def sep(self, ast):
+    def SEP(self, ast):
         return ast
 
 
