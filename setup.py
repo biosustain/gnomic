@@ -13,7 +13,7 @@ setup(
     description='A grammar for describing microbial genotypes and phenotypes',
     long_description=codecs.open('README.rst', encoding='utf-8').read(),
     setup_requires=['pytest-runner'],
-    tests_require=['pytest>=3.1.2'],
+    tests_require=['pytest'],
     install_requires=[
         'grako==3.18.1',
         'six>=1.8.0'
