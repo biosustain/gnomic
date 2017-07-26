@@ -288,7 +288,7 @@ class Genotype(object):
         return Genotype(changes, parent=parent, **kwargs)
 
     @classmethod
-    def is_valid(cls, gnomic_string):
+    def is_valid(cls, gnomic_string, **kwargs):
         """
         Tests whether a gnomic genotype definition can be parsed.
         """
