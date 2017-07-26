@@ -65,14 +65,14 @@ class Feature(Annotation):
     type: Optional[str]
     accession: Optional['Accession']
     organism: Optional[str]
-    variant: Optional[Tuple[..., str]]
+    variant: Optional[Tuple[str]]
 
     def __init__(self,
                  name: str = None,
                  type: str = None,
                  accession: Accession = None,
                  organism: str = None,
-                 variant: Tuple[..., str] = None
+                 variant: Tuple[str] = None
                  ) -> None: ...
 
     @classmethod
