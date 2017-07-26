@@ -231,7 +231,7 @@ class Feature(Annotation):
         if self.name:
             s += self.name
         if self.accession:
-            s += '{}#'.format(self.accession)
+            s += '#{}'.format(self.accession)
         if self.variant:
             s += '({})'.format('; '.join(self.variant))
         return s
@@ -353,3 +353,23 @@ class Plasmid(CompositeAnnotationBase):
         if self.annotations:
             return '({} {})'.format(self.name, ' '.join(map(str, self.annotations)))
         return '({})'.format(self.name)
+
+
+class Accession(object):
+    def __init__(self, identifier, database=None):
+        self.identifier = identifier
+        self.database = database
+
+    def __eq__(self, other):
+        return isinstance(other, Accession) and \
+            self.database == other.database and \
+            self.identifier == other.identifier
+
+    def __hash__(self):
+        return hash(self.identifier) + hash(self.database)
+
+    def __repr__(self):
+        if self.database:
+            return '{}:{}'.format(self.database, self.identifier)
+        else:
+            return '{}'.format(self.identifier)

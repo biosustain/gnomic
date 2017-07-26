@@ -63,14 +63,14 @@ class AtLocus(object):
 class Feature(Annotation):
     name: Optional[str]
     type: Optional[str]
-    accession: Optional[str]
+    accession: Optional['Accession']
     organism: Optional[str]
     variant: Optional[Tuple[..., str]]
 
     def __init__(self,
                  name: str = None,
                  type: str = None,
-                 accession: str = None,
+                 accession: Accession = None,
                  organism: str = None,
                  variant: Tuple[..., str] = None
                  ) -> None: ...
@@ -114,3 +114,10 @@ class Plasmid(CompositeAnnotationBase):
     name: str
 
     def __init__(self, name: str, annotations: Iterable[Annotation] = ()) -> None: ...
+
+
+class Accession(object):
+    identifier: str
+    database: Optional[str]
+
+    def __init__(self, identifier: str, database: str = None) -> None: ...

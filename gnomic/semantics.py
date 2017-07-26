@@ -1,5 +1,5 @@
 from gnomic.grammar import GnomicSemantics
-from gnomic.types import Fusion, Feature, Plasmid, Change
+from gnomic.types import Fusion, Feature, Plasmid, Change, Accession
 
 
 class DefaultSemantics(GnomicSemantics):
@@ -59,3 +59,6 @@ class DefaultSemantics(GnomicSemantics):
 
     def AMINO_ACID_SEQUENCE(self, ast):
         return ''.join(ast)
+
+    def ACCESSION(self, ast):
+        return Accession(ast.id, ast.db)
