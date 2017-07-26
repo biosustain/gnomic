@@ -112,14 +112,143 @@ class GnomicParser(Parser):
                     self._NUCLEOTIDE_()
                 with self._option():
                     self._INTEGER_()
-                    self._token('_')
+                    self._token('+')
+                    self._INTEGER_()
+                    self._NUCLEOTIDE_()
+                    self._token('>')
+                    self._NUCLEOTIDE_()
+                with self._option():
+                    self._token('[')
+                    self._INTEGER_()
+                    self._NUCLEOTIDE_()
+                    self._token('>')
+                    self._NUCLEOTIDE_()
+                    self._token(';')
+                    self._INTEGER_()
+                    self._NUCLEOTIDE_()
+                    self._token('>')
+                    self._NUCLEOTIDE_()
+                    self._token(']')
+                with self._option():
+                    self._INTEGER_()
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._token('=//')
+                            with self._option():
+                                self._token('=/')
+                            self._error('expecting one of: =/ =//')
+                    self._NUCLEOTIDE_()
+                    self._token('>')
+                    self._NUCLEOTIDE_()
+                with self._option():
+                    self._INTEGER_()
+                    self._token('=')
+                with self._option():
+                    self._INTEGER_()
+                    self._token('+')
                     self._INTEGER_()
                     self._token('del')
                 with self._option():
                     self._INTEGER_()
                     self._token('_')
                     self._INTEGER_()
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._token('del=//del')
+                            with self._option():
+                                self._token('=/del')
+                            self._error('expecting one of: =/del del=//del')
+                with self._option():
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
                     self._token('ins')
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._NUCLEOTIDE_SEQUENCE_()
+                            with self._option():
+                                self._token('(')
+                                self._INTEGER_()
+                                self._token(')')
+                            self._error('no available options')
+                with self._option():
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token('ins')
+                    self._pattern(r'\w')
+                    self._INTEGER_()
+                    self._token('.')
+                    self._INTEGER_()
+                    self._token(':')
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                with self._option():
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token('ins')
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token('inv')
+                    with self._optional():
+                        self._INTEGER_()
+                        self._token('_')
+                        self._INTEGER_()
+                        self._token('inv')
+                with self._option():
+                    self._token('(')
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token(')ins')
+                    self._NUCLEOTIDE_()
+                    self._token('(')
+                    self._PROTEIN_SEQUENCE_VARIANT_()
+                    self._token(')')
+                with self._option():
+                    self._token('(')
+                    self._INTEGER_()
+                    self._token('+')
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token('-')
+                    self._INTEGER_()
+                    self._token(')_(')
+                    self._INTEGER_()
+                    self._token('+')
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token('-')
+                    self._INTEGER_()
+                    self._token(')')
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._token('dup')
+                            with self._option():
+                                self._token('[')
+                                self._INTEGER_()
+                                self._token(']')
+                            self._error('expecting one of: dup')
+                with self._option():
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token('con')
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                with self._option():
+                    self._INTEGER_()
+                    self._token('delins')
                     self._NUCLEOTIDE_SEQUENCE_()
                 with self._option():
                     self._INTEGER_()
@@ -131,20 +260,106 @@ class GnomicParser(Parser):
                     self._INTEGER_()
                     self._token('_')
                     self._INTEGER_()
-                    self._token('dup')
+                    self._token('[')
+                    self._INTEGER_()
+                    self._token(']')
+                    with self._optional():
+                        self._token(';[')
+                        self._INTEGER_()
+                        self._token(']')
+                with self._option():
+                    self._token('-')
+                    self._INTEGER_()
+                    self._token('_-')
+                    self._INTEGER_()
+                    self._token('[')
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._token('(')
+                                self._INTEGER_()
+                                self._token('_')
+                                self._INTEGER_()
+                                self._token(')')
+                            with self._option():
+                                self._INTEGER_()
+                            self._error('no available options')
+                    self._token(']')
+                with self._option():
+                    self._INTEGER_()
+                    self._pattern(r'([ACGTBDHKMNRSVWY]{3}\[\d+\])+')
+                with self._option():
+                    self._INTEGER_()
+                    self._token('-')
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token('-')
+                    self._INTEGER_()
+                    self._DEL_DUP_()
+                with self._option():
+                    self._INTEGER_()
+                    self._DEL_DUP_()
+                with self._option():
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._DEL_DUP_()
+                            with self._option():
+                                self._token('inv')
+                            self._error('expecting one of: inv')
+                with self._option():
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token('+')
+                    self._INTEGER_()
+                    self._DEL_DUP_()
+                with self._option():
+                    self._token('(?_-')
+                    self._INTEGER_()
+                    self._token(')_(*')
+                    self._INTEGER_()
+                    self._token('_?)')
+                    self._DEL_DUP_()
+                with self._option():
+                    self._token('(?_-')
+                    self._INTEGER_()
+                    self._token(')_(')
+                    self._INTEGER_()
+                    self._token('+')
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token('-')
+                    self._INTEGER_()
+                    self._token(')')
+                    self._DEL_DUP_()
                 self._error('no available options')
 
     @graken()
-    def _NUCLEOTIDE_SEQUENCE_(self):
-        self._NUCLEOTIDE_()
-
-        def block0():
-            self._NUCLEOTIDE_()
-        self._closure(block0)
+    def _DEL_DUP_(self):
+        with self._group():
+            with self._choice():
+                with self._option():
+                    self._token('del')
+                with self._option():
+                    self._token('dup')
+                self._error('expecting one of: del dup')
 
     @graken()
     def _NUCLEOTIDE_(self):
         self._pattern(r'[ACGTBDHKMNRSVWY]')
+
+    @graken()
+    def _NUCLEOTIDE_SEQUENCE_(self):
+
+        def block0():
+            self._NUCLEOTIDE_()
+        self._positive_closure(block0)
 
     @graken()
     def _PROTEIN_SEQUENCE_VARIANT_(self):
@@ -152,37 +367,211 @@ class GnomicParser(Parser):
         with self._group():
             with self._choice():
                 with self._option():
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._AMINO_ACID_()
+                            with self._option():
+                                self._token('*')
+                            self._error('expecting one of: *')
+                    self._INTEGER_()
+                    with self._optional():
+                        self._AMINO_ACID_SEQUENCE_()
+                    self._token('ext')
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                with self._group():
+                                    with self._choice():
+                                        with self._option():
+                                            self._token('-')
+                                        with self._option():
+                                            self._token('*')
+                                        self._error('expecting one of: * -')
+                                self._INTEGER_()
+                            with self._option():
+                                self._token('*?')
+                            with self._option():
+                                self._token('*')
+                            self._error('expecting one of: * *?')
+                with self._option():
+                    self._token('(')
                     self._AMINO_ACID_()
                     self._INTEGER_()
                     self._AMINO_ACID_()
+                    self._token('ext')
+                    self._AMINO_ACID_SEQUENCE_()
+                    self._token(')')
                 with self._option():
                     self._AMINO_ACID_()
                     self._INTEGER_()
-                    self._token('del')
+                    self._AMINO_ACID_()
+                    self._token('fs')
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                with self._option():
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._token('fs')
+                with self._option():
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._AMINO_ACID_()
+                    self._token('fs*')
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._INTEGER_()
+                            with self._option():
+                                self._token('?')
+                            self._error('expecting one of: ?')
+                with self._option():
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._token('delins')
+                    self._AMINO_ACID_SEQUENCE_()
                 with self._option():
                     self._AMINO_ACID_()
                     self._INTEGER_()
                     self._token('_')
                     self._AMINO_ACID_()
                     self._INTEGER_()
-                    self._token('del')
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._token('ins')
+                            with self._option():
+                                self._token('delins')
+                            self._error('expecting one of: delins ins')
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._AMINO_ACID_SEQUENCE_()
+                            with self._option():
+                                self._INTEGER_()
+                            self._error('no available options')
+                with self._option():
+                    self._token('(')
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._token('_')
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._token('ins')
+                            with self._option():
+                                self._token('delins')
+                            self._error('expecting one of: delins ins')
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._AMINO_ACID_SEQUENCE_()
+                            with self._option():
+                                self._INTEGER_()
+                            self._error('no available options')
+                    self._token(')')
+                with self._option():
+                    self._token('[')
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._AMINO_ACID_()
+                    self._token(';')
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._AMINO_ACID_()
+                    self._token(']')
                 with self._option():
                     self._AMINO_ACID_()
                     self._INTEGER_()
-                    self._token('*')
-                self._error('no available options')
-
-    @graken()
-    def _AMINO_ACID_SEQUENCE_(self):
-        self._AMINO_ACID_()
-
-        def block0():
-            self._AMINO_ACID_()
-        self._closure(block0)
+                    self._AMINO_ACID_()
+                with self._option():
+                    self._token('(')
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._token('*')
+                            with self._option():
+                                self._token('Ter')
+                            with self._option():
+                                self._token('=')
+                            with self._option():
+                                self._token('?')
+                            with self._option():
+                                self._AMINO_ACID_()
+                            self._error('expecting one of: * = ? Ter')
+                    self._token(')')
+                with self._option():
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._token('*')
+                            with self._option():
+                                self._token('Ter')
+                            with self._option():
+                                self._token('=')
+                            with self._option():
+                                self._token('?')
+                            with self._option():
+                                self._AMINO_ACID_()
+                            self._error('expecting one of: * = ? Ter')
+                with self._option():
+                    self._token('0')
+                with self._option():
+                    self._token('?')
+                with self._option():
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._DEL_DUP_()
+                with self._option():
+                    self._token('(')
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._DEL_DUP_()
+                    self._token(')')
+                with self._option():
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._token('_')
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._DEL_DUP_()
+                with self._option():
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._token('[')
+                    self._INTEGER_()
+                    self._token(']')
+                    with self._optional():
+                        self._token(';[')
+                        self._INTEGER_()
+                        self._token(']')
+                with self._option():
+                    self._token('(')
+                    self._AMINO_ACID_()
+                    self._INTEGER_()
+                    self._token(')[(')
+                    self._INTEGER_()
+                    self._token('_')
+                    self._INTEGER_()
+                    self._token(')]')
+                self._error('expecting one of: 0 ?')
 
     @graken()
     def _AMINO_ACID_(self):
         self._pattern(r'[A-Z]([a-z]{2})?')
+
+    @graken()
+    def _AMINO_ACID_SEQUENCE_(self):
+
+        def block0():
+            self._AMINO_ACID_()
+        self._positive_closure(block0)
 
     @graken()
     def _VARIABLE_VARIANT_(self):
@@ -618,19 +1007,22 @@ class GnomicSemantics(object):
     def DNA_SEQUENCE_VARIANT(self, ast):
         return ast
 
-    def NUCLEOTIDE_SEQUENCE(self, ast):
+    def DEL_DUP(self, ast):
         return ast
 
     def NUCLEOTIDE(self, ast):
         return ast
 
+    def NUCLEOTIDE_SEQUENCE(self, ast):
+        return ast
+
     def PROTEIN_SEQUENCE_VARIANT(self, ast):
         return ast
 
-    def AMINO_ACID_SEQUENCE(self, ast):
+    def AMINO_ACID(self, ast):
         return ast
 
-    def AMINO_ACID(self, ast):
+    def AMINO_ACID_SEQUENCE(self, ast):
         return ast
 
     def VARIABLE_VARIANT(self, ast):

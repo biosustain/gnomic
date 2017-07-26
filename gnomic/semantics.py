@@ -53,3 +53,9 @@ class DefaultSemantics(GnomicSemantics):
                        accession=ast.accession,
                        organism=ast.organism,
                        variant=tuple(ast.variant) if ast.variant else None)
+
+    def NUCLEOTIDE_SEQUENCE(self, ast):
+        return ''.join(ast)
+
+    def AMINO_ACID_SEQUENCE(self, ast):
+        return ''.join(ast)
