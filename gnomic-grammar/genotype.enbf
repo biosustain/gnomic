@@ -3,7 +3,7 @@
 #include :: "variable-variant.enbf"
 
 start =
-    (@+:CHANGE {LIST_SEPARATOR @+:CHANGE}* | {}) [SEP] $;
+    [SEP] (@+:CHANGE {LIST_SEPARATOR @+:CHANGE}* | {}) [SEP] $;
 
 CHANGE = INSERTION | REPLACEMENT | DELETION | PLASMID | PHENE;
 

@@ -608,6 +608,8 @@ class GnomicParser(Parser):
 
     @graken()
     def _start_(self):
+        with self._optional():
+            self._SEP_()
         with self._group():
             with self._choice():
                 with self._option():
