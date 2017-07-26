@@ -2,7 +2,7 @@ import pytest
 
 from gnomic.grammar import GnomicParser
 from gnomic.semantics import DefaultSemantics
-from gnomic.types import Feature, Plasmid, Change, Accession
+from gnomic.types import Feature, Plasmid, Change, Accession, Fusion
 
 
 @pytest.fixture
@@ -15,6 +15,20 @@ def parse():
                             semantics=semantics,
                             rule_name='start')
     return parse_
+
+
+def test_parse_deletions(parse):
+    assert [Change(before=Feature('foo'))] == parse('-foo')
+
+
+def test_parse_insertions(parse):
+    assert [Change(after=Feature('foo'))] == parse('+foo')
+    assert [Change(after=Feature('foo', variant=('variant', )))] == parse('foo(variant)')
+
+
+def test_parse_replacements(parse):
+    assert [Change(before=Feature('foo'), after=Feature('bar'))] == parse('foo>bar')
+    assert [Change(before=Feature('foo'), after=Feature('bar'), multiple=True)] == parse('foo>>bar')
 
 
 def test_parse_feature():
@@ -30,3 +44,8 @@ def test_parse_feature():
 def test_genotype_parse_plasmid_insertion(parse):
     assert [Change(after=Plasmid('foo'))] == parse('(foo)')
     assert [Change(after=Plasmid('foo', [Feature.parse('gene.A')]))] == parse('(foo gene.A)')
+
+
+def test_parse_fusion(parse):
+    assert [Change(after=Fusion(Feature('foo'), Feature('bar')))] == parse('+foo:bar')
+    assert [Change(before=Fusion(Feature('foo'), Feature('bar')), after=Feature('foo'))] == parse('foo:bar>foo')
