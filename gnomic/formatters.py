@@ -23,10 +23,19 @@ class Formatter(ABC):
 
 class GnomicFormatter(Formatter):
     def format_genotype(self, genotype):
-        pass
+        return ' '.join(self.format_change(change) for change in genotype.changes())
 
     def format_change(self, change):
-        pass
+        after = self.format_annotation(change.after) if change.after is not None else None
+        before = self.format_annotation(change.before) if change.before is not None else None
+        if after is None:
+            return '-{}'.format(before)
+        elif before is None:
+            return '+{}'.format(after)
+        elif change.multiple:
+            return '{}>>{}'.format(before, after)
+        else:
+            return '{}>{}'.format(before, after)
 
     def format_annotation(self, annotation):
         if isinstance(annotation, Feature):
