@@ -1,6 +1,6 @@
 import pytest
 
-from gnomic.formatters import GnomicFormatter
+from gnomic.formatters import GnomicFormatter, TextFormatter
 from gnomic.types import Feature, Change, Fusion, Plasmid, AtLocus
 from gnomic import Genotype
 
@@ -8,6 +8,11 @@ from gnomic import Genotype
 @pytest.fixture
 def gnomic_formatter():
     return GnomicFormatter()
+
+
+@pytest.fixture
+def text_formatter():
+    return TextFormatter()
 
 
 def test_feature_gnomic_format(gnomic_formatter):
@@ -52,3 +57,13 @@ def test_genotype_gnomic_format(gnomic_formatter):
     # assert gnomic_formatter.format_genotype(Genotype.parse('+geneA -geneB site>>feature')) \
     #        == '+geneA -geneB site>>feature'
     assert gnomic_formatter.format_genotype(Genotype.parse('+geneA -geneB -geneA')) == '-geneB'
+
+
+def test_genotype_text_format(text_formatter):
+    assert text_formatter.format_genotype(Genotype.parse('+geneA')) == 'geneA'
+    assert text_formatter.format_genotype(Genotype.parse('-geneA')) == u'\u0394geneA'
+    #assert text_formatter.format_genotype(Genotype.parse('siteA>(pA)')) == u'\u0394siteA'
+    assert text_formatter.format_genotype(Genotype.parse('foo>bar')) == u'\u0394foo'
+    assert text_formatter.format_genotype(Genotype.parse('-(pA)')) == u'\u0394(pA)'
+    assert text_formatter.format_genotype(Genotype.parse('+geneA(x)')) == 'geneA(x)'
+    assert text_formatter.format_genotype(Genotype.parse('+geneA(wild-type, var)')) == 'geneA+(var)'
