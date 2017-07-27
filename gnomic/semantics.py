@@ -93,3 +93,9 @@ class DefaultSemantics(GnomicSemantics):
                        organism=ast.organism,
                        variant=', '.join(ast.variant) if isinstance(ast.variant, list) else ast.variant,
                        range=ast.range)
+
+    def NUCLEOTIDE_SEQUENCE(self, ast):
+        return ''.join(ast)
+
+    def AMINO_ACID_SEQUENCE(self, ast):
+        return ''.join(ast)

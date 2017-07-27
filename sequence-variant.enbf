@@ -2,22 +2,86 @@
 SEQUENCE_VARIANT = DNA_SEQUENCE_VARIANT | PROTEIN_SEQUENCE_VARIANT;
 
 DNA_SEQUENCE_VARIANT = ("g" | "c" | "n") "." (
+
+    (* substitutions *)
     INTEGER NUCLEOTIDE ">" NUCLEOTIDE |
-    INTEGER "_" INTEGER "del" |
-    INTEGER "_" INTEGER "ins" NUCLEOTIDE_SEQUENCE |
+    INTEGER "+" INTEGER NUCLEOTIDE ">" NUCLEOTIDE |
+    "[" INTEGER NUCLEOTIDE ">" NUCLEOTIDE ";" INTEGER NUCLEOTIDE ">" NUCLEOTIDE "]" |
+    INTEGER ("=//" | "=/") NUCLEOTIDE ">" NUCLEOTIDE |
+    INTEGER "=" |
+
+    (* deletions *)
+    INTEGER "+" INTEGER "del" |
+    INTEGER "_" INTEGER ("del=//del" | "=/del") |
+
+    (* insertions *)
+    INTEGER "_" INTEGER "ins" (NUCLEOTIDE_SEQUENCE | "(" INTEGER ")") |
+    INTEGER "_" INTEGER "ins" /\w/  INTEGER "." INTEGER ":" INTEGER "_" INTEGER |
+    INTEGER "_" INTEGER "ins" INTEGER "_" INTEGER "inv" [INTEGER "_" INTEGER "inv"]|
+    "(" INTEGER "_" INTEGER ")ins" NUCLEOTIDE "(" PROTEIN_SEQUENCE_VARIANT ")" |
+
+    (* duplications *)
+    "(" INTEGER "+" INTEGER "_" INTEGER "-" INTEGER ")_("
+        INTEGER "+" INTEGER "_" INTEGER "-" INTEGER ")" ("dup" | "[" INTEGER "]") |
+
+    (* conversions *)
+    INTEGER "_" INTEGER "con" INTEGER "_" INTEGER |
+
+    (* delins *)
+    INTEGER "delins" NUCLEOTIDE_SEQUENCE |
     INTEGER "_" INTEGER "delins" NUCLEOTIDE_SEQUENCE |
-    INTEGER "_" INTEGER "dup"
+
+    (* repeated *)
+    INTEGER "_" INTEGER "[" INTEGER "]" [";[" INTEGER "]"] |
+    "-" INTEGER "_-" INTEGER "[" ("(" INTEGER "_" INTEGER ")" | INTEGER) "]" |
+    INTEGER /([ACGTBDHKMNRSVWY]{3}\[\d+\])+/ |  (* regexp match GCA[21]ACA[1]...*)
+
+    (* various *)
+    INTEGER "-" INTEGER "_" INTEGER "-" INTEGER DEL_DUP |
+    INTEGER DEL_DUP |
+    INTEGER "_" INTEGER (DEL_DUP | "inv") |
+    INTEGER "_" INTEGER "+" INTEGER DEL_DUP |
+    "(?_-" INTEGER ")_(*" INTEGER "_?)" DEL_DUP |
+    "(?_-" INTEGER ")_(" INTEGER "+" INTEGER "_" INTEGER "-" INTEGER ")" DEL_DUP
 );
 
-NUCLEOTIDE_SEQUENCE = NUCLEOTIDE {NUCLEOTIDE}*;
+DEL_DUP = ("del" | "dup");
+
 NUCLEOTIDE = /[ACGTBDHKMNRSVWY]/;
+NUCLEOTIDE_SEQUENCE = {NUCLEOTIDE}+;
 
 PROTEIN_SEQUENCE_VARIANT = "p." (
+    (* extension *)
+    (AMINO_ACID | "*") INTEGER [AMINO_ACID_SEQUENCE] "ext" (("-" | "*") INTEGER | "*?" | "*") |
+    "(" AMINO_ACID INTEGER AMINO_ACID "ext" AMINO_ACID_SEQUENCE ")" |
+
+    (* frameshift *)
+    AMINO_ACID INTEGER AMINO_ACID "fs" AMINO_ACID INTEGER |
+    AMINO_ACID INTEGER "fs" |
+    AMINO_ACID INTEGER AMINO_ACID "fs*" (INTEGER | "?") |
+
+    (* insertions, delins *)
+    AMINO_ACID INTEGER "delins" AMINO_ACID_SEQUENCE |
+    AMINO_ACID INTEGER "_" AMINO_ACID INTEGER ("ins" | "delins") ( AMINO_ACID_SEQUENCE | INTEGER) |
+    "(" AMINO_ACID INTEGER "_" AMINO_ACID INTEGER ("ins" | "delins") ( AMINO_ACID_SEQUENCE | INTEGER) ")" |
+    "[" AMINO_ACID INTEGER AMINO_ACID ";" AMINO_ACID INTEGER AMINO_ACID "]" |
+
+    (* substitutions *)
     AMINO_ACID INTEGER AMINO_ACID |
-    AMINO_ACID INTEGER "del" |
-    AMINO_ACID INTEGER "_" AMINO_ACID INTEGER "del" |
-    AMINO_ACID INTEGER "*"
+    "("  AMINO_ACID INTEGER ("*" | "Ter" | "=" | "?" | AMINO_ACID)")" |
+    AMINO_ACID INTEGER ("*" | "Ter" | "=" | "?" | AMINO_ACID) |
+    "0" |
+    "?" |
+
+    (* deletions, duplications *)
+    AMINO_ACID INTEGER DEL_DUP |
+    "(" AMINO_ACID INTEGER DEL_DUP ")" |
+    AMINO_ACID INTEGER "_" AMINO_ACID INTEGER DEL_DUP |
+
+    (* repeated *)
+    AMINO_ACID INTEGER "[" INTEGER "]" [";[" INTEGER "]"] |
+    "("  AMINO_ACID INTEGER ")[(" INTEGER "_" INTEGER ")]"
 );
 
-AMINO_ACID_SEQUENCE = AMINO_ACID {AMINO_ACID}*;
 AMINO_ACID = /[A-Z]([a-z]{2})?/;
+AMINO_ACID_SEQUENCE = {AMINO_ACID}+;

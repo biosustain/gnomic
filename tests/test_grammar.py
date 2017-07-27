@@ -194,6 +194,212 @@ class GrammarTestCase(TestCase):
             Ins(Feature(name='geneA', variant='c.123A>G, p.M12N, p.Gln5*, p.X5del, foo'))
         ], parse('+geneA(c.123A>G, p.M12N, p.Gln5*, p.X5del, foo)'))
 
+    def test_sequence_variants_dna_substitutions(self):
+        substitutions = [
+            'g.123C>A',
+            'c.93+1G>T',
+            'c.79_80delinsTT',
+            'c.[12C>T;13C>G]',
+            'c.12G>H',
+            'c.123=',
+            'c.85=/T>C',
+            'c.85=//T>C',
+        ]
+        variants = ', '.join(substitutions)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+
+    def test_sequence_variants_dna_deletions(self):
+        deletions = [
+            'g.19del',
+            'g.10_21del',
+            'c.183_186+48del',
+            'c.1234del',
+            'c.1234+1del',
+            'c.4072-1234_5155-246del',
+            'c.(?_-245)_(31+1_32-1)del',
+            'c.(?_-1)_(*1_?)del',
+            'g.19_21=/del',
+            'g.19_21del=//del'
+        ]
+        variants = ', '.join(deletions)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+
+    def test_sequence_variants_dna_duplication(self):
+        duplication = [
+            'g.7dup',
+            'g.6_8dup',
+            'c.120_123+48dup',
+            'c.123dup',
+            'c.4072-1234_5146-246dup',
+            'c.(4071+1_4072-1)_(5145+1_5146-1)dup',
+            'c.(4071+1_4072-1)_(5145+1_5146-1)[3]',
+            'c.(?_-30)_(12+1_13-1)dup',
+            'c.(?_-1)_(*1_?)dup',
+        ]
+        variants = ', '.join(duplication)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+
+    def test_sequence_variants_dna_insertion(self):
+        insertion = [
+            'g.4426_4426insA',
+            'g.5756_5757insAGG',
+            'g.123_124insL1234.1:23_361',
+            'g.122_123ins123_234inv',
+            # 'g.122_123ins213_234invinsAins123_211inv',
+            'g.122_123ins212_234inv123_199inv',
+            'c.(67_70)insG(p.Gly23fs)',
+            'g.123_124ins(100)',
+        ]
+        variants = ', '.join(insertion)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+
+    def test_sequence_variants_dna_inversion(self):
+        inversion = [
+            'g.1234_1236inv',
+            'c.77_80inv',
+            'g.122_123ins123_234inv',
+        ]
+        variants = ', '.join(inversion)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+
+    def test_sequence_variants_dna_conversion(self):
+        conversion = [
+            'g.333_590con1844_2101',
+            # other possibilities with reference to a file or a gene
+        ]
+        variants = ', '.join(conversion)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+        
+    def test_sequence_variants_dna_delins(self):
+        delins = [
+            'g.6775delinsGA',
+            'g.6775_6777delinsC',
+            'g.9002_9009delinsTTT',
+        ]
+        variants = ', '.join(delins)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+        
+    def test_sequence_variants_dna_repeated(self):
+        repeated = [
+            'g.123_124[14]',
+            'g.123_124[14];[18]',
+            'c.-128_-126[79]',
+            'c.-128_-126[(600_800)]',
+            'c.54GCA[21]',
+            'c.54GCA[21]ACA[1]GCC[2]'
+        ]
+        variants = ', '.join(repeated)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+        
+    def test_sequence_variants_protein_substitution(self):
+        substitution = [
+            'p.Trp24Cys',
+            'p.(Trp24Cys)',
+            'p.Trp24Ter',
+            'p.Trp24*',
+            'p.Cys188=',
+            'p.0',
+            'p.?',
+            'p.Met1?',
+            'p.(Tyr4*)'
+        ]
+        variants = ', '.join(substitution)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+        
+    def test_sequence_variants_protein_deletion(self):
+        deletion = [
+            'p.Ala3del',
+            'p.(Ala3del)',
+            'p.Ala3_Ser5del',
+        ]
+        variants = ', '.join(deletion)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+        
+    def test_sequence_variants_protein_duplication(self):
+        duplication = [
+            'p.Ala3dup',
+            'p.(Ala3dup)',
+            'p.Ala3_Ser5dup',
+        ]
+        variants = ', '.join(duplication)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+        
+    def test_sequence_variants_protein_insertion(self):
+        insertion = [
+            'p.His4_Gln5insAla',
+            'p.Lys2_Gly3insGlnSerLys',
+            'p.(Met3_His4insGlyTer)',
+            'p.Arg78_Gly79ins23',
+            'p.Cys28delinsTrpVal',
+            'p.Cys28_Lys29delinsTrp',
+            'p.(Pro578_Lys579delinsLeuTer)',
+            'p.[Ser44Arg;Trp46Arg]',
+        ]
+        variants = ', '.join(insertion)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+        
+    def test_sequence_variants_protein_repeated(self):
+        repeated = [
+            'p.Ala2[10]',
+            'p.Ala2[10];[11]',
+            'p.Gln18[23]',
+            'p.(Gln18)[(70_80)]',
+        ]
+        variants = ', '.join(repeated)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+
+    def test_sequence_variants_protein_frameshift(self):
+        frameshift = [
+            'p.Arg97ProfsTer23',
+            'p.Arg97fs',
+            'p.Ile327Argfs*?',
+            'p.Gln151Thrfs*9',
+        ]
+        variants = ', '.join(frameshift)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+        
+    def test_sequence_variants_protein_extension(self):
+        extension = [
+            'p.Met1ext-5',
+            'p.Met1Valext-12',
+            'p.Ter110Clnext*17',
+            'p.(Ter315TyrextAsnLysGlyThrTer)',
+            'p.Ter327Argext*?',
+            'p.*327Argext*',
+        ]
+        variants = ', '.join(extension)
+        self.assertEqual([
+            Ins(Feature(name='geneA', variant=variants))
+        ], parse('+geneA({})'.format(variants)))
+
     def test_variable_variants(self):
         self.assertEqual([
             Ins(Feature(name='geneA', variant='c.123A>G, org.foo.fooBar=42.0, fooString="bar"'))
