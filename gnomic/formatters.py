@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 
-from gnomic.types import Feature
+from gnomic.types import Feature, Fusion, Plasmid
 
 
 class Formatter(ABC):
@@ -18,6 +18,14 @@ class Formatter(ABC):
 
     @abstractmethod
     def format_feature(self, feature):
+        pass
+
+    @abstractmethod
+    def format_fusion(self, fusion):
+        pass
+
+    @abstractmethod
+    def format_plasmid(self, plasmid):
         pass
 
 
@@ -40,6 +48,10 @@ class GnomicFormatter(Formatter):
     def format_annotation(self, annotation):
         if isinstance(annotation, Feature):
             return self.format_feature(annotation)
+        elif isinstance(annotation, Fusion):
+            return self.format_fusion(annotation)
+        elif isinstance(annotation, Plasmid):
+            return self.format_plasmid(annotation)
         raise NotImplementedError
 
     def format_feature(self, feature):
@@ -51,10 +63,21 @@ class GnomicFormatter(Formatter):
         if feature.name:
             s += feature.name
         if feature.accession:
-            s += '{}#'.format(feature.accession)
+            if feature.accession.database:
+                s += '#{}:{}'.format(feature.accession.database, feature.accession.identifier)
+            else:
+                s += '#{}'.format(feature.accession.identifier)
         if feature.variant:
             s += '({})'.format('; '.join(feature.variant))
         return s
+
+    def format_fusion(self, fusion):
+        return ':'.join(map(self.format_annotation, fusion.annotations))
+
+    def format_plasmid(self, plasmid):
+        if plasmid.annotations:
+            return '({} {})'.format(plasmid.name, ' '.join(map(self.format_annotation, plasmid.annotations)))
+        return '({})'.format(plasmid.name)
 
 
 BUILTIN_FORMATTERS = {
