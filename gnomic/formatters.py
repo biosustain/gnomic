@@ -2,6 +2,20 @@ from abc import abstractmethod, ABC
 
 from gnomic.types import Feature, Fusion, Plasmid, AtLocus
 
+VARIANT_MAP = {
+    'wild-type':{
+        'text': u'\u207A',
+        'html': '+',
+        'string': '+',
+    },
+    'mutant': {
+        'text': u'\u207B',
+        'html': '-',
+        'string': '-',
+    }
+
+}
+
 
 class Formatter(ABC):
     @abstractmethod
@@ -70,7 +84,10 @@ class GnomicFormatter(Formatter):
             else:
                 s += '#{}'.format(feature.accession.identifier)
         if feature.variant:
-            s += '({})'.format('; '.join(feature.variant))
+            if any(variant in VARIANT_MAP for variant in feature.variant):
+                s += '{}'.format(''.join(VARIANT_MAP[v]['string'] for v in feature.variant if v in VARIANT_MAP))
+            if any(variant not in VARIANT_MAP for variant in feature.variant):
+                s += '({})'.format('; '.join(v for v in feature.variant if v not in VARIANT_MAP))
         return s
 
     def format_fusion(self, fusion):

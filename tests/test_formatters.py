@@ -18,6 +18,9 @@ def test_feature_gnomic_format(gnomic_formatter):
         == 'organism/type.gene#db:123(f; g)'
     assert gnomic_formatter.format_annotation(Feature.parse('#db:123')) == '#db:123'
     assert gnomic_formatter.format_annotation(Feature.parse('gene#123')) == 'gene#123'
+    assert gnomic_formatter.format_annotation(Feature.parse('foo(wild-type)')) == 'foo+'
+    assert gnomic_formatter.format_annotation(Feature.parse('foo(mutant)')) == 'foo-'
+    assert gnomic_formatter.format_annotation(Feature.parse('foo(mutant; variant)')) == 'foo-(variant)'
 
 
 def test_change_gnomic_format(gnomic_formatter):
