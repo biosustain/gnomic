@@ -1,7 +1,7 @@
 import pytest
 
 from gnomic.formatters import GnomicFormatter
-from gnomic.types import Feature, Change, Fusion, Plasmid
+from gnomic.types import Feature, Change, Fusion, Plasmid, AtLocus
 from gnomic import Genotype
 
 
@@ -37,6 +37,10 @@ def test_fusion_gnomic_format(gnomic_formatter):
 def test_plasmid_gnomic_format(gnomic_formatter):
     assert gnomic_formatter.format_plasmid(Plasmid('foo')) == '(foo)'
     assert gnomic_formatter.format_plasmid(Plasmid('foo', annotations=(Feature('bar'),))) == '(foo bar)'
+
+
+def test_at_locus_gnomic_format(gnomic_formatter):
+    assert gnomic_formatter.format_at_locus(AtLocus(Feature('foo'), Feature('bar'))) == 'foo@bar'
 
 
 def test_genotype_gnomic_format(gnomic_formatter):

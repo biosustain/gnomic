@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 
-from gnomic.types import Feature, Fusion, Plasmid
+from gnomic.types import Feature, Fusion, Plasmid, AtLocus
 
 
 class Formatter(ABC):
@@ -52,6 +52,8 @@ class GnomicFormatter(Formatter):
             return self.format_fusion(annotation)
         elif isinstance(annotation, Plasmid):
             return self.format_plasmid(annotation)
+        elif isinstance(annotation, AtLocus):
+            return self.format_at_locus(annotation)
         raise NotImplementedError
 
     def format_feature(self, feature):
@@ -78,6 +80,9 @@ class GnomicFormatter(Formatter):
         if plasmid.annotations:
             return '({} {})'.format(plasmid.name, ' '.join(map(self.format_annotation, plasmid.annotations)))
         return '({})'.format(plasmid.name)
+
+    def format_at_locus(self, at_locus):
+        return '{}@{}'.format(self.format_annotation(at_locus.annotation), self.format_annotation(at_locus.locus))
 
 
 BUILTIN_FORMATTERS = {
