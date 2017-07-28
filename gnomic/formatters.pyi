@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Tuple
 
 
 class Formatter(ABC):
+    format: str
+
     def format_genotype(self, genotype: 'gnomic.Genotype') -> str: ...
 
     @abstractmethod
@@ -12,6 +14,8 @@ class Formatter(ABC):
 
     @staticmethod
     def format_accession(accession: 'gnomic.types.Accession') -> str: ...
+
+    def format_variant(self, variant: Tuple[str]) -> str: ...
 
     def format_feature(self, feature: 'gnomic.types.Feature') -> str: ...
 
@@ -30,16 +34,14 @@ class TextFormatter(Formatter):
     def format_change(self, change: 'gnomic.types.Change') -> str: ...
 
 
-class HTMLFormatter(Formatter):
-    def format_change(self, change: 'gnomic.types.Change') -> str: ...
+class HTMLFormatter(TextFormatter):
+    def format_variant(self, variant: Tuple[str]) -> str: ...
 
     def format_feature(self, feature: 'gnomic.types.Feature') -> str: ...
 
     def format_fusion(self, fusion: 'gnomic.types.Fusion') -> str: ...
 
     def format_plasmid(self, plasmid: 'gnomic.types.Plasmid') -> str: ...
-
-    def format_at_locus(self, at_locus: 'gnomic.types.AtLocus') -> str: ...
 
 
 BUILTIN_FORMATTERS: Dict[str, Formatter]

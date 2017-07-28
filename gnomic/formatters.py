@@ -19,6 +19,15 @@ VARIANT_MAP = {
 DELTA = u'\u0394'
 
 
+def escape_html(s, quote=False):
+    s = s.replace('&', '&amp;')
+    s = s.replace('<', '&lt;')
+    s = s.replace('>', '&gt;')
+    if quote:
+        s = s.replace('"', '&quot;')
+    return s
+
+
 class Formatter(ABC):
     def format_genotype(self, genotype):
         return ' '.join(self.format_change(change) for change in genotype.changes())
@@ -45,6 +54,14 @@ class Formatter(ABC):
         else:
             return '#{}'.format(accession.identifier)
 
+    def format_variant(self, variant):
+        s = ''
+        if any(variant in VARIANT_MAP for variant in variant):
+            s += '{}'.format(''.join(VARIANT_MAP[v][self.format] for v in variant if v in VARIANT_MAP))
+        if any(variant not in VARIANT_MAP for variant in variant):
+            s += '({})'.format('; '.join(v for v in variant if v not in VARIANT_MAP))
+        return s
+
     def format_feature(self, feature):
         s = ''
         if feature.organism:
@@ -56,10 +73,7 @@ class Formatter(ABC):
         if feature.accession:
             s += self.format_accession(feature.accession)
         if feature.variant:
-            if any(variant in VARIANT_MAP for variant in feature.variant):
-                s += '{}'.format(''.join(VARIANT_MAP[v]['string'] for v in feature.variant if v in VARIANT_MAP))
-            if any(variant not in VARIANT_MAP for variant in feature.variant):
-                s += '({})'.format('; '.join(v for v in feature.variant if v not in VARIANT_MAP))
+            s += self.format_variant(feature.variant)
         return s
 
     def format_fusion(self, fusion):
@@ -75,6 +89,8 @@ class Formatter(ABC):
 
 
 class GnomicFormatter(Formatter):
+    format = 'string'
+
     def format_change(self, change):
         after = self.format_annotation(change.after) if change.after is not None else None
         before = self.format_annotation(change.before) if change.before is not None else None
@@ -89,6 +105,8 @@ class GnomicFormatter(Formatter):
 
 
 class TextFormatter(Formatter):
+    format = 'text'
+
     def format_change(self, change):
         after = self.format_annotation(change.after) if change.after is not None else None
         before = self.format_annotation(change.before) if change.before is not None else None
@@ -98,9 +116,43 @@ class TextFormatter(Formatter):
             return '{}'.format(after)
 
 
-class HTMLFormatter(Formatter):
-    def format_change(self, change):
-        pass
+class HTMLFormatter(TextFormatter):
+    format = 'html'
+
+    def format_variant(self, variant):
+        s = ''
+        if any(variant in VARIANT_MAP for variant in variant):
+            s += '{}'.format(''.join(VARIANT_MAP[v][self.format] for v in variant if v in VARIANT_MAP))
+        if any(variant not in VARIANT_MAP for variant in variant):
+            if s:
+                s += ' '
+            s += '{}'.format('; '.join(escape_html(v) for v in variant if v not in VARIANT_MAP))
+        return '<sup>{}</sup>'.format(s)
+
+    def format_feature(self, feature):
+        s = ''
+        if feature.organism:
+            s += '{}/'.format(escape_html(feature.organism))
+        if feature.type:
+            s += '{}.'.format(escape_html(feature.type))
+        if feature.name:
+            s += escape_html(feature.name)
+        if feature.accession:
+            s += escape_html(self.format_accession(feature.accession))
+        if feature.variant:
+            s += self.format_variant(feature.variant)
+        return "<span class='gnomic-feature'>{}</span>".format(s)
+
+    def format_fusion(self, fusion):
+        return "<span class='gnomic-fusion'>{}</span>".format(':'.join(map(self.format_annotation, fusion.annotations)))
+
+    def format_plasmid(self, plasmid):
+        if plasmid.annotations:
+            s = "(<span class='gnomic-plasmid-name'>{}</span> {})"\
+                .format(escape_html(plasmid.name), ' '.join(map(self.format_annotation, plasmid.annotations)))
+        else:
+            s = "(<span class='gnomic-plasmid-name'>{}</span>)".format(escape_html(plasmid.name))
+        return "<span class='gnomic-plasmid'>{}</span>".format(s)
 
 
 BUILTIN_FORMATTERS = {

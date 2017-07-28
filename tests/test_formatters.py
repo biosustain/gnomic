@@ -1,7 +1,7 @@
 import pytest
 
-from gnomic.formatters import GnomicFormatter, TextFormatter
-from gnomic.types import Feature, Change, Fusion, Plasmid, AtLocus
+from gnomic.formatters import GnomicFormatter, TextFormatter, HTMLFormatter
+from gnomic.types import Feature, Change, Fusion, Plasmid, AtLocus, Accession
 from gnomic import Genotype
 
 
@@ -13,6 +13,11 @@ def gnomic_formatter():
 @pytest.fixture
 def text_formatter():
     return TextFormatter()
+
+
+@pytest.fixture
+def html_formatter():
+    return HTMLFormatter()
 
 
 def test_feature_gnomic_format(gnomic_formatter):
@@ -64,6 +69,45 @@ def test_genotype_text_format(text_formatter):
     assert text_formatter.format_genotype(Genotype.parse('-geneA')) == u'\u0394geneA'
     #assert text_formatter.format_genotype(Genotype.parse('siteA>(pA)')) == u'\u0394siteA'
     assert text_formatter.format_genotype(Genotype.parse('foo>bar')) == u'\u0394foo'
+    assert text_formatter.format_genotype(Genotype.parse('foo>>bar')) == u'\u0394foo'
     assert text_formatter.format_genotype(Genotype.parse('-(pA)')) == u'\u0394(pA)'
     assert text_formatter.format_genotype(Genotype.parse('+geneA(x)')) == 'geneA(x)'
-    assert text_formatter.format_genotype(Genotype.parse('+geneA(wild-type, var)')) == 'geneA+(var)'
+    assert text_formatter.format_genotype(Genotype.parse('+geneA(wild-type, var)')) == u'geneA\u207A(var)'
+
+
+def test_genotype_html_format(html_formatter):
+    assert html_formatter.format_genotype(Genotype.parse('+geneA')) == "<span class='gnomic-feature'>geneA</span>"
+    assert html_formatter.format_genotype(Genotype.parse('-geneB')) \
+        == u"\u0394<span class='gnomic-feature'>geneB</span>"
+    assert html_formatter.format_genotype(Genotype.parse('foo>>bar')) \
+        == u"\u0394<span class='gnomic-feature'>foo</span>"
+    assert html_formatter.format_genotype(Genotype.parse('(pA)')) \
+        == "<span class='gnomic-plasmid'>(<span class='gnomic-plasmid-name'>pA</span>)</span>"
+    assert html_formatter.format_genotype(Genotype.parse('+geneA(x)')) \
+        == "<span class='gnomic-feature'>geneA<sup>x</sup></span>"
+    assert html_formatter.format_genotype(Genotype.parse('+geneA(wild-type)')) \
+        == "<span class='gnomic-feature'>geneA<sup>+</sup></span>"
+    assert html_formatter.format_genotype(Genotype.parse('+geneA(x; wild-type; mutant; y)')) \
+        == "<span class='gnomic-feature'>geneA<sup>+- x; y</sup></span>"
+    assert html_formatter.format_genotype(Genotype.parse('+foo:bar')) \
+        == "<span class='gnomic-fusion'><span class='gnomic-feature'>foo</span>:" \
+           "<span class='gnomic-feature'>bar</span></span>"
+
+
+def test_feature_text_format(text_formatter):
+    assert text_formatter.format_feature(Feature('foo')) == 'foo'
+    assert text_formatter.format_feature(Feature('foo', organism='org', type='gene')) == 'org/gene.foo'
+    assert text_formatter.format_feature(Feature('foo', variant=('wild-type', ))) == u'foo\u207A'
+    assert text_formatter.format_feature(Feature('foo', variant=('mutant', ))) == u'foo\u207B'
+    assert text_formatter.format_feature(Feature('foo', accession=Accession('123', 'db'))) == u'foo#db:123'
+
+
+def test_plasmid_text_format(text_formatter):
+    assert text_formatter.format_plasmid(Plasmid('foo')) == '(foo)'
+    assert text_formatter.format_plasmid(Plasmid('foo', annotations=(Feature('bar'), Feature('x')))) == '(foo bar x)'
+
+
+def test_feature_html_format_escape_html(html_formatter):
+    assert html_formatter.format_feature(Feature('geneB&')) == "<span class='gnomic-feature'>geneB&amp;</span>"
+    assert html_formatter.format_feature(Feature('geneB<')) == "<span class='gnomic-feature'>geneB&lt;</span>"
+    assert html_formatter.format_feature(Feature('geneB>')) == "<span class='gnomic-feature'>geneB&gt;</span>"
