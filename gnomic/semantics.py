@@ -1,5 +1,5 @@
 from gnomic.grammar import GnomicSemantics
-from gnomic.types import Fusion, Feature, Plasmid, Change, Accession
+from gnomic.types import Fusion, Feature, Plasmid, Change, Accession, AtLocus
 
 
 class DefaultSemantics(GnomicSemantics):
@@ -62,3 +62,6 @@ class DefaultSemantics(GnomicSemantics):
 
     def ACCESSION(self, ast):
         return Accession(ast.id, ast.db)
+
+    def ANNOTATION_AT_LOCUS(self, ast):
+        return AtLocus(ast.annotation, ast.locus)

@@ -54,6 +54,7 @@ def test_plasmid_gnomic_format(gnomic_formatter):
 
 def test_at_locus_gnomic_format(gnomic_formatter):
     assert gnomic_formatter.format_at_locus(AtLocus(Feature('foo'), Feature('bar'))) == 'foo@bar'
+    assert gnomic_formatter.format_genotype(Genotype.parse('foo@bar>new')) == 'foo@bar>new'
 
 
 def test_genotype_gnomic_format(gnomic_formatter):
