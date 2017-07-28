@@ -67,7 +67,7 @@ def test_genotype_gnomic_format(gnomic_formatter):
 def test_genotype_text_format(text_formatter):
     assert text_formatter.format_genotype(Genotype.parse('+geneA')) == 'geneA'
     assert text_formatter.format_genotype(Genotype.parse('-geneA')) == u'\u0394geneA'
-    #assert text_formatter.format_genotype(Genotype.parse('siteA>(pA)')) == u'\u0394siteA'
+    assert text_formatter.format_genotype(Genotype.parse('siteA>(pA)')) == u'\u0394siteA'
     assert text_formatter.format_genotype(Genotype.parse('foo>bar')) == u'\u0394foo'
     assert text_formatter.format_genotype(Genotype.parse('foo>>bar')) == u'\u0394foo'
     assert text_formatter.format_genotype(Genotype.parse('-(pA)')) == u'\u0394(pA)'

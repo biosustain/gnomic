@@ -349,6 +349,13 @@ class Plasmid(CompositeAnnotationBase):
 
         return self.name == other.name
 
+    def __bool__(self):
+        if self.name:
+            return True
+        return False
+
+    __nonzero__ = __bool__
+
     def __str__(self):
         if self.annotations:
             return '({} {})'.format(self.name, ' '.join(map(str, self.annotations)))
