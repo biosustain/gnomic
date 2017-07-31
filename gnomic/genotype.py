@@ -305,6 +305,11 @@ class Genotype(object):
             iter(change.after) if isinstance(change.after, CompositeAnnotationBase) else (change.after,)
             for change in self.state.changes if change.after is not None))}
 
+    @property
+    def removed_features(self):
+        return {feature for feature in itertools.chain(*(
+            iter(change.before) if isinstance(change.before, CompositeAnnotationBase) else (change.before,)
+            for change in self.state.changes if change.before is not None))}
 
     @property
     def added_plasmids(self):
