@@ -4,6 +4,7 @@ from grako.exceptions import GrakoException
 from gnomic.grammar import GnomicParser
 from gnomic.semantics import DefaultSemantics
 from gnomic.types import Plasmid, Change, Fusion, CompositeAnnotation, AtLocus, Feature, CompositeAnnotationBase
+from gnomic.formatters import BUILTIN_FORMATTERS
 
 DEFAULT_FEATURE_TYPE_ALIASES = (
     ('g', 'gene'),
@@ -319,3 +320,6 @@ class Genotype(object):
 
     def changes(self):
         return self.state.changes
+
+    def format(self, output='text'):
+        return BUILTIN_FORMATTERS[output].format_genotype(self)
