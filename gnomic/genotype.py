@@ -261,7 +261,7 @@ class GenotypeState(object):
 class Genotype(object):
     def __init__(self, changes, parent=None):
         if parent:
-            state = GenotypeState(parent.state.changes)
+            state = GenotypeState(parent.state._changes)
         else:
             state = GenotypeState()
 
