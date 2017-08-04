@@ -69,13 +69,13 @@ def test_genotype_gnomic_format(gnomic_formatter):
 
 def test_genotype_text_format(text_formatter):
     assert text_formatter.format_genotype(Genotype.parse('+geneA')) == 'geneA'
-    assert text_formatter.format_genotype(Genotype.parse('-geneA')) == u'\u0394geneA'
-    assert text_formatter.format_genotype(Genotype.parse('siteA>(pA)')) == u'\u0394siteA'
-    assert text_formatter.format_genotype(Genotype.parse('foo>bar')) == u'\u0394foo'
-    assert text_formatter.format_genotype(Genotype.parse('foo>>bar')) == u'\u0394foo'
-    assert text_formatter.format_genotype(Genotype.parse('-(pA)')) == u'\u0394(pA)'
+    assert text_formatter.format_genotype(Genotype.parse('-geneA')) == '\u0394geneA'
+    assert text_formatter.format_genotype(Genotype.parse('siteA>(pA)')) == '\u0394siteA'
+    assert text_formatter.format_genotype(Genotype.parse('foo>bar')) == '\u0394foo'
+    assert text_formatter.format_genotype(Genotype.parse('foo>>bar')) == '\u0394foo'
+    assert text_formatter.format_genotype(Genotype.parse('-(pA)')) == '\u0394(pA)'
     assert text_formatter.format_genotype(Genotype.parse('+geneA(x)')) == 'geneA(x)'
-    assert text_formatter.format_genotype(Genotype.parse('+geneA(wild-type, var)')) == u'geneA\u207A(var)'
+    assert text_formatter.format_genotype(Genotype.parse('+geneA(wild-type, var)')) == 'geneA\u207A(var)'
 
 
 def test_genotype_html_format(html_formatter):
@@ -100,9 +100,9 @@ def test_genotype_html_format(html_formatter):
 def test_feature_text_format(text_formatter):
     assert text_formatter.format_feature(Feature('foo')) == 'foo'
     assert text_formatter.format_feature(Feature('foo', organism='org', type='gene')) == 'org/gene.foo'
-    assert text_formatter.format_feature(Feature('foo', variant=('wild-type', ))) == u'foo\u207A'
-    assert text_formatter.format_feature(Feature('foo', variant=('mutant', ))) == u'foo\u207B'
-    assert text_formatter.format_feature(Feature('foo', accession=Accession('123', 'db'))) == u'foo#db:123'
+    assert text_formatter.format_feature(Feature('foo', variant=('wild-type', ))) == 'foo\u207A'
+    assert text_formatter.format_feature(Feature('foo', variant=('mutant', ))) == 'foo\u207B'
+    assert text_formatter.format_feature(Feature('foo', accession=Accession('123', 'db'))) == 'foo#db:123'
 
 
 def test_plasmid_text_format(text_formatter):
