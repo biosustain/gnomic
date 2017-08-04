@@ -25,7 +25,7 @@ class Change(object):
                             semantics=semantics,
                             rule_name='CHANGE')
 
-    def is_presence(self) -> bool:
+    def is_presence(self):
         return self.before and self.after and self.after.match(self.before)
 
     def __eq__(self, other):
