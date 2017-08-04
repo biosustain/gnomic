@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 from abc import ABCMeta
 from itertools import chain
 
+import six
+
 
 class Change(object):
     def __init__(self, before=None, after=None, multiple=False):
@@ -237,7 +239,7 @@ class Feature(Annotation):
         return s
 
 
-class CompositeAnnotationBase(Annotation, metaclass=ABCMeta):
+class CompositeAnnotationBase(six.with_metaclass(ABCMeta, Annotation)):
     def __init__(self, *annotations):
         if not all(isinstance(annotation, Annotation) for annotation in annotations):
             raise ValueError()

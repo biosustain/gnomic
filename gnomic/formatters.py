@@ -1,4 +1,6 @@
-from abc import abstractmethod, ABC
+from abc import abstractmethod, ABCMeta
+
+import six
 
 from gnomic.types import Feature, Fusion, Plasmid, AtLocus
 
@@ -28,7 +30,7 @@ def escape_html(s, quote=False):
     return s
 
 
-class Formatter(ABC):
+class Formatter(six.with_metaclass(ABCMeta)):
     def format_genotype(self, genotype):
         return ' '.join(self.format_change(change) for change in genotype.changes())
 

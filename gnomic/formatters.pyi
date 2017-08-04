@@ -1,8 +1,8 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod, ABCMeta
 from typing import Dict, Tuple
 
 
-class Formatter(ABC):
+class Formatter(metaclass=ABCMeta):
     format: str
 
     def format_genotype(self, genotype: 'gnomic.Genotype') -> str: ...

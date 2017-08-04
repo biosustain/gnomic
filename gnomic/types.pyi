@@ -1,3 +1,5 @@
+from abc import ABCMeta
+
 from typing import Tuple, Optional, Iterator, Sequence, Union, Iterable
 
 
@@ -81,7 +83,7 @@ class Feature(Annotation):
     def match(self, other, match_variants: bool = True) -> bool: ...
 
 
-class CompositeAnnotationBase(Annotation):
+class CompositeAnnotationBase(Annotation, metaclass=ABCMeta):
     annotations: Tuple[Annotation]
 
     def __init__(self, *annotations: Annotation) -> None: ...
