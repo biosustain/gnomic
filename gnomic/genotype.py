@@ -1,4 +1,6 @@
 import itertools
+
+import six
 from grako.exceptions import GrakoException
 
 from gnomic.grammar import GnomicParser
@@ -287,7 +289,7 @@ class Genotype(object):
 
     @classmethod
     def parse(cls, gnomic_string, parent=None, **kwargs):
-        if not isinstance(gnomic_string, str):
+        if not isinstance(gnomic_string, six.string_types):
             raise ValueError('"gnomic_string" must a string, got {}'.format(repr(gnomic_string)))
 
         changes = Genotype._parse_gnomic_string(gnomic_string, **kwargs)
