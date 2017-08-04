@@ -2,7 +2,8 @@ from gnomic import Genotype
 from gnomic.formatters import BUILTIN_FORMATTERS
 
 
-def chain(*gnomic_strings, parent=None, **kwargs):
+def chain(*gnomic_strings, **kwargs):
+    parent = kwargs.pop('parent', None)
     genotype = Genotype.parse(gnomic_strings[0], parent=parent, **kwargs)
     for gnomic_string in gnomic_strings[1:]:
         genotype = Genotype.parse(gnomic_string, parent=genotype, **kwargs)
