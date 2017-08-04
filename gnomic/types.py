@@ -5,7 +5,7 @@ from itertools import chain
 
 
 class Change(object):
-    def __init__(self, before=None, after=None, *, multiple=False):
+    def __init__(self, before=None, after=None, multiple=False):
         if before is None and after is None:
             raise ValueError()
 
