@@ -70,7 +70,7 @@ class Present(Change):
 
 
 class Annotation(object):
-    def match(self, other):
+    def match(self, other, match_variants=True):
         return False
 
     def __hash__(self):
@@ -176,7 +176,7 @@ class Feature(Annotation):
                             semantics=semantics,
                             rule_name='FEATURE')
 
-    def match(self, other, match_variant=False):
+    def match(self, other, match_variants=True):
         if not isinstance(other, Feature):
             return False
 
@@ -193,7 +193,7 @@ class Feature(Annotation):
 
             # if this feature has no variant, match any other feature; otherwise, match only features with the same
             # variant
-            if not self.variant or match_variant is False:
+            if not self.variant or match_variants is False:
                 return True
             if self.variant == other.variant:
                 return True
@@ -295,7 +295,7 @@ class Fusion(CompositeAnnotationBase):
             return annotations[0]
         return Fusion(*annotations)
 
-    def match(self, other):
+    def match(self, other, match_variants=True):
         if not isinstance(other, Fusion):
             return False
 
@@ -303,7 +303,7 @@ class Fusion(CompositeAnnotationBase):
         if len(self) != len(other):
             return False
 
-        return all(a.match(b) for a, b in zip(self.annotations, other.annotations))
+        return all(a.match(b, match_variants=match_variants) for a, b in zip(self.annotations, other.annotations))
 
     def index(self, other):
         if isinstance(other, Fusion):
@@ -343,7 +343,7 @@ class Plasmid(CompositeAnnotationBase):
     def __hash__(self):
         return hash(self.name)
 
-    def match(self, other):
+    def match(self, other, match_variants=True):
         if not isinstance(other, Plasmid):
             return False
 

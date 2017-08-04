@@ -71,6 +71,16 @@ def test_replacement(state):
     )
 
 
+def test_match_on_delete(state):
+    state.change(Change(None, F.parse('species/gene.A')))
+    assert state.changes == (
+        Change(None, F.parse('species/gene.A')),
+    )
+
+    state.change(Change(F.parse('gene.A'), None))
+    assert state.changes == ()
+
+
 def test_repeat_replacement(state):
     state.change(Change(F('a'), F('b')))
     state.change(Change(F('a'), F('b')))

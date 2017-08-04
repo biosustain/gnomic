@@ -96,7 +96,7 @@ class GenotypeState(object):
 
         # e.g. -annotation
         matches = [(before, after) for before, after in self._changes
-                   if after is None and annotation == before]
+                   if after is None and annotation.match(before)]
 
         if len(matches) == 1 or len(matches) > 1 and multiple:
             for match in matches:
@@ -105,7 +105,7 @@ class GenotypeState(object):
 
         # e.g. +annotation(foo)
         matches = [(before, after) for before, after in self._changes
-                   if before is None and annotation.match(after)]
+                   if before is None and annotation.match(after, match_variants=False)]
 
         # if len(matches) == 0:
         #     matches = [(before, after) for before, after in self._changes
@@ -125,10 +125,6 @@ class GenotypeState(object):
                 return  # e.g. -gene.A, -gene.A
 
         if isinstance(site, AtLocus):
-            # e.g. -gene.A@gene.X -gene.A@gene.X
-            matches = [(before, after) for before, after in self._changes
-                       if after is None and site == before]
-
             # e.g. gene.A>gene.X -gene.X@gene.A
             matches = [(before, after) for before, after in self._changes
                        if before and after
@@ -166,7 +162,16 @@ class GenotypeState(object):
 
             # e.g. -site
             matches = [(before, after) for before, after in self._changes
-                       if after is None and site.match(before)]
+                       if after is None and site.match(before, match_variants=False)]
+
+            if len(matches) == 1 or len(matches) > 1 and multiple:
+                for match in matches:
+                    self._changes.remove(match)
+                return
+
+            # e.g. +site
+            matches = [(before, after) for before, after in self._changes
+                       if before is None and site.match(after)]
 
             if len(matches) <= 1 or multiple:
                 for match in matches:
