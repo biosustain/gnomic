@@ -6,19 +6,6 @@ import six
 
 from gnomic.types import Feature, Fusion, Plasmid, AtLocus
 
-VARIANT_MAP = {
-    'wild-type':{
-        'text': u'\u207A',
-        'html': '+',
-        'string': '+',
-    },
-    'mutant': {
-        'text': u'\u207B',
-        'html': '-',
-        'string': '-',
-    }
-
-}
 
 DELTA = u'\u0394'
 
@@ -59,12 +46,7 @@ class Formatter(six.with_metaclass(ABCMeta)):
             return '#{}'.format(accession.identifier)
 
     def format_variant(self, variant):
-        s = ''
-        if any(variant in VARIANT_MAP for variant in variant):
-            s += '{}'.format(''.join(VARIANT_MAP[v][self.format] for v in variant if v in VARIANT_MAP))
-        if any(variant not in VARIANT_MAP for variant in variant):
-            s += '({})'.format('; '.join(v for v in variant if v not in VARIANT_MAP))
-        return s
+        return '({})'.format('; '.join(v for v in variant))
 
     def format_feature(self, feature):
         s = ''
@@ -124,14 +106,7 @@ class HTMLFormatter(TextFormatter):
     format = 'html'
 
     def format_variant(self, variant):
-        s = ''
-        if any(variant in VARIANT_MAP for variant in variant):
-            s += '{}'.format(''.join(VARIANT_MAP[v][self.format] for v in variant if v in VARIANT_MAP))
-        if any(variant not in VARIANT_MAP for variant in variant):
-            if s:
-                s += ' '
-            s += '{}'.format('; '.join(escape_html(v) for v in variant if v not in VARIANT_MAP))
-        return '<sup>{}</sup>'.format(s)
+        return '<sup>{}</sup>'.format('; '.join(escape_html(v) for v in variant))
 
     def format_feature(self, feature):
         s = ''

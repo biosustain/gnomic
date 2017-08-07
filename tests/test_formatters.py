@@ -30,9 +30,7 @@ def test_feature_gnomic_format(gnomic_formatter):
         == 'organism/type.gene#db:123(f; g)'
     assert gnomic_formatter.format_annotation(Feature.parse('#db:123')) == '#db:123'
     assert gnomic_formatter.format_annotation(Feature.parse('gene#123')) == 'gene#123'
-    assert gnomic_formatter.format_annotation(Feature.parse('foo(wild-type)')) == 'foo+'
-    assert gnomic_formatter.format_annotation(Feature.parse('foo(mutant)')) == 'foo-'
-    assert gnomic_formatter.format_annotation(Feature.parse('foo(mutant; variant)')) == 'foo-(variant)'
+    assert gnomic_formatter.format_annotation(Feature.parse('foo(mutant; variant)')) == 'foo(mutant; variant)'
 
 
 def test_change_gnomic_format(gnomic_formatter):
@@ -75,7 +73,7 @@ def test_genotype_text_format(text_formatter):
     assert text_formatter.format_genotype(Genotype.parse('foo>>bar')) == '\u0394foo'
     assert text_formatter.format_genotype(Genotype.parse('-(pA)')) == '\u0394(pA)'
     assert text_formatter.format_genotype(Genotype.parse('+geneA(x)')) == 'geneA(x)'
-    assert text_formatter.format_genotype(Genotype.parse('+geneA(wild-type, var)')) == 'geneA\u207A(var)'
+    assert text_formatter.format_genotype(Genotype.parse('+geneA(var1, var2)')) == 'geneA(var1; var2)'
 
 
 def test_genotype_html_format(html_formatter):
@@ -88,10 +86,8 @@ def test_genotype_html_format(html_formatter):
         == "<span class='gnomic-plasmid'>(<span class='gnomic-plasmid-name'>pA</span>)</span>"
     assert html_formatter.format_genotype(Genotype.parse('+geneA(x)')) \
         == "<span class='gnomic-feature'>geneA<sup>x</sup></span>"
-    assert html_formatter.format_genotype(Genotype.parse('+geneA(wild-type)')) \
-        == "<span class='gnomic-feature'>geneA<sup>+</sup></span>"
     assert html_formatter.format_genotype(Genotype.parse('+geneA(x; wild-type; mutant; y)')) \
-        == "<span class='gnomic-feature'>geneA<sup>+- x; y</sup></span>"
+        == "<span class='gnomic-feature'>geneA<sup>x; wild-type; mutant; y</sup></span>"
     assert html_formatter.format_genotype(Genotype.parse('+foo:bar')) \
         == "<span class='gnomic-fusion'><span class='gnomic-feature'>foo</span>:" \
            "<span class='gnomic-feature'>bar</span></span>"
@@ -100,8 +96,6 @@ def test_genotype_html_format(html_formatter):
 def test_feature_text_format(text_formatter):
     assert text_formatter.format_feature(Feature('foo')) == 'foo'
     assert text_formatter.format_feature(Feature('foo', organism='org', type='gene')) == 'org/gene.foo'
-    assert text_formatter.format_feature(Feature('foo', variant=('wild-type', ))) == 'foo\u207A'
-    assert text_formatter.format_feature(Feature('foo', variant=('mutant', ))) == 'foo\u207B'
     assert text_formatter.format_feature(Feature('foo', accession=Accession('123', 'db'))) == 'foo#db:123'
 
 
