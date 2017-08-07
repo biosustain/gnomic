@@ -120,18 +120,18 @@ class HTMLFormatter(TextFormatter):
             s += escape_html(self.format_accession(feature.accession))
         if feature.variant:
             s += self.format_variant(feature.variant)
-        return "<span class='gnomic-feature'>{}</span>".format(s)
+        return '<span class="gnomic-feature">{}</span>'.format(s)
 
     def format_fusion(self, fusion):
-        return "<span class='gnomic-fusion'>{}</span>".format(':'.join(map(self.format_annotation, fusion.annotations)))
+        return '<span class="gnomic-fusion">{}</span>'.format(':'.join(map(self.format_annotation, fusion.annotations)))
 
     def format_plasmid(self, plasmid):
         if plasmid.annotations:
-            s = "(<span class='gnomic-plasmid-name'>{}</span> {})"\
+            s = '(<span class="gnomic-plasmid-name">{}</span> {})'\
                 .format(escape_html(plasmid.name), ' '.join(map(self.format_annotation, plasmid.annotations)))
         else:
-            s = "(<span class='gnomic-plasmid-name'>{}</span>)".format(escape_html(plasmid.name))
-        return "<span class='gnomic-plasmid'>{}</span>".format(s)
+            s = '(<span class="gnomic-plasmid-name">{}</span>)'.format(escape_html(plasmid.name))
+        return '<span class="gnomic-plasmid">{}</span>'.format(s)
 
 
 BUILTIN_FORMATTERS = {
