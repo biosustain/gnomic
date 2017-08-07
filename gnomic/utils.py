@@ -44,7 +44,3 @@ def feature_to_text(feature):
 
 def feature_to_html(feature):
     return BUILTIN_FORMATTERS['html'].format_feature(feature)
-
-
-def get_genotype_change_strings(genotype):
-    return [change_to_string(change).lower() for change in genotype.changes()]
