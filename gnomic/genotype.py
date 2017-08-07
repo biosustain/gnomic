@@ -329,6 +329,18 @@ class Genotype(object):
         return {change.before
                 for change in self.state.changes
                 if change.after is None and isinstance(change.before, Plasmid)}
+    
+    @property
+    def added_fusions(self):
+        return {change.after
+                for change in self.state.changes
+                if change.before is None and isinstance(change.after, Fusion)}
+    
+    @property
+    def removed_fusions(self):
+        return {change.before
+                for change in self.state.changes
+                if change.after is None and isinstance(change.before, Fusion)}
 
     def changes(self):
         return self.state.changes
