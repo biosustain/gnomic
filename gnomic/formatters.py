@@ -96,10 +96,12 @@ class TextFormatter(Formatter):
     def format_change(self, change):
         after = self.format_annotation(change.after) if change.after is not None else None
         before = self.format_annotation(change.before) if change.before is not None else None
-        if before is not None:
+        if after is None:
             return '{}{}'.format(DELTA, before)
-        else:
+        elif before is None:
             return '{}'.format(after)
+        else:
+            return '{}{} {}'.format(DELTA, before, after)
 
 
 class HTMLFormatter(TextFormatter):

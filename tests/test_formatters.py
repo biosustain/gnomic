@@ -68,9 +68,9 @@ def test_genotype_gnomic_format(gnomic_formatter):
 def test_genotype_text_format(text_formatter):
     assert text_formatter.format_genotype(Genotype.parse('+geneA')) == 'geneA'
     assert text_formatter.format_genotype(Genotype.parse('-geneA')) == '\u0394geneA'
-    assert text_formatter.format_genotype(Genotype.parse('siteA>(pA)')) == '\u0394siteA'
-    assert text_formatter.format_genotype(Genotype.parse('foo>bar')) == '\u0394foo'
-    assert text_formatter.format_genotype(Genotype.parse('foo>>bar')) == '\u0394foo'
+    assert text_formatter.format_genotype(Genotype.parse('siteA>(pA)')) == '\u0394siteA (pA)'
+    assert text_formatter.format_genotype(Genotype.parse('foo>bar')) == '\u0394foo bar'
+    assert text_formatter.format_genotype(Genotype.parse('foo>>bar')) == '\u0394foo bar'
     assert text_formatter.format_genotype(Genotype.parse('-(pA)')) == '\u0394(pA)'
     assert text_formatter.format_genotype(Genotype.parse('+geneA(x)')) == 'geneA(x)'
     assert text_formatter.format_genotype(Genotype.parse('+geneA(var1, var2)')) == 'geneA(var1; var2)'
@@ -81,7 +81,7 @@ def test_genotype_html_format(html_formatter):
     assert html_formatter.format_genotype(Genotype.parse('-geneB')) \
         == '\u0394<span class="gnomic-feature">geneB</span>'
     assert html_formatter.format_genotype(Genotype.parse('foo>>bar')) \
-        == '\u0394<span class="gnomic-feature">foo</span>'
+        == '\u0394<span class="gnomic-feature">foo</span> <span class="gnomic-feature">bar</span>'
     assert html_formatter.format_genotype(Genotype.parse('(pA)')) \
         == '<span class="gnomic-plasmid">(<span class="gnomic-plasmid-name">pA</span>)</span>'
     assert html_formatter.format_genotype(Genotype.parse('+geneA(x)')) \
