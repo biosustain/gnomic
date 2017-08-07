@@ -2,7 +2,7 @@ import pytest
 
 from gnomic.grammar import GnomicParser
 from gnomic.semantics import DefaultSemantics
-from gnomic.types import Feature, Plasmid, Change, Accession, Fusion
+from gnomic.types import Feature, Plasmid, Change, Accession, Fusion, CompositeAnnotation
 
 
 @pytest.fixture
@@ -49,3 +49,8 @@ def test_genotype_parse_plasmid_insertion(parse):
 def test_parse_fusion(parse):
     assert [Change(after=Fusion(Feature('foo'), Feature('bar')))] == parse('+foo:bar')
     assert [Change(before=Fusion(Feature('foo'), Feature('bar')), after=Feature('foo'))] == parse('foo:bar>foo')
+
+
+def test_parse_composite_annotation(parse):
+    assert [Change(after=CompositeAnnotation(Feature('geneA'), Feature('geneB')))] == parse('+{geneA, geneB}')
+    assert [Change(before=CompositeAnnotation(Feature('geneA'), Feature('geneB')))] == parse('-{geneA, geneB}')

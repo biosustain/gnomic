@@ -1,5 +1,5 @@
 from gnomic.grammar import GnomicSemantics
-from gnomic.types import Fusion, Feature, Plasmid, Change, Accession, AtLocus
+from gnomic.types import Fusion, Feature, Plasmid, Change, Accession, AtLocus, CompositeAnnotation
 
 
 class DefaultSemantics(GnomicSemantics):
@@ -9,8 +9,8 @@ class DefaultSemantics(GnomicSemantics):
     def FEATURE_FUSION(self, ast):
         return Fusion(*ast)
 
-    # def FEATURE_SET(self, ast):
-    #     return FeatureSet(*ast)
+    def FEATURE_SET(self, ast):
+        return CompositeAnnotation(*ast)
 
     def DNA_SEQUENCE_VARIANT(self, ast):
         return ''.join(map(str, ast))

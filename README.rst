@@ -119,7 +119,7 @@ To rebuild the gnomic parser using `grako`, run:
 
 ::
 
-    grako genotype.enbf -o gnomic/grammar.py -m Gnomic
+    grako gnomic-grammar/genotype.enbf -o gnomic/grammar.py -m Gnomic
     
 References
 -----------
