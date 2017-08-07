@@ -4,7 +4,7 @@ from abc import abstractmethod, ABCMeta
 
 import six
 
-from gnomic.types import Feature, Fusion, Plasmid, AtLocus
+from gnomic.types import Feature, Fusion, Plasmid, AtLocus, CompositeAnnotation
 
 
 DELTA = '\u0394'
@@ -36,6 +36,8 @@ class Formatter(six.with_metaclass(ABCMeta)):
             return self.format_plasmid(annotation)
         elif isinstance(annotation, AtLocus):
             return self.format_at_locus(annotation)
+        elif isinstance(annotation, CompositeAnnotation):
+            return self.format_composite_annotation(annotation)
         raise NotImplementedError
 
     @staticmethod
@@ -72,6 +74,9 @@ class Formatter(six.with_metaclass(ABCMeta)):
 
     def format_at_locus(self, at_locus):
         return '{}@{}'.format(self.format_annotation(at_locus.annotation), self.format_annotation(at_locus.locus))
+
+    def format_composite_annotation(self, composite_annotation):
+        return '{{{}}}'.format(', '.join(map(self.format_annotation, composite_annotation.annotations)))
 
 
 class GnomicFormatter(Formatter):

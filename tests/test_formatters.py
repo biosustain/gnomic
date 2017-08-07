@@ -60,9 +60,11 @@ def test_at_locus_gnomic_format(gnomic_formatter):
 def test_genotype_gnomic_format(gnomic_formatter):
     assert gnomic_formatter.format_genotype(Genotype.parse('+geneA -geneB site>feature')) \
            == '+geneA -geneB site>feature'
-    # assert gnomic_formatter.format_genotype(Genotype.parse('+geneA -geneB site>>feature')) \
-    #        == '+geneA -geneB site>>feature'
+    assert gnomic_formatter.format_genotype(Genotype.parse('+geneA -geneB site>>feature')) \
+            == '+geneA -geneB site>feature'
     assert gnomic_formatter.format_genotype(Genotype.parse('+geneA -geneB -geneA')) == '-geneB'
+    assert gnomic_formatter.format_genotype(Genotype.parse('+{geneA, geneB} -{geneC, geneD}')) \
+           == '+{geneA, geneB} -{geneC, geneD}'
 
 
 def test_genotype_text_format(text_formatter):
@@ -74,6 +76,7 @@ def test_genotype_text_format(text_formatter):
     assert text_formatter.format_genotype(Genotype.parse('-(pA)')) == '\u0394(pA)'
     assert text_formatter.format_genotype(Genotype.parse('+geneA(x)')) == 'geneA(x)'
     assert text_formatter.format_genotype(Genotype.parse('+geneA(var1, var2)')) == 'geneA(var1; var2)'
+    assert text_formatter.format_genotype(Genotype.parse('+{geneA, geneB}')) == '{geneA, geneB}'
 
 
 def test_genotype_html_format(html_formatter):
