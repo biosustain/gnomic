@@ -179,7 +179,7 @@ class Feature(Annotation):
         from gnomic.grammar import GnomicParser
         from gnomic.semantics import DefaultSemantics
 
-        if not isinstance(gnomic_feature_string, str):
+        if not isinstance(gnomic_feature_string, six.string_types):
             raise ValueError('"gnomic_feature_string" must a string, got {}'.format(repr(gnomic_feature_string)))
 
         parser = GnomicParser()
