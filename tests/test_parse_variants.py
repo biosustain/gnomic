@@ -1,14 +1,26 @@
-from gnomic.types import Feature
+import pytest
+
+from gnomic.grammar import GnomicParser
+from gnomic.semantics import DefaultSemantics
+from gnomic.types import Feature, Plasmid, Change, Accession, Fusion, CompositeAnnotation
 
 # http://varnomen.hgvs.org/recommendations/
 
 
-def assert_parse_feature_variants(variants):
-    assert Feature('geneA', variant=tuple(variants)) == Feature.parse('geneA({})'.format('; '.join(variants)))
+@pytest.fixture
+def parse():
+    def parse_(gnomic_string, *args, **kwargs):
+        parser = GnomicParser()
+        semantics = DefaultSemantics(*args, **kwargs)
+        return parser.parse(gnomic_string,
+                            whitespace='',
+                            semantics=semantics,
+                            rule_name='FEATURE')
+    return parse_
 
 
-def test_sequence_variants_dna_substitutions():
-    assert_parse_feature_variants([
+def test_sequence_variants_dna_substitutions(parse):
+    variants = [
         'g.123C>A',
         'c.93+1G>T',
         'c.79_80delinsTT',
@@ -17,11 +29,12 @@ def test_sequence_variants_dna_substitutions():
         'c.123=',
         'c.85=/T>C',
         'c.85=//T>C',
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_dna_deletions():
-    assert_parse_feature_variants([
+def test_sequence_variants_dna_deletions(parse):
+    variants = [
         'g.19del',
         'g.10_21del',
         'c.183_186+48del',
@@ -32,11 +45,12 @@ def test_sequence_variants_dna_deletions():
         'c.(?_-1)_(*1_?)del',
         'g.19_21=/del',
         'g.19_21del=//del'
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_dna_duplication():
-    assert_parse_feature_variants([
+def test_sequence_variants_dna_duplication(parse):
+    variants = [
         'g.7dup',
         'g.6_8dup',
         'c.120_123+48dup',
@@ -46,11 +60,12 @@ def test_sequence_variants_dna_duplication():
         'c.(4071+1_4072-1)_(5145+1_5146-1)[3]',
         'c.(?_-30)_(12+1_13-1)dup',
         'c.(?_-1)_(*1_?)dup',
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_dna_insertion():
-    assert_parse_feature_variants([
+def test_sequence_variants_dna_insertion(parse):
+    variants = [
         'g.4426_4426insA',
         'g.5756_5757insAGG',
         'g.123_124insL1234.1:23_361',
@@ -59,45 +74,50 @@ def test_sequence_variants_dna_insertion():
         'g.122_123ins212_234inv123_199inv',
         'c.(67_70)insG(p.Gly23fs)',
         'g.123_124ins(100)',
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_dna_inversion():
-    assert_parse_feature_variants([
+def test_sequence_variants_dna_inversion(parse):
+    variants = [
         'g.1234_1236inv',
         'c.77_80inv',
         'g.122_123ins123_234inv',
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_dna_conversion():
-    assert_parse_feature_variants([
+def test_sequence_variants_dna_conversion(parse):
+    variants = [
         'g.333_590con1844_2101',
         # other possibilities with reference to a file or a gene
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_dna_delins():
-    assert_parse_feature_variants([
+def test_sequence_variants_dna_delins(parse):
+    variants = [
         'g.6775delinsGA',
         'g.6775_6777delinsC',
         'g.9002_9009delinsTTT',
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_dna_repeated():
-    assert_parse_feature_variants([
+def test_sequence_variants_dna_repeated(parse):
+    variants = [
         'g.123_124[14]',
         'g.123_124[14];[18]',
         'c.-128_-126[79]',
         'c.-128_-126[(600_800)]',
         'c.54GCA[21]',
         'c.54GCA[21]ACA[1]GCC[2]'
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_protein_substitution():
-    assert_parse_feature_variants([
+def test_sequence_variants_protein_substitution(parse):
+    variants = [
         'p.Trp24Cys',
         'p.(Trp24Cys)',
         'p.Trp24Ter',
@@ -107,27 +127,30 @@ def test_sequence_variants_protein_substitution():
         'p.?',
         'p.Met1?',
         'p.(Tyr4*)'
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_protein_deletion():
-    assert_parse_feature_variants([
+def test_sequence_variants_protein_deletion(parse):
+    variants = [
         'p.Ala3del',
         'p.(Ala3del)',
         'p.Ala3_Ser5del',
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_protein_duplication():
-    assert_parse_feature_variants([
+def test_sequence_variants_protein_duplication(parse):
+    variants = [
         'p.Ala3dup',
         'p.(Ala3dup)',
         'p.Ala3_Ser5dup',
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_protein_insertion():
-    assert_parse_feature_variants([
+def test_sequence_variants_protein_insertion(parse):
+    variants = [
         'p.His4_Gln5insAla',
         'p.Lys2_Gly3insGlnSerLys',
         'p.(Met3_His4insGlyTer)',
@@ -136,33 +159,37 @@ def test_sequence_variants_protein_insertion():
         'p.Cys28_Lys29delinsTrp',
         'p.(Pro578_Lys579delinsLeuTer)',
         'p.[Ser44Arg;Trp46Arg]',
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_protein_repeated():
-    assert_parse_feature_variants([
+def test_sequence_variants_protein_repeated(parse):
+    variants = [
         'p.Ala2[10]',
         'p.Ala2[10];[11]',
         'p.Gln18[23]',
         'p.(Gln18)[(70_80)]',
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_protein_frameshift():
-    assert_parse_feature_variants([
+def test_sequence_variants_protein_frameshift(parse):
+    variants = [
         'p.Arg97ProfsTer23',
         'p.Arg97fs',
         'p.Ile327Argfs*?',
         'p.Gln151Thrfs*9',
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
 
 
-def test_sequence_variants_protein_extension():
-    assert_parse_feature_variants([
+def test_sequence_variants_protein_extension(parse):
+    variants = [
         'p.Met1ext-5',
         'p.Met1Valext-12',
         'p.Ter110Clnext*17',
         'p.(Ter315TyrextAsnLysGlyThrTer)',
         'p.Ter327Argext*?',
         'p.*327Argext*',
-    ])
+    ]
+    assert parse('geneA({})'.format('; '.join(variants))) == Feature('geneA', variant=tuple(variants))
