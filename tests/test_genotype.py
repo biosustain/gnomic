@@ -1,7 +1,7 @@
 import pytest
 
 from gnomic import Genotype
-from gnomic.types import Plasmid, Fusion, Feature
+from gnomic.types import Plasmid, Fusion, Feature, CompositeAnnotation
 
 
 def test_added_plasmids():
@@ -22,3 +22,25 @@ def test_added_fusions():
 def test_removed_fusions():
     genotype = Genotype.parse('+A:B +B:C -B:C -C:D')
     assert genotype.removed_fusions == {Fusion(Feature('C'), Feature('D'))}
+
+
+def test_added_features():
+    genotype = Genotype.parse('+geneA -geneB +geneB -geneC')
+    assert genotype.added_features == {Feature('geneA')}
+
+
+def test_removed_features():
+    genotype = Genotype.parse('+geneA -geneB +geneB -geneC')
+    assert genotype.removed_features == {Feature('geneC')}
+
+
+def test_added_fusion_features():
+    genotype = Genotype.parse('+geneA -geneB:geneC +geneB:geneC +{geneA, geneB}')
+    assert genotype.added_fusion_features == {Feature('geneA'), CompositeAnnotation(Feature('geneA'), Feature('geneB'))}
+
+
+def test_removed_fusion_features():
+    genotype = Genotype.parse('+geneA -geneB:geneC -geneA +{geneA, geneB}')
+    assert genotype.removed_fusion_features == {Fusion(Feature('geneB'), Feature('geneC'))}
+
+

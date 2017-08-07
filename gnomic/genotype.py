@@ -342,6 +342,18 @@ class Genotype(object):
                 for change in self.state.changes
                 if change.after is None and isinstance(change.before, Fusion)}
 
+    @property
+    def added_fusion_features(self):
+        return {change.after
+                for change in self.state.changes
+                if change.before is None and isinstance(change.after, (Feature, Fusion, CompositeAnnotation))}
+
+    @property
+    def removed_fusion_features(self):
+        return {change.before
+                for change in self.state.changes
+                if change.after is None and isinstance(change.before, (Feature, Fusion, CompositeAnnotation))}
+
     def changes(self):
         return self.state.changes
 

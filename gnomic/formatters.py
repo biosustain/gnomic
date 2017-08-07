@@ -7,7 +7,7 @@ import six
 from gnomic.types import Feature, Fusion, Plasmid, AtLocus
 
 
-DELTA = u'\u0394'
+DELTA = '\u0394'
 
 
 def escape_html(s, quote=False):
