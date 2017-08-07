@@ -22,29 +22,31 @@ In this example, we parse `"EcGeneA ΔsiteA::promoterB:EcGeneB ΔgeneC"` and `"�
 
 .. code-block:: python
 
-   >>> from gnomic import *
-   >>> g1 = Genotype.parse('+Ec/geneA siteA>P.promoterB:Ec/geneB -geneC')
+   >>> from gnomic import Genotype
+   >>> g1 = Genotype.parse('+Ec/geneA(variant) siteA>P.promoterB:Ec/geneB -geneC')
    >>> g1.added_features
-   (Feature(organism=Organism('Escherichia coli'), name='geneB'),
-    Feature(organism=Organism('Escherichia coli'), name='geneA'),
-    Feature(type=Type('promoter'), name='promoterB'))
+   {Feature(organism=Organism('Ec'), name='geneA', variant=('variant',)),
+    Feature(organism=Organism('Ec'), name='geneB'),
+    Feature(type='P', name='promoterB')}
    >>> g1.removed_features
-   (Feature(name='geneC'),
-    Feature(name='siteA'))
-   >>> g1.raw
-   (Mutation(new=FeatureTree(Feature(organism=Organism('Escherichia coli'), name='geneA'))),
-    Mutation(old=FeatureTree(Feature(name='siteA')),
-             new=FeatureTree(Fusion(Feature(type=Type('promoter'), name='promoterB'),
-                                    Feature(organism=Organism('Escherichia coli'), name='geneB')))),
-    Mutation(old=FeatureTree(Feature(name='geneC'))))
+   {Feature(name='geneC'),
+    Feature(name='siteA')}
+
    >>> g2 = Genotype.parse('-geneA', parent=g1)
    >>> g2.added_features
-   (Feature(type=Type('promoter'), name='promoterB'),
-    Feature(name='geneB', organism=Organism('Escherichia coli')))
+   {Feature(type='P', name='promoterB'),
+    Feature(name='geneB', organism='Ec')}
    >>> g2.removed_features
-   (Feature(name='siteA'),
-    Feature(name='geneC'),
-    Feature(name='geneA'))
+   {Feature(name='siteA'),
+    Feature(name='geneC')}
+    >>> g2.changes()
+    (Change(multiple=False,
+            after=Fusion(annotations=(Feature(type='P', name='promoterB'), Feature(organism='Ec', name='geneB'))),
+            before=Feature(name='siteA')),
+     Change(multiple=False, before=Feature(name='geneC')))
+
+    >>> g2.format()
+    'ΔsiteA P.promoterB:Ec/geneB ΔgeneC'
 
 
 User's guide
