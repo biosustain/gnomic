@@ -8,12 +8,6 @@ from gnomic.semantics import DefaultSemantics
 from gnomic.types import Plasmid, Change, Fusion, CompositeAnnotation, AtLocus, Feature, CompositeAnnotationBase
 from gnomic.formatters import BUILTIN_FORMATTERS
 
-DEFAULT_FEATURE_TYPE_ALIASES = (
-    ('g', 'gene'),
-    ('p', 'promoter'),
-    ('t', 'terminator')
-)
-
 
 def partial_match(search, target):
     """
