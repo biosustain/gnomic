@@ -36,6 +36,12 @@ class Change(object):
                self.after == other.after and \
                self.multiple == other.multiple
 
+    def __ne__(self, other):
+        return (not isinstance(other,Change)) or \
+               self.before != other.before or \
+               self.after != other.after or \
+               self.multiple != other.multiple
+
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__,
                                ', '.join('{}={}'.format(key, repr(value))
@@ -143,6 +149,11 @@ class AtLocus(Annotation):
                self.annotation == other.annotation and \
                self.locus == other.locus
 
+    def __ne__(self, other):
+        return (not isinstance(other, AtLocus)) or \
+               self.annotation != other.annotation or \
+               self.locus != other.locus
+
     def __str__(self):
         return '{!s}@{!s}'.format(self.annotation, self.locus)
 
@@ -224,6 +235,19 @@ class Feature(Annotation):
                    self.variant == other.variant
         return False
 
+    def __ne__(self, other):
+        if not isinstance(other, Feature):
+            return True
+
+        if self.accession and other.accession:
+            return self.accession != other.accession
+        elif self.name:
+            return self.name != other.name or \
+                   self.type != other.type or \
+                   self.organism != other.organism or \
+                   self.variant != other.variant
+        return True
+
     def __str__(self):
         s = ''
         if self.organism:
@@ -251,6 +275,9 @@ class CompositeAnnotationBase(six.with_metaclass(ABCMeta, Annotation)):
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.annotations == other.annotations
+
+    def __ne__(self, other):
+        return (not isinstance(other, self.__class__)) or (self.annotations != other.annotations)
 
     def __len__(self):
         return len(self.annotations)
@@ -342,6 +369,9 @@ class Plasmid(CompositeAnnotationBase):
     def __eq__(self, other):
         return isinstance(other, Plasmid) and self.name == other.name
 
+    def __ne__(self, other):
+        return (not isinstance(other, Plasmid)) or (self.name != other.name)
+
     def __hash__(self):
         return hash(self.name)
 
@@ -371,8 +401,13 @@ class Accession(object):
 
     def __eq__(self, other):
         return isinstance(other, Accession) and \
-            self.database == other.database and \
-            self.identifier == other.identifier
+               self.database == other.database and \
+               self.identifier == other.identifier
+
+    def __ne__(self, other):
+        return (not isinstance(other, Accession)) or \
+               self.database != other.database or \
+               self.identifier != other.identifier
 
     def __hash__(self):
         return hash(self.identifier) + hash(self.database)
