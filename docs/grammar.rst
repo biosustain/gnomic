@@ -24,7 +24,7 @@ accession number                                              ``#database:id`` o
 fusion of ``feature1`` and ``feature2``                       ``feature1:feature2``
 insertion of two fused features                               ``+feature1:feature2``
 insertion of a list of features or fusions                    ``+{..insertables}``
-fusion of a list and a feature                                ``{..insertables}:feature
+fusion of a list and a feature                                ``{..insertables}:feature``
 a non-integrated plasmid                                      ``(plasmid)`` or ``(plasmid ...insertables)``
 integrated plasmid vector with required insertion site        ``site>(vector ..insertables)``
 ============================================================= =======================================================
