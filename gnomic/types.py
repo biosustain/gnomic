@@ -71,6 +71,9 @@ class Change(object):
         else:
             return '{!s}>{!s}'.format(self.before, self.after)
 
+    def __hash__(self):
+        return hash(self.before) + hash(self.after) + hash(self.multiple)
+
 
 class Present(Change):
     def __init__(self, annotation):
