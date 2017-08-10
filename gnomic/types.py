@@ -37,7 +37,7 @@ class Change(object):
                self.multiple == other.multiple
 
     def __ne__(self, other):
-        return (not isinstance(other,Change)) or \
+        return (not isinstance(other, Change)) or \
                self.before != other.before or \
                self.after != other.after or \
                self.multiple != other.multiple

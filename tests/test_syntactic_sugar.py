@@ -52,4 +52,3 @@ def test_replace_fusion():
 
     assert Change(before=Fusion(Feature('a'), Feature('b')),
                   after=Feature('c')) == (Feature('a') ** Feature('b') > Feature('c'))
-

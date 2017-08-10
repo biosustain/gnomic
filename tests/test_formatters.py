@@ -59,12 +59,12 @@ def test_at_locus_gnomic_format(gnomic_formatter):
 
 def test_genotype_gnomic_format(gnomic_formatter):
     assert gnomic_formatter.format_genotype(Genotype.parse('+geneA -geneB site>feature')) \
-           == '+geneA -geneB site>feature'
+        == '+geneA -geneB site>feature'
     assert gnomic_formatter.format_genotype(Genotype.parse('+geneA -geneB site>>feature')) \
-            == '+geneA -geneB site>feature'
+        == '+geneA -geneB site>feature'
     assert gnomic_formatter.format_genotype(Genotype.parse('+geneA -geneB -geneA')) == '-geneB'
     assert gnomic_formatter.format_genotype(Genotype.parse('+{geneA, geneB} -{geneC, geneD}')) \
-           == '+{geneA, geneB} -{geneC, geneD}'
+        == '+{geneA, geneB} -{geneC, geneD}'
 
 
 def test_genotype_text_format(text_formatter):

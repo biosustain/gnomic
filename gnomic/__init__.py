@@ -1,1 +1,1 @@
-from .genotype import Genotype
+from .genotype import Genotype  # noqa

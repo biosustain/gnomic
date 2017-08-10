@@ -35,11 +35,7 @@ def test_plasmid_removal_followed_by_insertion(state):
 
     assert state.changes == ()
 
-
-
-
-
-        # def test_plasmids(self):
+# def test_plasmids(self):
 #     self.assertEqual({
 #         Present(Plasmid('p3', []))
 #     }, self.chain('-p1{} p2{} p3{}', '-p2{} p1{}').changes())

@@ -1,5 +1,5 @@
 from gnomic.genotype import change_annotation
-from gnomic.types import Change, Feature as F, CompositeAnnotation
+from gnomic.types import Feature as F, CompositeAnnotation
 
 
 def test_replace_feature_in_composite_annotation():
@@ -22,7 +22,8 @@ def test_replace_feature_in_fusion():
     assert change_annotation(F('a') ** F('b'), F('a')) == F('b')
     assert change_annotation(F('a') ** F('b') ** F('c'), F('b')) == F('a') ** F('c')
     assert change_annotation(F('a') ** F('b') ** F('c'), F('b'), F('x')) == F('a') ** F('x') ** F('c')
-    assert change_annotation(F('a') ** F('b') ** F('c'), F('b'), F('x') ** F('y')) == F('a') ** F('x') ** F('y') ** F('c')
+    assert change_annotation(F('a') ** F('b') ** F('c'), F('b'),
+                             F('x') ** F('y')) == F('a') ** F('x') ** F('y') ** F('c')
 
 
 def test_remove_fusion_in_fusion():
@@ -31,8 +32,10 @@ def test_remove_fusion_in_fusion():
 
 
 def test_replace_fusion_in_fusion():
-    assert change_annotation(F('a') ** F('b') ** F('c') ** F('d'), F('b') ** F('c'), F('x')) == F('a') ** F('x') ** F('d')
-    assert change_annotation(F('a') ** F('b') ** F('c'), F('a') ** F('b'), F('x') ** F('y')) == F('x') ** F('y') ** F('c')
+    assert change_annotation(F('a') ** F('b') ** F('c') ** F('d'),
+                             F('b') ** F('c'), F('x')) == F('a') ** F('x') ** F('d')
+    assert change_annotation(F('a') ** F('b') ** F('c'), F('a') ** F('b'),
+                             F('x') ** F('y')) == F('x') ** F('y') ** F('c')
 
 
 def test_insert_feature_in_fusion():

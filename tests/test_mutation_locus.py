@@ -13,5 +13,3 @@ def test_imply_locus_with_substitution():
         Change(Feature.parse('gene.C'), Fusion(Feature.parse('promoter.X'), Feature.parse('gene.D'))),
         Change(Feature.parse('gene.A'), Fusion(Feature.parse('promoter.Y'), Feature.parse('gene.B'))),
     )
-
-
