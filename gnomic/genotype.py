@@ -81,7 +81,7 @@ def change_annotation(annotation, site=None, replacement=None):
 
 class GenotypeState(object):
     def __init__(self, changes=()):
-        self._changes = list(changes)
+        self._changes = [(change.before, change.after) for change in changes]
 
     def insert(self, annotation, multiple=False):
         # skip repeated insertions
@@ -262,7 +262,7 @@ class GenotypeState(object):
 class Genotype(object):
     def __init__(self, changes, parent=None):
         if parent:
-            state = GenotypeState(parent.state._changes)
+            state = GenotypeState(parent.state.changes)
         else:
             state = GenotypeState()
 
