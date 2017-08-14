@@ -103,7 +103,7 @@ In this example, we parse `"EcGeneA ΔsiteA::promoterB:EcGeneB ΔgeneC"` and `"�
 Development
 -----------
 
-To rebuild the gnomic parser using `grako`, run:
+To rebuild the gnomic parser using `grako` (version 3.18.1), run:
 
 ::
 
