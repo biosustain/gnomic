@@ -296,7 +296,7 @@ class CompositeAnnotationBase(six.with_metaclass(ABCMeta, Annotation)):
         return other in self.annotations
 
     def features(self):
-        return chain(*[x.features() if isinstance(x, CompositeAnnotationBase) else [x] for x in self.annotations])
+        return chain(*(a.features() if isinstance(a, CompositeAnnotationBase) else [a] for a in self.annotations))
 
 
 class CompositeAnnotation(CompositeAnnotationBase):
