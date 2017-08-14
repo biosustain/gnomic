@@ -795,30 +795,8 @@ class GnomicParser(Parser):
     @graken()
     def _FEATURE_SET_(self):
         self._token('{')
-        with self._optional():
-            self._SEP_()
-        with self._group():
-            with self._choice():
-                with self._option():
-                    self._FEATURE_FUSION_()
-                with self._option():
-                    self._FEATURE_()
-                self._error('no available options')
-        self.add_last_node_to_name('@')
-
-        def block2():
-            self._LIST_SEPARATOR_()
-            with self._group():
-                with self._choice():
-                    with self._option():
-                        self._FEATURE_FUSION_()
-                    with self._option():
-                        self._FEATURE_()
-                    self._error('no available options')
-            self.add_last_node_to_name('@')
-        self._closure(block2)
-        with self._optional():
-            self._SEP_()
+        self._ANNOTATIONS_()
+        self.name_last_node('@')
         self._token('}')
 
     @graken()
@@ -826,28 +804,24 @@ class GnomicParser(Parser):
         with self._group():
             with self._choice():
                 with self._option():
-                    self._token('{')
-                    self._ANNOTATIONS_()
-                    self.name_last_node('@')
-                    self._token('}')
+                    self._FEATURE_SET_()
+                    self.add_last_node_to_name('@')
                 with self._option():
                     self._FEATURE_()
+                    self.add_last_node_to_name('@')
                 self._error('no available options')
-        self.add_last_node_to_name('@')
 
         def block3():
             self._token(':')
             with self._group():
                 with self._choice():
                     with self._option():
-                        self._token('{')
-                        self._ANNOTATIONS_()
-                        self.name_last_node('@')
-                        self._token('}')
+                        self._FEATURE_SET_()
+                        self.add_last_node_to_name('@')
                     with self._option():
                         self._FEATURE_()
+                        self.add_last_node_to_name('@')
                     self._error('no available options')
-            self.add_last_node_to_name('@')
         self._positive_closure(block3)
 
     @graken()

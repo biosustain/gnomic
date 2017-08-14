@@ -42,6 +42,7 @@ def test_repeat_deletion(state):
         Change(F('foo'), None),
     )
 
+
 def test_deletion_followed_by_insertion(state):
     state.change(Change(F('foo'), None))
     assert state.changes == (

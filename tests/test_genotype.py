@@ -27,6 +27,8 @@ def test_removed_fusions():
 def test_added_features():
     genotype = Genotype.parse('+geneA -geneB +geneB -geneC')
     assert genotype.added_features == {Feature('geneA')}
+    genotype = Genotype.parse('+{geneA, geneB:geneC}')
+    assert genotype.added_features == {Feature('geneA'), Feature('geneB'), Feature('geneC')}
 
 
 def test_removed_features():

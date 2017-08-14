@@ -54,3 +54,8 @@ def test_parse_fusion(parse):
 def test_parse_composite_annotation(parse):
     assert [Change(after=CompositeAnnotation(Feature('geneA'), Feature('geneB')))] == parse('+{geneA, geneB}')
     assert [Change(before=CompositeAnnotation(Feature('geneA'), Feature('geneB')))] == parse('-{geneA, geneB}')
+    assert [Change(after=Fusion(Feature('geneA'), CompositeAnnotation(Feature('geneB'), Feature('geneC'))))] \
+        == parse('+geneA:{geneB, geneC}')
+    assert [Change(after=Fusion(CompositeAnnotation(Feature('geneA'), Feature('geneB')),
+                                CompositeAnnotation(Feature('geneC'), Feature('geneD'))))] \
+        == parse('+{geneA, geneB}:{geneC, geneD}')
