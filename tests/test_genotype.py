@@ -1,5 +1,3 @@
-import pytest
-
 from gnomic import Genotype
 from gnomic.types import Plasmid, Fusion, Feature, CompositeAnnotation
 
@@ -42,5 +40,3 @@ def test_added_fusion_features():
 def test_removed_fusion_features():
     genotype = Genotype.parse('+geneA -geneB:geneC -geneA +{geneA, geneB}')
     assert genotype.removed_fusion_features == {Fusion(Feature('geneB'), Feature('geneC'))}
-
-

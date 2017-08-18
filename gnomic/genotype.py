@@ -12,10 +12,10 @@ from gnomic.formatters import BUILTIN_FORMATTERS
 def partial_match(search, target):
     """
     Check that something in ``target`` matches ``search``.
-    
-    :param search: 
-    :param target: 
-    :return: 
+
+    :param search:
+    :param target:
+    :return:
     """
     if isinstance(target, CompositeAnnotationBase):
         if target.contains(search):
@@ -26,7 +26,7 @@ def partial_match(search, target):
 def change_annotation(annotation, site=None, replacement=None):
     """
     Apply a change to an annotation.
-     
+
     - If ``site`` is specified, looks for ``site`` and replaces with ``replacement``.
     - If ``site`` is not specified, create a :class:`CompositeAnnotation` of ``annotation`` and ``replacement``.
     """
@@ -323,13 +323,13 @@ class Genotype(object):
         return {change.before
                 for change in self.state.changes
                 if change.after is None and isinstance(change.before, Plasmid)}
-    
+
     @property
     def added_fusions(self):
         return {change.after
                 for change in self.state.changes
                 if change.before is None and isinstance(change.after, Fusion)}
-    
+
     @property
     def removed_fusions(self):
         return {change.before

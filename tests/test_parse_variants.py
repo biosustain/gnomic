@@ -2,7 +2,7 @@ import pytest
 
 from gnomic.grammar import GnomicParser
 from gnomic.semantics import DefaultSemantics
-from gnomic.types import Feature, Plasmid, Change, Accession, Fusion, CompositeAnnotation
+from gnomic.types import Feature
 
 # http://varnomen.hgvs.org/recommendations/
 
