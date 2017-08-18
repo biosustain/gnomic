@@ -1,6 +1,6 @@
 from abc import ABCMeta
 
-from typing import Tuple, Optional, Iterator, Sequence, Union, Iterable
+from typing import Tuple, Optional, Iterator, Sequence, Union, Iterable, Set
 
 
 class Change(object):
@@ -95,6 +95,8 @@ class CompositeAnnotationBase(Annotation, metaclass=ABCMeta):
     def __iter__(self) -> Iterator[Annotation]: ...
 
     def contains(self, other: Annotation) -> bool: ...
+
+    def features(self) -> Set[Feature]: ...
 
 
 class CompositeAnnotation(CompositeAnnotationBase):

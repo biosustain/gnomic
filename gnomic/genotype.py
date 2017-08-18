@@ -303,13 +303,13 @@ class Genotype(object):
     @property
     def added_features(self):
         return {feature for feature in itertools.chain(*(
-            iter(change.after) if isinstance(change.after, CompositeAnnotationBase) else (change.after,)
+            iter(change.after.features()) if isinstance(change.after, CompositeAnnotationBase) else (change.after,)
             for change in self.state.changes if change.after is not None))}
 
     @property
     def removed_features(self):
         return {feature for feature in itertools.chain(*(
-            iter(change.before) if isinstance(change.before, CompositeAnnotationBase) else (change.before,)
+            iter(change.before.features()) if isinstance(change.before, CompositeAnnotationBase) else (change.before,)
             for change in self.state.changes if change.before is not None))}
 
     @property
