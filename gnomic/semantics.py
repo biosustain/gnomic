@@ -9,7 +9,7 @@ class DefaultSemantics(GnomicSemantics):
     def FEATURE_FUSION(self, ast):
         return Fusion(*ast)
 
-    def FEATURE_SET(self, ast):
+    def COMPOSITE_ANNOTATION(self, ast):
         return CompositeAnnotation(*ast)
 
     def DNA_SEQUENCE_VARIANT(self, ast):
