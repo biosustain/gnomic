@@ -106,7 +106,7 @@ class TextFormatter(Formatter):
         elif before is None:
             return '{}'.format(after)
         else:
-            return '{}{} {}'.format(DELTA, before, after)
+            return '{}{}::{}'.format(DELTA, before, after)
 
 
 class HTMLFormatter(TextFormatter):
