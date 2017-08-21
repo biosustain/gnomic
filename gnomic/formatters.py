@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 from abc import abstractmethod, ABCMeta
 
 import six
 
 from gnomic.types import Feature, Fusion, Plasmid, AtLocus, CompositeAnnotation
 
-
 DELTA = '\u0394'
 
 RIGHTWARDS_ARROW = '\u2192'
 
 RIGHTWARDS_PAIRED_ARROW = '\u21c9'
+
 
 def escape_html(s, quote=False):
     s = s.replace('&', '&amp;')
@@ -139,7 +140,7 @@ class HTMLFormatter(TextFormatter):
 
     def format_plasmid(self, plasmid):
         if plasmid.annotations:
-            s = '(<span class="gnomic-plasmid-name">{}</span> {})'\
+            s = '(<span class="gnomic-plasmid-name">{}</span> {})' \
                 .format(escape_html(plasmid.name), ' '.join(map(self.format_annotation, plasmid.annotations)))
         else:
             s = '(<span class="gnomic-plasmid-name">{}</span>)'.format(escape_html(plasmid.name))
