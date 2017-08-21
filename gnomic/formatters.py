@@ -9,6 +9,9 @@ from gnomic.types import Feature, Fusion, Plasmid, AtLocus, CompositeAnnotation
 
 DELTA = '\u0394'
 
+RIGHTWARDS_ARROW = '\u2192'
+
+RIGHTWARDS_PAIRED_ARROW = '\u21c9'
 
 def escape_html(s, quote=False):
     s = s.replace('&', '&amp;')
@@ -106,25 +109,13 @@ class TextFormatter(Formatter):
         elif before is None:
             return '{}'.format(after)
         elif change.multiple:
-            return '{}{}>>{}'.format(DELTA, before, after)
+            return '{}{}{}{}'.format(DELTA, before, RIGHTWARDS_PAIRED_ARROW, after)
         else:
-            return '{}{}>{}'.format(DELTA, before, after)
+            return '{}{}{}{}'.format(DELTA, before, RIGHTWARDS_ARROW, after)
 
 
 class HTMLFormatter(TextFormatter):
     format = 'html'
-
-    def format_change(self, change):
-        after = self.format_annotation(change.after) if change.after is not None else None
-        before = self.format_annotation(change.before) if change.before is not None else None
-        if after is None:
-            return '{}{}'.format(DELTA, before)
-        elif before is None:
-            return '{}'.format(after)
-        elif change.multiple:
-            return '{}{}&gt;&gt;{}'.format(DELTA, before, after)
-        else:
-            return '{}{}&gt;{}'.format(DELTA, before, after)
 
     def format_variant(self, variant):
         return '<sup>{}</sup>'.format('; '.join(escape_html(v) for v in variant))
