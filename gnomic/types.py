@@ -28,7 +28,9 @@ class Change(object):
                             rule_name='CHANGE')
 
     def is_presence(self):
-        return self.before and self.after and self.after.match(self.before)
+        if self.before is None and isinstance(self.after, Plasmid):
+            return True
+        return self.before and self.after and self.before.match(self.after)
 
     def __eq__(self, other):
         return isinstance(other, Change) and \

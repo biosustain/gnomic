@@ -89,13 +89,13 @@ class GnomicFormatter(Formatter):
     def format_change(self, change):
         after = self.format_annotation(change.after) if change.after is not None else None
         before = self.format_annotation(change.before) if change.before is not None else None
-        if after is None:
+
+        if change.is_presence():
+            return after
+        elif after is None:
             return '-{}'.format(before)
         elif before is None:
-            if isinstance(change.after, Plasmid):
-                return after
-            else:
-                return '+{}'.format(after)
+            return '+{}'.format(after)
         elif change.multiple:
             return '{}>>{}'.format(before, after)
         else:
