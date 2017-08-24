@@ -40,7 +40,7 @@ def test_change_gnomic_format(gnomic_formatter):
                                                  after=Feature('bar'))) == 'foo>bar'
     assert gnomic_formatter.format_change(Change(before=Feature('foo'),
                                                  after=Feature('bar'), multiple=True)) == 'foo>>bar'
-
+    assert gnomic_formatter.format_change(Change(after=Plasmid('foo'))) == '(foo)'
 
 def test_fusion_gnomic_format(gnomic_formatter):
     assert gnomic_formatter.format_fusion(Fusion(Feature('foo'), Feature('bar'))) == 'foo:bar'

@@ -92,7 +92,10 @@ class GnomicFormatter(Formatter):
         if after is None:
             return '-{}'.format(before)
         elif before is None:
-            return '+{}'.format(after)
+            if isinstance(change.after, Plasmid):
+                return after
+            else:
+                return '+{}'.format(after)
         elif change.multiple:
             return '{}>>{}'.format(before, after)
         else:
