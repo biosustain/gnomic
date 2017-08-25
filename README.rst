@@ -32,25 +32,24 @@ spaces and/or commas. The designations are described using the following nomencl
 Designation                                                   Grammar expression
 ============================================================= ==================================
 ``feature`` deleted                                           ``-feature``
+``feature`` at ``locus`` deleted                              ``-feature@locus``
 ``feature`` inserted                                          ``+feature``
 ``site`` replaced with ``feature``                            ``site>feature``
 ``site`` (multiple integration) replaced with ``feature``     ``site>>feature``
+``site`` at ``locus`` replaced with ``feature``               ``site@locus>feature``
 ``feature`` of ``organism``                                   ``organism/feature``
+``feature`` with ``type``                                     ``type.feature``
 ``feature`` with variant                                      ``feature(variant)``
+``feature`` with list of variants                             ``feature(var1, var2)`` or ``feature(var1; var2)``
 ``feature`` with accession number                             ``feature#GB:123456``
 ``feature`` by accession number                               ``#GB:123456``
+accession number                                              ``#database:id`` or ``#id``
 fusion of ``feature1`` and ``feature2``                       ``feature1:feature2``
 insertion of two fused features                               ``+feature1:feature2``
 insertion of a list of features or fusions                    ``+{..insertables}``
-phenotype: wild-type                                          ``phene+`` or ``phene(wild-type)``
-phenotype: mutant                                             ``phene-`` or ``phene(mutant)``
-selection marker: used (wild-type)                            ``marker+``
-selection marker: available (mutant)                          ``marker-``
-a non-integrated plasmid                                      ``(plasmid)``, ``(plasmid ...insertables)``, ``plasmid{}`` or ``plasmid{...insertables}``
-plasmid with single selection marker                          ``(plasmid ...insertables)::marker+``
-plasmid with multiple selection markers                       ``(plasmid ...insertables)::{markerA+ markerB+}``
+fusion of a list and a feature                                ``{..insertables}:feature``
+a non-integrated plasmid                                      ``(plasmid)`` or ``(plasmid ...insertables)``
 integrated plasmid vector with required insertion site        ``site>(vector ..insertables)``
-genomic nucleotide range of a ``feature``                     ``feature[g.startBase_endBase]``
 ============================================================= ==================================
 
 
@@ -74,52 +73,41 @@ In this example, we parse `"EcGeneA ΔsiteA::promoterB:EcGeneB ΔgeneC"` and `"�
 
 .. code-block:: python
 
-   >>> from gnomic import *
-   >>> g1 = Genotype.parse('+Ec/geneA siteA>P.promoterB:Ec/geneB -geneC')
+   >>> from gnomic import Genotype
+   >>> g1 = Genotype.parse('+Ec/geneA(variant) siteA>P.promoterB:Ec/geneB -geneC')
    >>> g1.added_features
-   (Feature(organism=Organism('Escherichia coli'), name='geneB'),
-    Feature(organism=Organism('Escherichia coli'), name='geneA'),
-    Feature(type=Type('promoter'), name='promoterB'))
+   {Feature(organism=Organism('Ec'), name='geneA', variant=('variant',)),
+    Feature(organism=Organism('Ec'), name='geneB'),
+    Feature(type='P', name='promoterB')}
    >>> g1.removed_features
-   (Feature(name='geneC'),
-    Feature(name='siteA'))
-   >>> g1.raw
-   (Mutation(new=FeatureTree(Feature(organism=Organism('Escherichia coli'), name='geneA'))),
-    Mutation(old=FeatureTree(Feature(name='siteA')),
-             new=FeatureTree(Fusion(Feature(type=Type('promoter'), name='promoterB'),
-                                    Feature(organism=Organism('Escherichia coli'), name='geneB')))),
-    Mutation(old=FeatureTree(Feature(name='geneC'))))
-   >>>
+   {Feature(name='geneC'),
+    Feature(name='siteA')}
+
    >>> g2 = Genotype.parse('-geneA', parent=g1)
    >>> g2.added_features
-   (Feature(type=Type('promoter'), name='promoterB'),
-    Feature(name='geneB', organism=Organism('Escherichia coli')))
+   {Feature(type='P', name='promoterB'),
+    Feature(name='geneB', organism='Ec')}
    >>> g2.removed_features
-   (Feature(name='siteA'),
-    Feature(name='geneC'),
-    Feature(name='geneA'))
+   {Feature(name='siteA'),
+    Feature(name='geneC')}
     >>> g2.changes()
-    {Mutation(old=FeatureTree(Feature(name='siteA'))),
-     Mutation(new=FeatureTree(Feature(name='promoterB', type=Type('promoter')))),
-     Mutation(new=FeatureTree(Feature(organism=Organism('Escherichia coli'), name='geneB'))),
-     Mutation(old=FeatureTree(Feature(name='geneC'))),
-     Mutation(old=FeatureTree(Feature(name='geneA')))}
-    >>> g2.changes(fusions=True)
-    {Mutation(old=FeatureTree(Feature(name='siteA'))),
-     Mutation(new=FeatureTree(Fusion(Feature(name='promoterB', type=Type('promoter')),
-                                     Feature(organism=Organism('Escherichia coli'), name='geneB')))),
-     Mutation(old=FeatureTree(Feature(name='geneC'))),
-     Mutation(old=FeatureTree(Feature(name='geneA')))}
+    (Change(multiple=False,
+            after=Fusion(annotations=(Feature(type='P', name='promoterB'), Feature(organism='Ec', name='geneB'))),
+            before=Feature(name='siteA')),
+     Change(multiple=False, before=Feature(name='geneC')))
+
+    >>> g2.format()
+    'ΔsiteA P.promoterB:Ec/geneB ΔgeneC'
 
 
 Development
 -----------
 
-To rebuild the gnomic parser using `grako`, run:
+To rebuild the gnomic parser using `grako` (version 3.18.1), run:
 
 ::
 
-    grako genotype.enbf -o gnomic/grammar.py -m Gnomic
+    grako gnomic-grammar/genotype.enbf -o gnomic/grammar.py -m Gnomic
     
 References
 -----------

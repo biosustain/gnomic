@@ -1,35 +1,16 @@
-from gnomic.models import Mutation, Fusion, Plasmid, Feature, Organism, Accession, Type, FeatureTree, Range, FeatureSet
 from gnomic.grammar import GnomicSemantics
+from gnomic.types import Fusion, Feature, Plasmid, Change, Accession, AtLocus, CompositeAnnotation
 
 
 class DefaultSemantics(GnomicSemantics):
-    def __init__(self,
-                 organisms=None,
-                 types=None):
-        self._organisms = {} if organisms is None else Organism.map(organisms)
-        self._types = {} if types is None else Type.map(types)
-
     def FUSION(self, ast):
         return Fusion(*ast)
 
     def FEATURE_FUSION(self, ast):
         return Fusion(*ast)
 
-    def FEATURE_SET(self, ast):
-        return FeatureSet(*ast)
-
-    def ORGANISM(self, name):
-        try:
-            return self._organisms[name]
-        except KeyError:
-            self._organisms[name] = organism = Organism(name)
-            return organism
-
-    def BINARY_VARIANT(self, variant):
-        if variant == '+':
-            return 'wild-type'
-        else:
-            return 'mutant'
+    def COMPOSITE_ANNOTATION(self, ast):
+        return CompositeAnnotation(*ast)
 
     def DNA_SEQUENCE_VARIANT(self, ast):
         return ''.join(map(str, ast))
@@ -43,59 +24,44 @@ class DefaultSemantics(GnomicSemantics):
     def SEQUENCE_VARIANT(self, ast):
         return ''.join(ast)
 
-    def insertion(self, ast):
-        return Mutation(None, ast.new, markers=ast.markers)
+    def INSERTION(self, ast):
+        return Change(after=ast.after)
 
-    def replacement(self, ast):
-        return Mutation(ast.old,
-                        ast.new,
-                        markers=ast.markers,
-                        multiple=ast.op == '>>')
+    def REPLACEMENT(self, ast):
+        return Change(before=ast.before, after=ast.after, multiple=ast.op == '>>')
 
-    def deletion(self, ast):
-        return Mutation(ast.old, None, markers=ast.markers)
-
-    def RANGE(self, ast):
-        level = {
-            'c': 'coding',
-            'r': 'RNA',
-            'p': 'protein'
-        }[ast.level]
-
-        if ast.pos:
-            return Range(level, ast.pos, ast.pos)
-        return Range(level, ast.start, ast.end)
+    def DELETION(self, ast):
+        return Change(before=ast.before)
 
     def INTEGER(self, ast):
         return int(ast)
 
-    def ACCESSION(self, ast):
-        return Accession(ast['id'], ast['db'])
+    def CHANGE(self, ast):
+        if isinstance(ast, (Plasmid, Feature)):
+            return Change(after=ast)
+        return ast
 
     def PLASMID(self, ast):
-        return Plasmid(ast.name, ast.contents, markers=ast.markers)
+        return Plasmid(ast.name, ast.annotations or ())
 
     def PHENE(self, ast):
-        return self.FEATURE(ast, default_type='phene')
+        return self.FEATURE(ast)
 
-    def FEATURE(self, ast, default_type=None):
-        if ast.type or default_type:
-            name = ast.type or default_type
-            try:
-                type = self._types[name]
-            except KeyError:
-                self._types[name] = type = Type(name)
-        else:
-            type = None
-
-        return Feature(ast.name, type,
+    def FEATURE(self, ast):
+        return Feature(ast.name,
+                       ast.type,
                        accession=ast.accession,
                        organism=ast.organism,
-                       variant=', '.join(ast.variant) if isinstance(ast.variant, list) else ast.variant,
-                       range=ast.range)
+                       variant=tuple(ast.variant) if ast.variant else None)
 
     def NUCLEOTIDE_SEQUENCE(self, ast):
         return ''.join(ast)
 
     def AMINO_ACID_SEQUENCE(self, ast):
         return ''.join(ast)
+
+    def ACCESSION(self, ast):
+        return Accession(ast.id, ast.db)
+
+    def ANNOTATION_AT_LOCUS(self, ast):
+        return AtLocus(ast.annotation, ast.locus)

@@ -5,21 +5,21 @@ from setuptools import setup, find_packages
 
 setup(
     name='gnomic',
-    version='0.7.0',
+    version='1.0.0',
     packages=find_packages(exclude=['*tests*']),
     license='Apache',
     author='Lars Schöning',
     author_email='lays@biosustain.dtu.dk',
     description='A grammar for describing microbial genotypes and phenotypes',
     long_description=codecs.open('README.rst', encoding='utf-8').read(),
-    test_suite='nose.collector',
-    tests_require=['nose'],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
     install_requires=[
         'grako==3.18.1',
         'six>=1.8.0'
     ],
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Other Environment',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',

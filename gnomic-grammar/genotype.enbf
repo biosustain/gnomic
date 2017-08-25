@@ -1,0 +1,77 @@
+@@whitespace :: /[\t ]+/
+#include :: "sequence-variant.enbf"
+#include :: "variable-variant.enbf"
+
+start =
+    [SEP] (@+:CHANGE {LIST_SEPARATOR @+:CHANGE}* | {}) [SEP] $;
+
+CHANGE = INSERTION | REPLACEMENT | DELETION | PLASMID | PHENE;
+
+INSERTION
+    = "+" after:ANNOTATION;
+
+REPLACEMENT
+    = before:(ANNOTATION_AT_LOCUS | ANNOTATION) op:">" after:(PLASMID | ANNOTATION)
+    | before:(ANNOTATION_AT_LOCUS | ANNOTATION) op:">>" after:(PLASMID | ANNOTATION);
+
+DELETION
+    = "-" before:(PLASMID | ANNOTATION_AT_LOCUS | ANNOTATION);
+    (* NOTE consider also multiple deletion "--" *)
+
+PLASMID
+    = "(" name:IDENTIFIER SEP annotations:ANNOTATIONS ")"
+    | "(" name:IDENTIFIER ")";
+
+ANNOTATION_AT_LOCUS
+    = annotation:ANNOTATION "@" locus:FEATURE;
+
+ANNOTATION
+    = FUSION | FEATURE | COMPOSITE_ANNOTATION;
+
+ANNOTATIONS
+    = [SEP] @+:(FEATURE_FUSION | FEATURE) {LIST_SEPARATOR @+:(FEATURE_FUSION | FEATURE)}* [SEP];
+
+COMPOSITE_ANNOTATION
+    = "{" @:ANNOTATIONS "}";
+
+FUSION
+    = @+:(COMPOSITE_ANNOTATION | FEATURE) {":" @+:(COMPOSITE_ANNOTATION | FEATURE)}+;
+
+FEATURE_FUSION
+    = @+:FEATURE {":" @+:FEATURE}+;
+
+FEATURE
+    = [organism:FEATURE_ORGANISM] [type:IDENTIFIER "."] name:IDENTIFIER [accession:ACCESSION] [variant:FEATURE_VARIANT]
+    | accession:ACCESSION [variant:FEATURE_VARIANT];
+
+PHENE
+    = [organism:FEATURE_ORGANISM] [type:IDENTIFIER "."] name:IDENTIFIER [accession:ACCESSION] variant:FEATURE_VARIANT
+    | accession:ACCESSION variant:FEATURE_VARIANT;
+
+
+FEATURE_ORGANISM = @:ORGANISM_IDENTIFIER "/";
+
+ORGANISM_IDENTIFIER = /[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)?/;
+
+(* NOTE ACCESSION with its optional ":" can be ambiguous when it is used within a fusion and the IDENTIFIER is not numeric.
+   In these cases, a DATABASE should be specified. *)
+ACCESSION
+    = "#" db:DATABASE ":" id:(INTEGER | IDENTIFIER)
+    | "#" id:(INTEGER | IDENTIFIER);
+
+DATABASE = /[A-Za-z0-9-][A-Za-z0-9]+/;
+
+INTEGER = @:/[0-9]+/;
+
+FEATURE_VARIANT = "(" @+:VARIANT {("," | ";") [SEP] @+:VARIANT}* ")";
+
+VARIANT
+    = (VARIABLE_VARIANT | SEQUENCE_VARIANT | VARIANT_IDENTIFIER);
+
+VARIANT_IDENTIFIER = /[A-Za-z0-9]+([A-Za-z0-9_\-]+[A-Za-z0-9])?/;
+
+IDENTIFIER = /[a-zA-Z0-9]+([A-Za-z0-9_-]+[A-Za-z0-9])?/;
+
+LIST_SEPARATOR = (SEP | "," [SEP]);
+
+SEP = /[\t ]+/;
