@@ -13,8 +13,6 @@ Python package contains a parser for the Gnomic grammar able to interpret change
 The first formal guidelines for microbial genetic nomenclature were drawn up in the 1960s. These traditional nomenclatures are too
 ambiguous to be useful for modern computer-assisted genome engineering. The *gnomic* grammar is an improvement over existing nomenclatures, designed to be clear, unambiguous, computer–readable and describe genotypes at various levels of detail.
 
-A JavaScript (Node) version of the package is available on NPM as `gnomic-grammar <https://www.npmjs.com/package/gnomic-grammar>`_.
-
 Installation
 ------------
 
