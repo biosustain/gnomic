@@ -76,8 +76,8 @@ In this example, we parse `"EcGeneA ΔsiteA::promoterB:EcGeneB ΔgeneC"` and `"�
    >>> from gnomic import Genotype
    >>> g1 = Genotype.parse('+Ec/geneA(variant) siteA>P.promoterB:Ec/geneB -geneC')
    >>> g1.added_features
-   {Feature(organism=Organism('Ec'), name='geneA', variant=('variant',)),
-    Feature(organism=Organism('Ec'), name='geneB'),
+   {Feature(organism='Ec', name='geneA', variant=('variant',)),
+    Feature(organism='Ec', name='geneB'),
     Feature(type='P', name='promoterB')}
    >>> g1.removed_features
    {Feature(name='geneC'),
@@ -97,7 +97,7 @@ In this example, we parse `"EcGeneA ΔsiteA::promoterB:EcGeneB ΔgeneC"` and `"�
      Change(multiple=False, before=Feature(name='geneC')))
 
     >>> g2.format()
-    'ΔsiteA P.promoterB:Ec/geneB ΔgeneC'
+    'ΔsiteA→P.promoterB:Ec/geneB ΔgeneC'
 
 
 Development
