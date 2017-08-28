@@ -37,7 +37,7 @@ class DefaultSemantics(GnomicSemantics):
         return int(ast)
 
     def CHANGE(self, ast):
-        if isinstance(ast, (Plasmid, Feature)):
+        if isinstance(ast, Plasmid):
             return Change(after=ast)
         return ast
 
@@ -45,7 +45,7 @@ class DefaultSemantics(GnomicSemantics):
         return Plasmid(ast.name, ast.annotations or ())
 
     def PHENE(self, ast):
-        return self.FEATURE(ast)
+        return Change(after=self.FEATURE(ast), multiple=True)
 
     def FEATURE(self, ast):
         return Feature(ast.name,

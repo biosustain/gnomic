@@ -23,7 +23,7 @@ def test_parse_deletions(parse):
 
 def test_parse_insertions(parse):
     assert [Change(after=Feature('foo'))] == parse('+foo')
-    assert [Change(after=Feature('foo', variant=('variant', )))] == parse('foo(variant)')
+    assert [Change(after=Feature('foo', variant=('variant', )), multiple=True)] == parse('foo(variant)')
 
 
 def test_parse_replacements(parse):

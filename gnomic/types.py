@@ -30,7 +30,7 @@ class Change(object):
     def is_presence(self):
         if self.before is None and isinstance(self.after, Plasmid):
             return True
-        return self.before and self.after and self.before.match(self.after)
+        return self.before and self.after and self.before.match(self.after, match_variants=False)
 
     def __eq__(self, other):
         return isinstance(other, Change) and \

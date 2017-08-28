@@ -44,7 +44,10 @@ def test_change_gnomic_format(gnomic_formatter):
     assert gnomic_formatter.format_change(Change(before=Feature('foo'),
                                                  after=Feature('foo', variant=['x']))) == 'foo(x)'
     assert gnomic_formatter.format_change(Change(before=Feature('foo', variant=['x']),
-                                                 after=Feature('foo', variant=['y']))) == 'foo(x)>foo(y)'
+                                                 after=Feature('foo', variant=['y']))) == 'foo(y)'
+    assert gnomic_formatter.format_change(Change(before=AtLocus(Feature('foo', variant=['x']),
+                                                                Feature('f')),
+                                                 after=Feature('foo', variant=['y']))) == 'foo(x)@f>foo(y)'
 
 
 def test_fusion_gnomic_format(gnomic_formatter):
