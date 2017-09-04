@@ -114,5 +114,6 @@ References
 - `Journal of Bacteriology — Instructions to Authors <http://jb.asm.org/site/misc/journal-ita_nom.xhtml#03>`_
 - `Human Genome Variation Society — Sequence Variant Nomenclature <http://varnomen.hgvs.org/>`_
 - `Databases cross-referenced in UniProtKB <http://www.uniprot.org/docs/dbxref>`_
+- `MIRIAM Registry <http://www.ebi.ac.uk/miriam/main/mdb?section=intro>`_
 
 
